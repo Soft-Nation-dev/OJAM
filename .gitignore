@@ -40,4 +40,10 @@ app-example
 
 # generated native folders
 /ios
-/android
+
+# Track Android native project files (needed for custom native/EAS builds)
+# but ignore generated/build artifacts.
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
