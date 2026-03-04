@@ -185,3 +185,43 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+def releaseJavaClassDirs = [
+    "$buildDir/intermediates/javac/release/compileReleaseJavaWithJavac/classes",
+    "$buildDir/intermediates/javac/release/classes"
+]
+
+tasks.register("verifyReleaseEntryClasses") {
+    dependsOn "compileReleaseJavaWithJavac"
+    doLast {
+        def requiredClasses = [
+            "com/softnation/ojam/MainApplication.class",
+            "com/softnation/ojam/MainActivity.class"
+        ]
+
+        def found = [:]
+        requiredClasses.each { cls -> found[cls] = false }
+
+        releaseJavaClassDirs.each { dirPath ->
+            def dirFile = file(dirPath)
+            if (dirFile.exists()) {
+                requiredClasses.each { cls ->
+                    if (!found[cls] && file("$dirPath/$cls").exists()) {
+                        found[cls] = true
+                    }
+                }
+            }
+        }
+
+        def missing = requiredClasses.findAll { !found[it] }
+        if (!missing.isEmpty()) {
+            throw new GradleException("Missing compiled release entry class(es): ${missing}. Checked: ${releaseJavaClassDirs}")
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name == "assembleRelease") {
+        dependsOn "verifyReleaseEntryClasses"
+    }
+}
