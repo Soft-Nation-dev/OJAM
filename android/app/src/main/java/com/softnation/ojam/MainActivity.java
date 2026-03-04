@@ -5,7 +5,6 @@ import android.os.Bundle;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
 
 import expo.modules.ReactActivityDelegateWrapper;
@@ -14,7 +13,7 @@ import expo.modules.splashscreen.SplashScreenManager;
 public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    SplashScreenManager.registerOnActivity(this);
+    SplashScreenManager.INSTANCE.registerOnActivity(this);
     super.onCreate(null);
   }
 
@@ -31,7 +30,7 @@ public class MainActivity extends ReactActivity {
         new DefaultReactActivityDelegate(
             this,
             getMainComponentName(),
-            DefaultNewArchitectureEntryPoint.fabricEnabled
+            false
         )
     );
   }

@@ -9,8 +9,6 @@ import com.facebook.react.ReactHost;
 import com.facebook.react.ReactNativeApplicationEntryPoint;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
-import com.facebook.react.common.ReleaseLevel;
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
 
 import java.util.List;
@@ -58,13 +56,6 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
-    try {
-      DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.valueOf(
-          BuildConfig.REACT_NATIVE_RELEASE_LEVEL.toUpperCase()
-      );
-    } catch (IllegalArgumentException exception) {
-      DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.STABLE;
-    }
     ReactNativeApplicationEntryPoint.loadReactNative(this);
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }
