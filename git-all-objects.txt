@@ -1,0 +1,735 @@
+﻿commit beff7e2264f3d33fc92b2902db23fbc75c5e60e8 266 
+commit 648af634caffbdefb73ad385aeee86ceeb887303 328 
+commit c0d47a0ec8e0d37bf8415668f119565eb6102148 286 
+commit e90718026c4bf22ff57e1346ddaa3cc5b9a791a7 287 
+commit 33ac91e77eea4976d7906748c50f475a4df38e82 285 
+commit a8a3e1e7d184f7c16b544189d17b75147aad5ef6 280 
+commit 30e2dcb5724575b6ded6b9b3c296da8b21a607d6 240 
+tree fa48b04c534e8e8246b0f21674eab8bab90875c2 1574 
+blob 17ac66839a5e026bddad43ab7c71582005770e44 685 .easignore
+blob 1d7ae109febc82602577cf24688d12f1a9d8b9a6 635 .gitignore
+tree f2f2b38f1d74bafb2515ed49fde52509150ceb4a 122 .vscode
+blob b7ed83779759a0a1e6cf2d181f45fe6b67be47dc 50 .vscode/extensions.json
+blob e2798e4264cbbbf1806ebf8f1ab263c009458ff9 152 .vscode/settings.json
+blob 1aef2471dec2a01cc83243a7e0f8cb772d6a37a5 238 .vscode/tasks.json
+tree 5e88b38a2dae12fb102f56496085df6be862a191 7255 OJAM
+blob 86e11400852d95487cf5612bc6465da27247d36e 27243673 OJAM/(POWERFUL)_BURN_THE_WORLD_-_Evangelist_Lawrence_Oyor.mp3
+blob 7fdf6cf7d45af884199900e07946b349e06cd72b 62391728 OJAM/BREAKTHROUGH PT 8.mp3
+blob 390c38e5e0e8e3596fabeed1e90accffb935a6bb 60349292 OJAM/BREAKTHROUGH PT. 5..mp3
+blob 5df77ba8ea64156628ad20ce666943b8dec257b2 77967414 OJAM/BREAKTHROUGH PT.10..mp3
+blob ac0aac89938a0828da355c4843b74cdbc70b8842 46911892 OJAM/BREAKTHROUGH PT.2.mp3
+blob bc0c5d42e0fc4161d0c7438cee7b39bf59c465be 40710026 OJAM/BREAKTHROUGH PT.3.mp3
+blob 9a0f998790c17265b1d747467f61a74286d4c97b 28180994 OJAM/BREAKTHROUGH PT.4.mp3
+blob 1afc179f1cf56208fae19867013b612617b8b13c 54339122 OJAM/BREAKTHROUGH PT.7.mp3
+blob e3ef21de873aa301be5ba4c79d29cd49bd8dd0f0 48920131 OJAM/BREAKTHROUGH PT.9.mp3
+blob 9da3affc9c7ea21db5d6c8d2948f1cd42b2ce960 60609536 OJAM/BREAKTHROUGH.mp3
+blob bd12d99be10fd7f52c4eb85d1c76cfa6a2b9de05 49940350 OJAM/COMMANDING AUGUST 2025.mp3
+blob b746c6b94076911715f407a37a4022970f6496f5 81096604 OJAM/DANGERS OF PRAYERLESSNESS PT 2.mp3
+blob b1f5691f335736a6b65c51525462e8ce3107d325 92528046 OJAM/DANGERS OF PRAYERLESSNESS PT.3.mp3
+blob db159d4399ae3dc10c98b32a66cb9a56a27c10f3 70392401 OJAM/DANGERS OF PRAYERLESSNESS PT.4.mp3
+blob 4acce1c52b74b8bd31786cc7214cb31eca60c1c0 73385900 OJAM/DANGERS OF PRAYERLESSNESS.mp3
+blob d59ea361a30601dbdb42956dbd22ff6714f23aca 2345126 OJAM/DECLARATIONS [22-07-2025].mp3
+blob 208d6317503d63700f2b467807d5000f5dba4338 4050113 OJAM/DECLARATIONS! [15-07-2025].mp3
+blob 685e2dbc6f44f38be5cc5bc05e066f7b70794246 2592146 OJAM/DECLERATIONS [1_09_2025].mp3
+blob 0d8482e9c9d036ad1bc81871d6ecf66852e32d08 54850265 OJAM/ENDING WITH GOD PART B BY PST. OLUCHI JAPHAT ANIAGWU (1).mp3
+blob 11eeaad61e9c8c58867a1a7b973a859d7d9aa065 112690333 OJAM/EXAM AFTER EXAM [EAE].mp3
+blob dbae5b3a73c14d437c9a4145cf475d47039dfde9 52055540 OJAM/GO AND DO GOOD PT.1.mp3
+blob 12686ad24eb8f4a5ab361c3b64e5d489b7ad3a8a 74881993 OJAM/GO AND DO GOOD PT.2.mp3
+blob e0c436ad98290bae99342da55086f49e1e6c2425 57669114 OJAM/HOW TO ACTIVATE THE POWER TO RAISE PT.2.mp3
+blob 01f94bfa7b6675397c062a2e016e6e16281da502 50837551 OJAM/IMAGINATION PT. 11.mp3
+blob b758be9ae1edcd808e058ed2264e7461c96e1101 49733127 OJAM/IMAGINATION PT. 12 .mp3
+blob 640582339c6946f67019d8487c9b642535101974 58682162 OJAM/IMAGINATION PT.10.mp3
+blob d442a6b98fb4a497d43ab098f0760822fb3e139a 58929539 OJAM/IMAGINATION PT.13.mp3
+blob 4925db6b5c6313ba4d5cc9b65c9f703cbd81ef05 138497853 OJAM/IMAGINATION PT.14 B BY OLUCHI JAPHAT ANIAGWU..mp3
+blob 0b3997a605307a2c6dc62b7bcd1e1ed907425fad 112193812 OJAM/IMAGINATION PT.16.mp3
+blob 35449046da604182c286646a84fce357bb2ed863 69353058 OJAM/IMAGINATION PT.4..mp3
+blob da7d6a0eff7da726f6019f34a10c942086599e3e 72722585 OJAM/IMAGINATION PT.6.mp3
+blob 68adf8e8a4dc9d342b614c08964d91775e41f9c9 74770547 OJAM/IMAGINATION PT.7.mp3
+blob f71c8aff44676b9f91c0f25b005304c4e897bc44 81442628 OJAM/IMAGINATION PT.8 BY OLUCHI JAPHAT ANIAGWU..mp3
+blob 9e0babc18b139482994f10fb215920cab533081a 96365224 OJAM/IMAGINATION PT.9.mp3
+blob 4b6e5fd7662d610a6bacea1bbb3c07acf199566c 110374988 OJAM/IN THE YEAR 2026 PT12.mp3
+blob b2597ebcbf98d98bc79aec5b7a18e1871d5b262c 98062843 OJAM/IN THE YEAR, 2026 PT.2.mp3
+blob ee7c09ef9b926b91e9f263c34a51e3f864fbe312 95448972 OJAM/IN THE YEAR, 2026 PT.3.mp3
+blob 01a8a78a220e0aa8bb3e85519577304f2ffbe4e1 118050513 OJAM/IN THE YEAR, 2026 PT.4.mp3
+blob 3d21d4376e20c2dfe369af4cc3bbccaec6c32766 63077971 OJAM/IN THE YEAR, 2026 PT.5.mp3
+blob 12650f371683d5bb69d37d740b3c084d0b0d144e 97297118 OJAM/IN THE YEAR, 2026 PT.6.mp3
+blob cf551f3143845344b5bbaf5abdf761f2d09d2a9d 94924498 OJAM/IN THE YEAR, 2026 PT.8.mp3
+blob 9841f69c215e5c15562dbd6a503e9ced86e9eb54 89823308 OJAM/IN THE YEAR, 2026 PT10.mp3
+blob c847c176a32f4e7917403a2e189aac4e530f83bb 90226247 OJAM/IN THE YEAR, 2026 PT7.mp3
+blob 4b02d23cbb21b0f92d61536c0862ac80796bc877 57800589 OJAM/IN THE YEAR, 2026 PT9.mp3
+blob 7316d884a2a428363c461b2fa018894249d477a1 11463437 OJAM/IN THE YEAR, 2026.mp3
+blob 6a1121409d5f169f492b5f5561089130089b6c59 45272597 OJAM/ISAIAH MUST SEE THE LORD .mp3
+blob 51ba1692f9c6c643d44a2a6692a2799c32507d35 64651344 OJAM/ISAIAH MUST SEE THE LORD.mp3
+blob e81aa295675662ff778a936afb1444354f258d63 22392665 OJAM/JESUS CAME TO SAVE PT.2.mp3
+blob ce429d21ddc6f79d3897ab79d42de95baca3abf4 82100434 OJAM/JESUS CAME TO SAVE..mp3
+blob 9ae4e0167ef5f74899b7869f72da1035f506626e 81841608 OJAM/KINDS OF POWER PT.10.mp3
+blob ce8f1950a12e679816fc830b3a8193f26fdd3d5a 44616371 OJAM/KINDS OF POWER PT.5.mp3
+blob 40a5711571a8c4d68224349430bac1efbf62c7d9 74782157 OJAM/KINDS OF POWER PT.6.mp3
+blob 7599eff0fab44803ac1f8824ee4401919520cf3c 22392770 OJAM/KINDS OF POWER PT.7.mp3
+blob 7e306fcce6bc1b22521363f4fc98f8a484e37c9e 70882157 OJAM/KINDS OF POWER PT.8.mp3
+blob 6bbe6fa8fcbcd395994a4a193c4fa1f4d8866a7d 44553772 OJAM/KINDS OF POWER PT.9.mp3
+blob 858fd0b49acc20c5fb126e258f89c6cb4396781f 75939463 OJAM/Kinds of power part 11_141155451.mp3
+blob 73f7915f0f4a15a6ace6d9e3e72d04e2dcee54e9 98687256 OJAM/LIVING FOR GOD PT.2.mp3
+blob db62d5e48e76a2ac3f8d36e77b0ac3160ed41ac6 56720012 OJAM/LIVING FOR GOD PT.3.mp3
+blob 2cba63aedf8549a639ab5cfceffd61bc216e2037 90709433 OJAM/LIVING FOR GOD PT4.mp3
+blob 0fdd4b9585eb0581885533fb88878afdb668d9b0 77303396 OJAM/LOOK AND SEE SUPERNATURALLY PT.2.mp3
+blob 7232942857c57270f065573118e7e4889cfffd99 39615759 OJAM/LSTS QUESTION AND ANSWER SESSION.mp3
+blob af331e173dc920ac175d1a320ea9c69eca923742 109993984 OJAM/Living For God _005358405.mp3
+blob f94d36f94f7a7edbf4f5d34ee8362bbe47bc5fdc 63502767 OJAM/POWER TO HEAL..mp3
+blob 0c5c17ac20e9e17d50f2b6c0b88ad8428c97cf3d 41670421 OJAM/POWER TO PREACH..mp3
+blob 4f89fadf87aaad9f8ba9ae5a30abbf2849257705 48545740 OJAM/POWER TO RAISE PT2.mp3
+blob 67c1227d1890d2a53a864ab404bef91f93411f0a 119922498 OJAM/POWER TO RAISE..mp3
+blob 3d5a9261598f5f43d2861daba0dac9c143f21d0f 15873389 OJAM/PRAISE SESSION [15_06_2025].mp3
+blob 11a933100a449a4c4aff839f0218767360ea0ccd 30840435 OJAM/PRAISES [15-07-2025].mp3
+blob 7ffbeed73b143d646460c2ee8471c3479c56ec72 10982814 OJAM/PRAISES [29_06_2025].mp3
+blob a1792c3aab259d9b2cafd43abbaae209e87aacd4 97450213 OJAM/PRAYER (06-07-2025).mp3
+blob 239a9a3632a6ce0df912f61c5ef89fea46cddc41 9742399 OJAM/PRAYER SESSION -20_02_2026.mp3
+blob cb89a591f043a294ac3f394925362974c7e57664 16869076 OJAM/PRAYER SESSION [17_06_2025].mp3
+blob b4474f977eaa16ef2f292e4eacbebe628fef4d76 20529571 OJAM/PRAYER SESSION [1_09_2025].mp3
+blob 2d2fdf478d8634381da9522189106cddd5f9b792 5890750 OJAM/PRAYER SESSION- 5_12_2025.m4a
+blob 5ff54f334581bf1684eda0e0557f7cc2715bbe93 16724717 OJAM/PRAYER SESSION- THE STRETCHED HAND OF GOD DAY TWO.mp3
+blob 0b00428044152cc82d79b442f2f71ba17171f30c 85811362 OJAM/PRAYER SESSION- [16_09_2025].mp3
+blob b089af9b99480ee23526b024d3f83672c15af4e8 5975511 OJAM/PRAYERS - COMMANDING AUGUST 2025.mp3
+blob 5f93db1ec9bc27bac617ff42427c9e30d8234cd0 12935064 OJAM/PRAYERS 29_06_2025..mp3
+blob 51d1a7ba5d31ccfb3efc836d495bae674a48dd81 11592314 OJAM/PRAYERS [13_06_2025].mp3
+blob f8c21718847edd7829738a56261529c85b46da7d 4384129 OJAM/PROPHETIC DECELERATIONS [20_01_2026].mp3
+blob 9bfd68a12cbdee2ab84e84e51b0ad82c691df278 3298882 OJAM/PROPHETIC DECLERATIONS FOR YEAR 2026.mp3
+blob d970545f822cbeea148eefbcd88da0c0fdf96abc 5042228 OJAM/Q & A SESSION [13_06_2025].mp3
+blob 82b87d0017c15c28e0cc43b81a2598ee38ae4e27 28632429 OJAM/Q & A SESSION [5_12_2025].mp3
+blob 61d172987cfa70659a04cd5546e61721291c557b 67055301 OJAM/REMAINING SIX DAYS PT2.mp3
+blob c6e673f7163e6e4a053835ca5da9c9ee1dc88c8e 65448933 OJAM/REMAINING SIX DAYS.mp3
+blob f4fe0373f541cbe89725d7fedde1299023e360cb 41005238 OJAM/SENDING MISSILE SERVICE PT.1.mp3
+blob 250ecf20dc5c4a389f1d39d2cf93ffea2364c220 57219396 OJAM/SENDING MISSILE SERVICE PT.2.mp3
+blob 0d36bc548c9fb2c0286d2622a86cddfe6d380d54 37038084 OJAM/THANKSGIVING SERVICE..mp3
+blob b6a8e0fc879ed6c0af8833bfb6ac6f2815f11abf 87418556 OJAM/THE DEVIL IS TOO LITTLE PT. 5 BY OLUCHI JAPHAT ANIAGWU..mp3
+blob 2cdaf2139faadbc62cfee3dbcd367c7988e7e13f 78949417 OJAM/THE DEVIL IS TOO LITTLE PT.6.mp3
+blob 95005feee7b6ed63d09e84dadc5eeb2e95d263cf 88904127 OJAM/THE DEVIL IS TOO LITTLE PT.7 .mp3
+blob 715a1b5bf9bc7b4d5bc3c4498a166e4dd2f2ae0c 8562917 OJAM/THE PRAYER THAT OPENS 1.mp3
+blob 02801729cd96fd8a4a26284013da17ce4aa149dd 55974823 OJAM/THE PRAYER THAT OPENS 2.mp3
+blob 9c18e1fa245ac9c1469a3a17d216aa0d6bdcec38 68574422 OJAM/THE PRAYER THAT OPENS DAY 4.mp3
+blob 3ca818128095c88bcbb2e4191ae09e177dedf568 69668332 OJAM/THE PRAYERTHAT OPENS 3.mp3
+blob 8d89acf00ce73041dd632809f1ff7d236a2b27be 8498247 OJAM/THE STRETCHED HAND OF GOD PT.2.mp3
+blob 4bc2cf56b76f6956405de1fda8d2be5aa9cf898a 52007751 OJAM/THE STRETCHED HAND OF GOD PT3.mp3
+blob b03ace8594ec7d675fe9f20748bafacf92f949b2 20749057 OJAM/THE STRETCHED HAND OF GOD.mp3
+blob 35dd043ddb964f86f8ff85d79f20444a5d1244c3 51049303 OJAM/TRUSTING IN THE LORD PT.1.mp3
+blob adf582ce44e375cdbb6c6d937a98f95210efcaab 77379917 OJAM/TRUSTING IN THE LORD PT.2.mp3
+blob ae664b9d8b281dd8727db66bcb9603dc7e4aee43 92008248 OJAM/UNDERSTANDING GIVING PT.10 BY OLUCHI JAPHAT ANIAGWU..mp3
+blob 2670e3e567b3b53a4ea7c07f7dfd52c6ad7e56b1 51424992 OJAM/UNDERSTANDING GIVING PT.11 BY OLUCHI JAPHAT ANIAGWU..mp3
+blob 4819551205f3c9ef3f4cb451b65f92143718c352 44363669 OJAM/UNDERSTANDING GIVING PT.11.mp3
+blob 686831459f0b8d1faabc57980da56f5165cbd375 38892476 OJAM/WHEN THERE IS POWER PT.1.mp3
+blob 820e55565e7381422fe3fbf4b270ce29c58f6c90 100907766 OJAM/WHEN THERE IS POWER PT.2.mp3
+blob 92b136a6b9631ee3783d9fb8f64364f811b3362c 46905555 OJAM/WHEN THERE IS POWER PT.3_ KINDS OF POWER..mp3
+blob eb280f104d6c623992f290a1b3bbece54a6efba5 81643084 OJAM/WHEN THERE IS POWER PT.4__.mp3
+blob a1271f0e455664c32d1fcecab2978d41ffcb4200 44815522 OJAM/WHEN YOU FAST, DELAY DROPS..mp3
+blob 6656d54231de9e0428d81b1781f0d42b63f30a38 49542381 OJAM/WHEN YOU FAST, MANIFEST..mp3
+blob 3ebbaee2a8c365cbc0ef77143f8781095f605c50 24484885 OJAM/WHEN YOU FAST, PRAY..mp3
+blob 6a653e0b4ea64efbd84b88aadc07f5222588c3a1 53755410 OJAM/WHEN YOU FAST, RESTORE..mp3
+blob 7548583826a28355254207c53fd7fe7e0f4bcc94 11436889 OJAM/WORSHIP SESSION [29-07-2025].mp3
+blob 883e59c66afffd0740944642ac632b255db01b6e 82496971 OJAM/YOU ARE A NATION PT ,6.mp3
+blob 649512e44b4c0926fba4e068f1642157096e524f 69501816 OJAM/YOU ARE A NATION PT.2.mp3
+blob 575aaad08eb289c700682e937cae2aa375ee5d7b 55186128 OJAM/YOU ARE A NATION PT.3..mp3
+blob f13c090e5a7079dcca7b6ec9d035f00f0c668e45 176784826 OJAM/YOU ARE A NATION PT.4.mp3
+blob dc22533c8e562292209e181c8cdc49fcfc395902 69428038 OJAM/YOU ARE A NATION PT.5.mp3
+blob 4262958f0713605b5d8aef054cab4ffceb3f60bc 107338252 OJAM/YOU ARE A NATION PT.mp3
+blob db8552432f0d51d258ad09466136516e781d1267 77324281 OJAM/YOU ARE A NATION.mp3
+blob 3d9126de9cce11a9eb20cb78717ae0f64d71d293 70467640 OJAM/_.IMAGINATION PT.5.mp3
+blob af095da0c1802b51c8016915813a96fd1f410906 57305416 OJAM/mel_162508461.mp3
+blob 8bc4d4cc4e4b3bebd59051ef540e0c1c18a3099a 60333733 OJAM/powerrrrr to geeeeet_200343088.mp3
+tree 1bbb0e5e1df7e8536f5c1f5ad9dd9336433ad61a 1755 OJAM/sermon-picures
+blob 2a591df738781ff1babccb40c57f575b25da71c0 113251 OJAM/sermon-picures/FB_IMG_1768761113299.jpg
+blob 561d77918e3482dcb95dfa3ce20d2d91003d3b25 146563 OJAM/sermon-picures/FB_IMG_1769020572296.jpg
+blob e6647794b10dbf5c10b0ac023b186876ecc6f988 142613 OJAM/sermon-picures/FB_IMG_1769020597451.jpg
+blob a87f1f8d97aa1f2a56f51ec82ab6b86b430a585a 130560 OJAM/sermon-picures/FB_IMG_1769020605647.jpg
+blob 1839806d8710d41755e805cda7e26acc2882d22e 92579 OJAM/sermon-picures/FB_IMG_1769020650411.jpg
+blob 4d0e31911c926ef5adb58b8097afc1483b567589 96116 OJAM/sermon-picures/FB_IMG_1769020689502.jpg
+blob 0fbaab9e9c8b6d270336b7a4f73ebf8f0538e8de 90317 OJAM/sermon-picures/FB_IMG_1769020695132.jpg
+blob aa39c4b70e035aa00adc8fe8edd2058617bd60d0 102446 OJAM/sermon-picures/FB_IMG_1769020734611.jpg
+blob 474d08ed7186ff20b614f94ab5b76498ca98e879 86590 OJAM/sermon-picures/FB_IMG_1769020740814.jpg
+blob 4865c2c60e571490d269b8ca962bf47481bf3c87 86987 OJAM/sermon-picures/FB_IMG_1769020752691.jpg
+blob 5b51e51932ce94376af64dbb7e2a5ca818dc17f0 138481 OJAM/sermon-picures/FB_IMG_1769020760047.jpg
+blob 2e6bd802c155fd2ae9dd39d0f53e6243b4731aad 31401 OJAM/sermon-picures/FB_IMG_1769020774595.jpg
+blob 17e99913a13f8c7e5fb5de8e57b8f0e9ebad7e4f 20758 OJAM/sermon-picures/FB_IMG_1769020854939.jpg
+blob 0037fc249f2734f5a989f37f2cca7994ef6e91cf 156503 OJAM/sermon-picures/FB_IMG_1769020895727.jpg
+blob cb8852ff76fe23e207919abf4a7caccd71c2811f 139333 OJAM/sermon-picures/FB_IMG_1769020898304.jpg
+blob d67497a45f70c6d45280f00cd7717d8217755518 25674 OJAM/sermon-picures/FB_IMG_1769020922079.jpg
+blob d9ee80c2bc38c6133171470cbc2671c0d53d9f13 84377 OJAM/sermon-picures/FB_IMG_1769020949897.jpg
+blob 7d35379dc6f686d0c24482a861674d5f79b7c10f 76416 OJAM/sermon-picures/FB_IMG_1769020957624.jpg
+blob c48e4aad3b0e504313de23303459195394d7fe2b 102921 OJAM/sermon-picures/FB_IMG_1769020970926.jpg
+blob 4ba0040990edd785b366998763189385181b0b22 105875 OJAM/sermon-picures/FB_IMG_1769020975899.jpg
+blob d03e038ca95db37e7287157fbafad80f733dc5ec 100323 OJAM/sermon-picures/FB_IMG_1769020988395.jpg
+blob 35694c5751f8f77a1c3182a1c118f89ce80a4621 97083 OJAM/sermon-picures/FB_IMG_1769020997756.jpg
+blob a856895c96b57c25bf1ef94a9ba4ed24eced1c05 132803 OJAM/sermon-picures/FB_IMG_1769021010720.jpg
+blob 577bb1eaa5dcc6863b19cc74acf8acef51906240 66524 OJAM/sermon-picures/FB_IMG_1769021019302.jpg
+blob 4eec41827302b0643f56715f9c54b0bd4a749965 97606 OJAM/sermon-picures/FB_IMG_1769021045198.jpg
+blob dcb267c1e028cf273c4ece729e149900408d3923 142760 OJAM/sermon-picures/FB_IMG_1769021069479.jpg
+blob 803c86f815050a7b607456f8245ea1fa3b6e471f 175643 OJAM/sermon-picures/FB_IMG_1769021082706.jpg
+blob 0f0c7946d84e4b2479877bc1a7301f28ebcafdd2 142531 OJAM/sermon-picures/FB_IMG_1769021099753.jpg
+blob a29a038a73c923b339b26b039075af77514f19af 136462 OJAM/sermon-picures/FB_IMG_1769021109748.jpg
+blob cb5f6d0898583e16b56ac9f3820b1d4d968f3e16 121404 OJAM/sermon-picures/FB_IMG_1769021129455.jpg
+blob 79c0e2bd866d250cb876a7efe2222b7cfcb8ea8b 137724 OJAM/sermon-picures/FB_IMG_1769021691916.jpg
+blob ea48f0412ee359d079317d734db20e1fb10ca1ef 140431 OJAM/sermon-picures/FB_IMG_1769021698799.jpg
+blob 9d18543e1543f25d324b73a05a6e4d2aab50c200 121404 OJAM/sermon-picures/FB_IMG_1769021712909.jpg
+blob 27fc06dbf709126f3d621ee8b8f1e3ca55c3b5f6 90617 OJAM/sermon-picures/default.jpg
+blob 0ae4d4084ae3fdeafdac213f8b9c886f9af88f00 3511 README.md
+tree 332b56e7dd250aa5450a2bd9910354561fc7100e 303 android
+blob 8a6be077181fc1c016eb71a0e426bd0525a90fea 129 android/.gitignore
+tree 2e2675efdd9ce757460010f1c65c5dc6fa3975a0 158 android/app
+blob 798d58858fdc038101c744cecdb91bac4ac22603 8226 android/app/build.gradle
+blob 364e105ed39fbfd62001429a68140672b06ec0de 2257 android/app/debug.keystore
+blob bf7d3e9ac9bcb529a5f2333136ddcd700f68dca6 4234 android/app/proguard-rules.pro
+tree 44e61a911f058d81e0561f92f22be395f5bdc6a8 104 android/app/src
+tree 5cfea61785cbcca56fd33cbaa93de5b770174026 47 android/app/src/debug
+blob 3ec2507bab7c58dda1f8467f9137b02bdbd87b50 374 android/app/src/debug/AndroidManifest.xml
+tree 0ca3ed9a0864637a2b9c9c126cd27fdb34199c27 108 android/app/src/main
+blob adc52bd495b73064b06e0fc7c2b49e1c83f08e38 2693 android/app/src/main/AndroidManifest.xml
+tree a5b3198d72a659045d26c233208042d706a90456 30 android/app/src/main/java
+tree a39856079a05dd24f200a77f6f6e4c111e75fbe7 37 android/app/src/main/java/com
+tree 656a921d362745575300d8664a337ea7b4f42e01 31 android/app/src/main/java/com/softnation
+tree 28c67352f901319d4f5ec8f499fddbe14fb6e228 93 android/app/src/main/java/com/softnation/ojam
+blob 5ceb4fe38a93d82f211b9fe734244c2cff072859 1221 android/app/src/main/java/com/softnation/ojam/MainActivity.java
+blob 0219312638a1d504ed3967e355e4f249f89b816b 1906 android/app/src/main/java/com/softnation/ojam/MainApplication.java
+tree 5624b5978f196797adb11d691e5732e0967d49ba 553 android/app/src/main/res
+tree 21e5050e20ccce4334b5e1bde0b29dc5394ea478 98 android/app/src/main/res/drawable-hdpi
+blob ade5ffffa14dce9df25d8d73ed3f0529970725ea 453 android/app/src/main/res/drawable-hdpi/notification_icon.png
+blob f45a8fe5d1f006b898d1e41114f1d6fae8b56a3d 64643 android/app/src/main/res/drawable-hdpi/splashscreen_logo.png
+tree a46232da9252ccb9250ecd3c135207b864a08baa 98 android/app/src/main/res/drawable-mdpi
+blob c815f5d0f19d61aac1ab1c9fca1ce750b8e323cc 342 android/app/src/main/res/drawable-mdpi/notification_icon.png
+blob 7bc7d5a9bc0e28749730a597d29bf814bc1eab26 32717 android/app/src/main/res/drawable-mdpi/splashscreen_logo.png
+tree 30a9ab5cb59e2aab96d88522507ee9500682060b 98 android/app/src/main/res/drawable-xhdpi
+blob 8fb0ed049032c2a1ade6c67472dd2e5abecb0ee6 579 android/app/src/main/res/drawable-xhdpi/notification_icon.png
+blob afd5bb8597e5241621f77cc33d46c8ed1c21dc26 103243 android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png
+tree e749df5b51afeb47207eaf20f658d14862d77393 98 android/app/src/main/res/drawable-xxhdpi
+blob eee442da4b534b8eb724a7791a6692c471391208 866 android/app/src/main/res/drawable-xxhdpi/notification_icon.png
+blob 7ecc38b96a3bd16a0684eb5c60d99acb8137dde1 198921 android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png
+tree 50cd714164995787e86e8d4fd3cc56173c00f8d3 98 android/app/src/main/res/drawable-xxxhdpi
+blob ce3aeab20d045fe2db190a6f651ee5be0675a246 1163 android/app/src/main/res/drawable-xxxhdpi/notification_icon.png
+blob fdf98893f9f4898cbe28352a48c31bd7b78b716c 315762 android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png
+tree 03a17127446263dafd020fa6bd2be0aab7302a55 107 android/app/src/main/res/drawable
+blob 883b2a080f3a9981ce0fdc780f34f24ede704236 245 android/app/src/main/res/drawable/ic_launcher_background.xml
+blob 5c25e728ea2ce7724bd9ef08c87ce7ee89c77103 1917 android/app/src/main/res/drawable/rn_edit_text_material.xml
+tree 1f604e2b13d57093553bb02deb24c3482b3af2da 92 android/app/src/main/res/mipmap-anydpi-v26
+blob 9764d2aa972b19a53007c1be05cb0ba746f1943d 334 android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+tree 132cf94294716121d188e07e3788a5d818e173fc 259 android/app/src/main/res/mipmap-hdpi
+blob 36413a376bbe24142c5e9d02b6d50406a328f8a5 5789 android/app/src/main/res/mipmap-hdpi/ic_launcher.webp
+blob 0a1473012e67cd2c235f24beda84d159c6037c65 22364 android/app/src/main/res/mipmap-hdpi/ic_launcher_background.webp
+blob 7a724f68b2d4d7d5f0498814dcc157626031c1e4 6553 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp
+tree 35664a7855f1da45b08f3bf4b53a1f1101dfe1e4 259 android/app/src/main/res/mipmap-mdpi
+blob 73035e18523f0bada0414359bf487b591d9d18da 3051 android/app/src/main/res/mipmap-mdpi/ic_launcher.webp
+blob a3de3c5eaa19e0b41f2f3a5443af44558c92d98b 11327 android/app/src/main/res/mipmap-mdpi/ic_launcher_background.webp
+blob 4406c62ca7ca57f41b2077b27f6b5267fb4a9379 3487 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp
+tree 1d3caeb03cf865ce9e0d62a8b4fe7c2419961384 259 android/app/src/main/res/mipmap-xhdpi
+blob 2db6d9dac6e001ce83c4e6ebcc972efbed6e21df 9246 android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp
+blob 62ce89c05504852dc89927bfbc2b75eee7c8ef81 36541 android/app/src/main/res/mipmap-xhdpi/ic_launcher_background.webp
+blob 253ca0a90887c837530d1baa36b444dde115cc7c 10375 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp
+tree 80ca3a1ed08fd11ef7663fe640240f5bff2ad586 259 android/app/src/main/res/mipmap-xxhdpi
+blob 4f048f1e8ad5a637145aaa31fb1f54790a52bef1 18415 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp
+blob f405c9bb2d94c67e94b632387dee8e80103ffa1c 71439 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_background.webp
+blob 3fececb511e0704c76b5f4ba2ea1ec3d7c9e5b6e 19850 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp
+tree 78638b5be4ac60d7d9c98c830061ba648df04f2d 259 android/app/src/main/res/mipmap-xxxhdpi
+blob 2d402bc054d6a3118e17175692a4250d8282993b 29396 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp
+blob 15f8b7362869c58a0eb6497cf028c37246c9f6cd 114359 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_background.webp
+blob 10e4041adbb911b16efe34ed386a3a03c10ec14f 31283 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp
+tree 6b04eb6c3b886a2b0065268c6376c81fe933986a 38 android/app/src/main/res/values-night
+blob 54294107ecab4eb4fc554af68fb0266be8e8d1c7 80 android/app/src/main/res/values-night/colors.xml
+tree 449f805f7e32eb325feabc510d2266b4c1bfdfae 115 android/app/src/main/res/values
+blob ccb4e0f60a1c6a661939b9f87bcd86709bfb1b3e 277 android/app/src/main/res/values/colors.xml
+blob d068f2ea5b06495a9c6f208bca228f76f4af5475 338 android/app/src/main/res/values/strings.xml
+blob 45a97e61b4b39ae2a6ee06a5e121da81a2fad8c0 818 android/app/src/main/res/values/styles.xml
+blob 0554dd156c12f9be47224be2fe763937962a4fb2 556 android/build.gradle
+blob 46da1c1aa46a172a2bd40622fd585a11e3b6bb4c 3079 android/gradle.properties
+tree 4ce72237e22e29d0267b5cbe52a3a823c2be45ef 34 android/gradle
+tree b145fe6a44da79c70aa875f1f88480afce5421d9 99 android/gradle/wrapper
+blob 1b33c55baabb587c669f562ae36f953de2481846 43764 android/gradle/wrapper/gradle-wrapper.jar
+blob d4081da476bb3ee087bb538a0bb6718958af29a4 253 android/gradle/wrapper/gradle-wrapper.properties
+blob 7f94d3d4777766bfb6d45df1d8f45c3f3dce4855 8744 android/gradlew
+blob db3a6ac207e507b0bc1635a9f2c18d3b174e682e 2843 android/gradlew.bat
+blob 83f019cd3fa516edefd3e1f60fba2f817f756e96 1257 android/settings.gradle
+blob d5b1b8fe0645360743739472557d8a0999341ba0 982 apk_compare_scan.py
+blob 3c0d4748eb88e4712c0382783a28d4b3af27c467 1860 app.json
+tree d4058e09b48cc938fe271d4e7dc4e20a61a70ab9 565 app
+tree 441db12d18830af44472173d8a6ff36d81e1b4e3 315 app/(tabs)
+blob e1f1eb7b7817f955c2824b4f3fd330190db9941d 3265 app/(tabs)/_layout.tsx
+blob 840a4617dc1a4447c1bd55d44fe1cf9a0960dcc7 5949 app/(tabs)/downloads.tsx
+blob 228b9c19d08d377ecf6dd97c48200ea92398314c 14211 app/(tabs)/explore.tsx
+blob 82a9d0ee2860d498fa9427f83b1e453219ad2731 2766 app/(tabs)/favorites.tsx
+blob 504dd52ec6e8912d7b3c45acf1de56bb4e0b6e20 14850 app/(tabs)/index.tsx
+blob b62d429f4edb2499331b79ba508623c5a11bc07c 14522 app/(tabs)/library.tsx
+blob 50d3e598c727fc7753f05803ff134e1f7df7ff18 7134 app/(tabs)/playlists.tsx
+blob b49dfa27db02d074c0d59da3a644e32374cdb9fc 14285 app/(tabs)/search.tsx
+blob c810ae0ceb5a0393ad452d39927868e555c2553d 3962 app/_layout.tsx
+blob d10e8c6b882d9a0374d198c4407247a7cb34fcb6 4676 app/about.tsx
+blob 71fd6fd18fdd05fb47867ff82dc5804ba12b4da6 12792 app/auth.tsx
+blob b5685555b05d523396a03c8b19c24ecff9c21f47 5708 app/help.tsx
+blob 6dfbc1ab957b7b533d81e9cde3977508ab15d670 703 app/modal.tsx
+blob f897032b327884ff5a366745bcda13f266941aa4 12566 app/notifications.tsx
+blob 4b303d36fcc8f068ddb43942e3cbe42c28dcf7f8 13919 app/player.tsx
+tree 487c24d855213d214b8ca84720da26940ecebd40 36 app/playlist
+blob 22707be1fb4cb6437078e32cba505268a719aca5 14788 app/playlist/[id].tsx
+blob 553deabe44ca25d5597948beb8a61291be64c186 6644 app/privacy-policy.tsx
+blob c5ebbcfa3602dc3501efa849659d59676149885f 2065 app/profile.tsx
+tree d7d2bd4c2440679d2455b1241299f72d0328b402 38 app/see-all
+blob 98fb6f00d96a43142e3566b9784a072ebda84cb8 8295 app/see-all/[type].tsx
+tree 91bb7fef56d80e7c5cad8b650fe88d57c7ee6caf 70 app/sermon
+blob da6915f321112cc7ba6532931c7043a250781d30 12431 app/sermon/[id].tsx
+tree 75e027e218ee6bcdc79e140b51652714deaf58ae 36 app/sermon/related
+blob 22bec3b040fdbe9f25154f73be4c1ae0747be7d2 4296 app/sermon/related/[id].tsx
+blob 9e279fb907420244293d78be02df593a6a8eb799 14915 app/settings.tsx
+blob 747021dbdb9fdeef70a2d7908215fac904d69c3c 2728 app/terms.tsx
+tree fb115f04d7e972ae0a8744fcecdcd662b5858024 33 assets
+tree fe6c7b72b8368d3ab943cc7d0b9a5150f1190d4e 949 assets/images
+blob c2c47827ba790e90583a9b20f67721ea4de27c98 4961 assets/images/F.jpg
+blob 7fc6700f2f03bffdd580afb03533748036788f33 6654 assets/images/F.png
+blob fbce57a6d85970d66b7d8ef3bc6878e68bfe6022 27610 assets/images/SS-removebg-preview.png
+blob b25e59db81a72a8a4aab9f96b6495f5b383a4cee 8506 assets/images/SS.jpg
+blob 169eabc9931b9cf467b6940bbd873108e6a1a7c2 4627 assets/images/T.jpg
+blob 0a13cd561a9b7fcc7d1efb37ce2877dbc45f5d58 5174 assets/images/T.png
+blob 5ffefc5bb57a3d7b39ec6ff4e96979226522cc49 17549 assets/images/android-icon-background.png
+blob 3a9e5016dca4804f37ba410ba49e70055e1ccad2 78796 assets/images/android-icon-foreground.png
+blob 77484ebdbca253297baea4a7d416233aa47a45c0 4140 assets/images/android-icon-monochrome.png
+blob e2749feb4be6c472a1b2666129c55f374d1ba6a1 60731 assets/images/black-disk.png
+blob 7a8c2ffdc2eaaf61792b39e783d16865a329d525 103637 assets/images/blue-disk.png
+blob 408bd746615785760b09e6f23fa8378d3e614331 1129 assets/images/favicon.png
+blob 7165a53c7475d846df195bc570482459d61bad67 393493 assets/images/icon.png
+blob 93308232e8757f6991e2f93c96c0676420c34073 64965 assets/images/music_disk.png
+blob 66fd9570e4fac42bca15352def191c563100b2ed 5075 assets/images/partial-react-logo.png
+blob 9d72a9ffcbb39d89709073e1a7edd8ba414932c1 6341 assets/images/react-logo.png
+blob 2229b130ad5b73fdef7d59ff544abd4cb2377bef 14225 assets/images/react-logo@2x.png
+blob a99b2032221d57c88b6c44e7e22d93ddda78e008 21252 assets/images/react-logo@3x.png
+blob 7e5612bb6712deb3fbde44f287a05c77eaf32ca9 129018 assets/images/second image.jpg
+blob 03d6f6b6c6727954aec1d8206222769afd178d8d 17547 assets/images/splash-icon.png
+blob 9ff048c94987b586195bb07bcba4b6bb1dee8500 115924 assets/images/test-background-1.jpg
+blob 7e140e0237e38f6f91efaa25170e1747625cf828 114202 assets/images/test-background-2.jpg
+blob d1b07a1975d222aba759312075ae9709f273add5 10170 buildlist_raw.txt
+blob 876d8a37c0da19d809a172b5707e294a87ac5c41 242960 compile_release_javac.log
+tree e134b1071b37af7bca31470690773b3ed50c86bf 1258 components
+blob 5f62c427739c745168cba317a2ed0cfaa9418302 3581 components/AudioQualityModal.tsx
+blob 0a4bf4fa404dc506703f8d1253778bea82693662 4027 components/CreatePlaylistModal.tsx
+blob b2887b8a50c5d34a6bdd2669ea19df6adacff648 1559 components/FavoritesModal.tsx
+blob 7eb2919d145bce6fc9a299344e358f213173e370 3316 components/PlaybackSpeedModal.tsx
+blob b86da1ec9b2e60d045b360fa588c158af0f10abe 1518 components/PlaylistModal.tsx
+blob 4b914f461e701dc69f0543d25a73434b34592b34 2166 components/ProfileModal.tsx
+blob 2077cb64cc2d761921235110e13b67ff982783dd 9739 components/SelectPlaylistMessagesModal.tsx
+blob a35c4cac283e8e8996d4258619aebb0fbdf163f6 3398 components/TextSizeModal.tsx
+blob 1c6fa2ae9e079d48077100a01cc5a9c86d35fd67 3386 components/ThemeModal.tsx
+blob df216e265764b390599ea193135bc0384e283655 3820 components/circular-seek-bar.tsx
+blob 3985302ffb0669d8fe211f4484a312ff50cde7d9 3981 components/custom-alert.tsx
+blob 087b90813ce49aea6ca4a60553f0db500522493d 4949 components/download-button.tsx
+blob 883e515a432a0231ce417c6368b9cea9341c50ba 794 components/external-link.tsx
+blob 7f3981cb940657b88f3495bb0411d00c76f83d5e 564 components/haptic-tab.tsx
+blob 5def547c2a5db1708ce1b5dcf21d7c0bda189784 405 components/hello-wave.tsx
+blob efea3498b894edeb107e3f27eba7a768a0249fbc 1915 components/latest-messages.tsx
+blob 06072ed35d2fab2b686c951bb0f1005c7619de7a 5174 components/mini-player.tsx
+blob 6f674a762a114b0906c7676eba062f722dab0023 1996 components/parallax-scroll-view.tsx
+blob 5bc9d81b7c1f6024e1753e710c8a48fef9508a7c 6178 components/playlist-card.tsx
+blob 3ebb7837aa0a82b42745e3235ad3e4010c7ef952 10509 components/queue-display.tsx
+blob 87de8bb48c073a5d8b776c25adece2b17ceb0ac4 8640 components/reminder.tsx
+blob 3b4a272f53478ba915dc868cff3f85385feeb918 3280 components/see-all-card.tsx
+blob 77a0078d99325e0102babf2c1d3b81379b82ed33 8066 components/sermon-card.tsx
+blob 656060a3f85abf6c018c7c6382d6c241ab9c05f6 8058 components/sermon-row-card.tsx
+blob f0a8609feb4d61992bdeee6da1a9d7ecd930ccda 2024 components/themed-text.tsx
+blob 6f181d826ea41908e90f5fec0aefd7332111496e 470 components/themed-view.tsx
+blob b46e0b78f02e61a2eab91924a53b44d94425fc1a 3190 components/toast.tsx
+tree 78caf4503dc5316223c63ee74810f3dcabdc0d70 216 components/ui
+blob 6345fdebeb55f10c59eff08af5b3f09e7c269944 1362 components/ui/collapsible.tsx
+blob 9177f4daf238a4eb6688308695e68a8c19dc5eb3 598 components/ui/icon-symbol.ios.tsx
+blob b7ece6b3502856d5d4e1a5f05834e653b20130d2 1422 components/ui/icon-symbol.tsx
+blob 44f912644b9ca10c97a572cf4fc8c370efb13d8b 10360 components/ui/sermon-menu.tsx
+blob 41c896cd14457890b8b3404ddbf49ca400eaf48d 2935 components/ui/tab-menu.tsx
+tree 24af4d1b215a99c340914fbbecd7776a3b204ab4 36 constants
+blob 66765de73f16c7e0477b72df79f0d1f12bc2d750 1682 constants/theme.ts
+tree d770762f8649ba4a4378a31dadcdb6a5cdac4ac8 431 contexts
+tree 46e893ac557bf4dacde93ad15eaf97fee0a94751 36 contexts/AudioPlayerContext
+blob fb91c94dfc277ad55421416cf13a2ce69926c55f 91 contexts/AudioPlayerContext/index.ts
+blob 4780745866bee9491fcbbfdf1d174827c1d70dbd 19901 contexts/AudioPlayerProviderImpl.tsx
+blob e5f50568cd09a52797c564cc1b9afa36556643df 2927 contexts/AuthContext.tsx
+blob c6e483133bbe13b7611d1768f91ac6ebf9ddde2e 13751 contexts/DownloadsContext.tsx
+blob edd12aa28ce182c4fcdcdb910b42794f4e310d4c 3926 contexts/FavoritesContext.tsx
+blob 78d5023e4bd3fa4682efdd3da3a70584fac8b603 9613 contexts/NotificationContext.tsx
+blob 62e58f2828243c5b0dca37a610f46c3bfdb81eca 5626 contexts/PlaylistsContext.tsx
+blob ac94fa5050208fff7caca33faa549c8591aa3db2 1321 contexts/SermonsContext.tsx
+blob 5a5020f0c855121efbe3705762182d40654bf667 6254 contexts/SettingsContext.tsx
+tree 907a01040e3221ce3d0e0a97252cb021aa512964 78 data
+blob fc5f0e9d4498c45100e47fed300579751fda963e 1891 data/playlists.ts
+blob 21c43be6480de25a649b87ad9773f1eba730c19e 938 data/sermons.ts
+tree 796be4846a7ece4fe12f41853bd0b503060cfa7e 306 database
+blob 21ff1236833418b277ec9a81341e99e4df4147d8 4137 database/AUTH_QUICKSTART.md
+blob f103ec838aa2ac5f7ebd6c8f016f5d10458af2c5 6703 database/AUTH_SETUP.md
+blob f82613c74ac49c1d05d3512b37da5b46e5713549 3976 database/GENRE_SETUP.md
+blob 3662b3683fd03fe00a546549986a50d707c0d936 2887 database/MIGRATION_GUIDE.md
+blob 5cb9c144caf7d23f8c096b2f76baa316253a0b53 2337 database/SIMPLE_AUTH_SETUP.md
+blob 3e071223a322d70cd849fe51231605781182869e 5897 database/USER_DATA_SETUP.md
+tree 25abe280f291662f2e7700dc8f0a09a6f9ace360 262 database/migrations
+blob 25960e875d14c7c0d29c67e2bf05eb76b38b1712 933 database/migrations/add_favorites_column.sql
+blob 39ac3dfbd29c220c8ab4ab1ef48d41f9c0d9b35c 6084 database/migrations/add_genre_generation.sql
+blob 7581631e951570053ca8b9e69789ede1034085e5 2594 database/migrations/create_user_downloads.sql
+blob 559f90bf03697925441187974dfb32777b4c58c8 2735 database/migrations/create_user_favorites.sql
+blob 7dd15d48118c0d143a9a9b64f04a72fea36827e5 3125 database/migrations/create_user_settings.sql
+blob 7754482236b4d36d2c4796f2192d483dcf7d69e9 343 eas.json
+blob 7ea6bbae125882280ed12aa3933c5d4969989891 410 eas_log1.txt
+blob 8943608d2417644f93a4dce98a76dd367b341a65 279 eas_log2.txt
+blob 078f69a7edb96688b92338cb67158fa15cedb0ef 497 eas_log3.txt
+blob 6648204f1c0baa73162e2b7ff528f01e8723ebeb 623754 eas_log4.txt
+blob 8909d87a28815dae485a4c58850570b48b355d5f 228 eslint.config.js
+tree 468f074f5c99eaa503c62af6a33f75c5e6845852 280 hooks
+blob 2c2fd42afcc2649e32d2d708fdb923123f404824 386 hooks/use-color-scheme.ts
+blob 485c3d29d07305e4f8143b8820d92ef78be78594 684 hooks/use-color-scheme.web.ts
+blob 0038f993883a6d4ede56e33b8247aee666412f32 135 hooks/use-downloads.ts
+blob eeeba858fae8eaa075858344722a8910bd4b19a7 135 hooks/use-favorites.ts
+blob 2ce3182ee076ca5696a96bfa4c154fc85ca2a189 328 hooks/use-notifications.ts
+blob d98c088b4aa9cd9603aff639cf4b369545e2e748 439 hooks/use-theme-color.ts
+blob f6644926425084c06ef4f019ed3379f82dbd62a0 201 index.js
+blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 0 java.util.concurrent.ThreadPoolExecutor
+blob dbacc8612b8af570d653ca1ffa117077bfc05b71 623069 latest_gradle_log.jsonl
+tree 1d5a26a5333ef0bb86e045b406fe4b29d9c582f0 351 lib
+blob 2fa4cee86a45df7d9958ced43081bac65011b7bf 5652 lib/download-service.ts
+blob 2e9fff071e78d2d7719acf27678ea895de781cfb 8285 lib/playlists.ts
+blob a461897e152efc6c1d498c131878c3db73e513b6 3812 lib/reminder-notifications.ts
+blob f5acbb28a3b543f82be0b947a1c4935938e4d335 5201 lib/sermons.ts
+blob b823c1c9d6100be4fb7541c1d833503de3955ae8 686 lib/supabase.ts
+blob e922aa08e424a8037fb2ebcc91a13817d92e6779 5645 lib/user-downloads.ts
+blob cd3c20a448c1a306ca938cfdc01f262d80ec5a10 4554 lib/user-favorites.ts
+blob 644dc4eca685be1338bf94170a2216716ded0c9f 3250 lib/user-settings.ts
+blob 2765ad5223e61d2b67d66c1ac720b1be41cb6fa1 498227 package-lock.json
+blob f50dccac939f9a20ab4776ef103e17567cb090fa 2349 package.json
+tree b1c95201a1d5a432ed7c434dd21d1f8b1e8c4cbc 1477 perf-reports
+blob 724bb616efa785984a808a8b827d63087b598739 876 perf-reports/README.md
+tree 94dde1f4aecf165c6cad3b8b7c645ffdf5a7fe4f 251 perf-reports/smoke-20260302-093303
+blob 896eb4289ad5a755c55773dda06b06ec64980c2a 5506 perf-reports/smoke-20260302-093303/gfx-after.txt
+blob 11c9edaba7b14e812e2c3de7508c70975ed08430 7386 perf-reports/smoke-20260302-093303/gfx-before.txt
+blob 47345a3cbde7f35fc22fe1b9c7f306c99d97a4d3 3700 perf-reports/smoke-20260302-093303/mem-after.txt
+blob 907bf5ee5bd664f5c3a20578b004510e9d227e6e 3093 perf-reports/smoke-20260302-093303/mem-before.txt
+blob 97fc7a07f1641240c27000330f507f17455f52b9 685463 perf-reports/smoke-20260302-093303/startup-logcat.txt
+blob b5ff47d908531a1b8a7adb1f631cc6243f38473f 256 perf-reports/smoke-20260302-093303/summary.txt
+tree 1240ab254fdcef4ff035c32787d06d41bea29a2c 291 perf-reports/smoke-20260302-093729
+blob 0cb2b9c4d9b7ceca611a50ed53927416341abe0c 173 perf-reports/smoke-20260302-093729/am-start.txt
+blob f08c6466f7d98df4a57c260db312c2f58ee3f029 5492 perf-reports/smoke-20260302-093729/gfx-after.txt
+blob 60616b39f8f31b972f778b4c42aefc8e0ccd0017 5398 perf-reports/smoke-20260302-093729/gfx-before.txt
+blob 650168905ef16b415a81979e3c7fecfe034030f4 3700 perf-reports/smoke-20260302-093729/mem-after.txt
+blob b7b8223b05aefb83d2122fc8ab690f38728c3e3c 3471 perf-reports/smoke-20260302-093729/mem-before.txt
+blob bde25359fe5f9ba780d96236a99e77842ac5bef4 1044269 perf-reports/smoke-20260302-093729/startup-logcat.txt
+blob 96461ec813408320a5892853c747c87911ce48e8 405 perf-reports/smoke-20260302-093729/summary.txt
+tree 31561de6f45ea1859f547d3d05d3de12a2071770 291 perf-reports/smoke-20260302-095637
+blob 89456ebdbfcbb6cdc1a8853257a92c1d73bc9700 173 perf-reports/smoke-20260302-095637/am-start.txt
+blob a97f8a7e60f9fcf0607305bad4592fe6bd4c6567 5486 perf-reports/smoke-20260302-095637/gfx-after.txt
+blob f4d58bcf653a76f07578c75c61cf282a09560e33 5434 perf-reports/smoke-20260302-095637/gfx-before.txt
+blob 1ba02d7f5865301bae4c508f3a26cc41c47cfaa9 3700 perf-reports/smoke-20260302-095637/mem-after.txt
+blob d84748639fd3c1d7147ce3e47724e666e83d4d9c 3700 perf-reports/smoke-20260302-095637/mem-before.txt
+blob d00f0f09d23de5431da48952d5718fe51d80b0ba 472372 perf-reports/smoke-20260302-095637/startup-logcat.txt
+blob 8f8011d4fc1ae1b7f3323f4080ae610700792504 515 perf-reports/smoke-20260302-095637/summary.txt
+tree 357f45f37c52c647eeeea0afe9d6a9e3412c03ec 291 perf-reports/smoke-20260302-100243
+blob 45da6b6501a2dd1356b07c48ddd1232511e36f3a 173 perf-reports/smoke-20260302-100243/am-start.txt
+blob b85dd4b20cc1df55d7cc02b5f6050b9a7bfbd760 5540 perf-reports/smoke-20260302-100243/gfx-after.txt
+blob eb62067072f3d70c3ac56b5eaba7bd32e62b0284 5435 perf-reports/smoke-20260302-100243/gfx-before.txt
+blob 6863c820f87dc5e6d8bd99f186a7e4824c54e838 3700 perf-reports/smoke-20260302-100243/mem-after.txt
+blob 940007c6bfcceb8f46d2c4383400973cdda60f39 3700 perf-reports/smoke-20260302-100243/mem-before.txt
+blob 7d703046aa2fe17d5f5af98576ed0a3363f4fd91 576654 perf-reports/smoke-20260302-100243/startup-logcat.txt
+blob d9f27ec63f1bf83d2c2ed14a1b8506db1cd806ac 516 perf-reports/smoke-20260302-100243/summary.txt
+tree a256dbbc4c5349e994b2653049cbd4ddb1963106 291 perf-reports/smoke-20260302-100709
+blob d4bcee0b92e48599581a38acc73d1926b35d8254 173 perf-reports/smoke-20260302-100709/am-start.txt
+blob 10885ac80e33994ad17cd3a662d53541ac8b3536 5497 perf-reports/smoke-20260302-100709/gfx-after.txt
+blob 952961228af6bf21ecf781e1e40c5ca75b064cc1 5436 perf-reports/smoke-20260302-100709/gfx-before.txt
+blob 6ae3a34616a58e14b8023835b304e48f7bb0342d 3700 perf-reports/smoke-20260302-100709/mem-after.txt
+blob 3ade44bf768a21c8a242668c003158631f188ed5 3700 perf-reports/smoke-20260302-100709/mem-before.txt
+blob f4e38f33a313701411a0bb3919068ac1190013c3 392312 perf-reports/smoke-20260302-100709/startup-logcat.txt
+blob 64ab4329783e3258b75a554225373fb6e18f7dee 516 perf-reports/smoke-20260302-100709/summary.txt
+tree b27c2537de28a87fa7713562ae35e6b96890b105 291 perf-reports/smoke-20260302-100904
+blob 6f6c6eb5906b993681f122d9ace5f0e49c3f35d2 173 perf-reports/smoke-20260302-100904/am-start.txt
+blob 35f67ecd2f7afb512ab0567b4c4515bd42f3dff0 5498 perf-reports/smoke-20260302-100904/gfx-after.txt
+blob 20def782a9eb858e6255af76a7bf127c3afc14e8 5435 perf-reports/smoke-20260302-100904/gfx-before.txt
+blob 4759034ceab9c8ebc1312b877e9e4a47f2136b25 3700 perf-reports/smoke-20260302-100904/mem-after.txt
+blob 6fe08f4cc5a0f77fe50b5e5b2ad1c23ed46c3148 3700 perf-reports/smoke-20260302-100904/mem-before.txt
+blob bbcb9a6fd0ac41c3685e8fc3f2a57d56f9e3e388 737107 perf-reports/smoke-20260302-100904/startup-logcat.txt
+blob dafd92260f999469cf7ece77885cdf55b0cda77c 405 perf-reports/smoke-20260302-100904/summary.txt
+tree 84f8e9f6328e8658303ac9f0201ffae1bcb91dd6 291 perf-reports/smoke-20260302-101114
+blob 54f2dce1e60565d4583980a0223468811a5ce2ef 173 perf-reports/smoke-20260302-101114/am-start.txt
+blob 1e90d6bfdbf75f863b0c839013f0bef35e7dbbed 5495 perf-reports/smoke-20260302-101114/gfx-after.txt
+blob b7d38ac30df2e9729781490132caed332db645a3 5435 perf-reports/smoke-20260302-101114/gfx-before.txt
+blob 1290231809ce17e3d1232ae150c31577579b6f3a 3700 perf-reports/smoke-20260302-101114/mem-after.txt
+blob 8f7cdaea6e68467411316453e5f485ec3c07e54e 3700 perf-reports/smoke-20260302-101114/mem-before.txt
+blob 0cd196ffe047b2c9e2466f583b24b53bdd64cafb 492153 perf-reports/smoke-20260302-101114/startup-logcat.txt
+blob 4f84131dfb69778fd54712b2bfb9d7d08b77bc9e 515 perf-reports/smoke-20260302-101114/summary.txt
+tree 09e447cf766c2b4c68c1b396c27c334e2eefe393 291 perf-reports/smoke-20260302-101855
+blob 8bcdd05ca1cdf0ff36c691f0b05dca76d924e7b7 173 perf-reports/smoke-20260302-101855/am-start.txt
+blob 9bcddc1c0a7cdee7f792639a159942113ca60f00 5582 perf-reports/smoke-20260302-101855/gfx-after.txt
+blob c20afa5a99094f7c14aa3dd3883616613e63c1d5 5435 perf-reports/smoke-20260302-101855/gfx-before.txt
+blob 388b12be9068650fe6db340aa2117404a5ffe634 3700 perf-reports/smoke-20260302-101855/mem-after.txt
+blob b5d084b218f764b69481a63b3c7f62cfa055499d 3700 perf-reports/smoke-20260302-101855/mem-before.txt
+blob 1f39942695eb8fb952db18b2c9431e520a9d65d5 528594 perf-reports/smoke-20260302-101855/startup-logcat.txt
+blob d18ee9787cbb93b9dff304759d7ed6c87569acbb 515 perf-reports/smoke-20260302-101855/summary.txt
+tree f149c28e5830674bba508e1d32d75381803e461d 291 perf-reports/smoke-20260302-103357
+blob b1d1471b5ce7cb7f61bd0b1b7f779add2cd73589 173 perf-reports/smoke-20260302-103357/am-start.txt
+blob 78a4f392cdbcd408deb6c1a45398cb9f78e48abd 5499 perf-reports/smoke-20260302-103357/gfx-after.txt
+blob 9d10399e868d94c1ea45019d7bbb7648f08f39b0 5444 perf-reports/smoke-20260302-103357/gfx-before.txt
+blob 7ee9fe94fb043d16a083cae9af4a47b2c71bed54 3700 perf-reports/smoke-20260302-103357/mem-after.txt
+blob 353705b18423c05e399d54398f28917dec6b3eac 3700 perf-reports/smoke-20260302-103357/mem-before.txt
+blob 2cf0372a3a1f646b0e751a2cfc33c0d644d1154d 558610 perf-reports/smoke-20260302-103357/startup-logcat.txt
+blob 252a0c9e3274fbc5accd591b097da5436aadb457 515 perf-reports/smoke-20260302-103357/summary.txt
+tree ca30e6d21e45a316169dbd53a66ac4a375c7ac31 291 perf-reports/smoke-20260302-103837
+blob 2d7c6457d0385145fa3081834a4b410f58881548 173 perf-reports/smoke-20260302-103837/am-start.txt
+blob e620bef3617628b95255400a0482cd0f72b71e09 5502 perf-reports/smoke-20260302-103837/gfx-after.txt
+blob 551df02900423e2a0dd7a674f72e6bf029ad2f14 5437 perf-reports/smoke-20260302-103837/gfx-before.txt
+blob e8f2e50bc38e8f77ea93aecaa623c4fc0f34faeb 3700 perf-reports/smoke-20260302-103837/mem-after.txt
+blob 4ed5604f5eac19c3cc1d6384bedd9b9889a161ea 3700 perf-reports/smoke-20260302-103837/mem-before.txt
+blob 28d5e5009290544b8fdbf4883eadd6ceaebb0ae4 801101 perf-reports/smoke-20260302-103837/startup-logcat.txt
+blob a81ae524f6497e6aedf14c4f2e856be054799cc0 516 perf-reports/smoke-20260302-103837/summary.txt
+tree 7afa9059e33930fdddf1d6f1258494aa4ce7e771 291 perf-reports/smoke-20260302-104519
+blob 9b690ff28c8d96bd2c354417b282c7de591571bf 173 perf-reports/smoke-20260302-104519/am-start.txt
+blob 91cee912ba17c43b4da0ca1041498b81668e8ff7 5500 perf-reports/smoke-20260302-104519/gfx-after.txt
+blob f0147b658d974c8d7701dfe2d05bcbe096f696bf 5441 perf-reports/smoke-20260302-104519/gfx-before.txt
+blob 51dc1106e3bdc401d6c718f0611eadec6458ec6a 3700 perf-reports/smoke-20260302-104519/mem-after.txt
+blob 022c7b459c364503a227e1def7a8f7ab660202bd 3700 perf-reports/smoke-20260302-104519/mem-before.txt
+blob f4b0fede54ff872e1de06da07728881fbbfbb903 450225 perf-reports/smoke-20260302-104519/startup-logcat.txt
+blob 37ed20a7c752003cbdc97398f91fed643fe5676e 516 perf-reports/smoke-20260302-104519/summary.txt
+tree 12534f806305bc5d8d5015280f406c99ad145443 291 perf-reports/smoke-20260302-105042
+blob 8dd07a136c235a19495012868e7f223e1fa767e1 173 perf-reports/smoke-20260302-105042/am-start.txt
+blob b2d3f1ed590a37ec0c45faf57af48d6dc72ff2e9 5498 perf-reports/smoke-20260302-105042/gfx-after.txt
+blob 7e7d33d67dab7b1ee39939c0789d9df417431548 5432 perf-reports/smoke-20260302-105042/gfx-before.txt
+blob b75de6de416fd47fe712372236f639e66e14c0db 3699 perf-reports/smoke-20260302-105042/mem-after.txt
+blob 0d14305680da1305b6bd938eb1d717707ed639ef 3699 perf-reports/smoke-20260302-105042/mem-before.txt
+blob 0177afca9424ce99fef15392d1c400f750aec710 429864 perf-reports/smoke-20260302-105042/startup-logcat.txt
+blob f9f2d0fa0846198b297aa52ad109fa633944f1a2 516 perf-reports/smoke-20260302-105042/summary.txt
+tree 64a694919c07b08742c44a39e9049afe3d191ca0 291 perf-reports/smoke-20260302-105557
+blob b7ce68df0f75d3ae512a766c1e191799d6129fa9 173 perf-reports/smoke-20260302-105557/am-start.txt
+blob a827066826093984622007cb39bcd426bef6d2b9 5497 perf-reports/smoke-20260302-105557/gfx-after.txt
+blob 31a971edfcdbb94c1ae5197e7912786f4a423a10 5440 perf-reports/smoke-20260302-105557/gfx-before.txt
+blob 48641ae4e0f993b6aa0ab659d8d3e7a852350907 3699 perf-reports/smoke-20260302-105557/mem-after.txt
+blob 0ace3314edd737efbb95d941a85f9c3e00ebc6b3 3699 perf-reports/smoke-20260302-105557/mem-before.txt
+blob 39cca78b9b263ce119b3b85a24d114522e845797 617178 perf-reports/smoke-20260302-105557/startup-logcat.txt
+blob f944604b936c01ee74181d8941ed1ee39d5de125 516 perf-reports/smoke-20260302-105557/summary.txt
+tree 1d81d7c987a9f872580ebd63be40fc7eec424bea 291 perf-reports/smoke-20260302-105736
+blob 011d9160a36f1c6c4ca201043037843519216b61 173 perf-reports/smoke-20260302-105736/am-start.txt
+blob 4d71353220e940b98f15109bd125a514aaa8747a 5500 perf-reports/smoke-20260302-105736/gfx-after.txt
+blob 764bc7748d8e729d488f6ce2f9d1d4dd3cc6adf2 5443 perf-reports/smoke-20260302-105736/gfx-before.txt
+blob 28367f975c68817cf35945ad29ab4c1aefef952f 3699 perf-reports/smoke-20260302-105736/mem-after.txt
+blob 7a05b2e8331ec8e5cbc7fcf7865654923365c96c 3699 perf-reports/smoke-20260302-105736/mem-before.txt
+blob 3455251b9bacb682019f813f1f78254e833ee1de 529454 perf-reports/smoke-20260302-105736/startup-logcat.txt
+blob fcb7bf5a53a33175125c33a3be1a1b7ced3cea9f 516 perf-reports/smoke-20260302-105736/summary.txt
+tree 69f8b22c7379b034f3bf10b26d9871bb90de8b97 291 perf-reports/smoke-20260302-105906
+blob a5e6f3baa5df4506bad0f09c8484bc5f09c186c8 173 perf-reports/smoke-20260302-105906/am-start.txt
+blob b2cd83d64d789c957b94b51cf608953454dcc515 5537 perf-reports/smoke-20260302-105906/gfx-after.txt
+blob dcd4a44f1805a9b33f5a8a10f3922e60c0dc7c3c 5443 perf-reports/smoke-20260302-105906/gfx-before.txt
+blob 0c5849129a9be89ed1a8f4a0d73782079c299cb7 3699 perf-reports/smoke-20260302-105906/mem-after.txt
+blob 3cbb23e6a2fade1224425ad652f46c5567fcf7af 3699 perf-reports/smoke-20260302-105906/mem-before.txt
+blob 42a17f484a54f6ae55b00b70c814661b6930d57f 465910 perf-reports/smoke-20260302-105906/startup-logcat.txt
+blob 31f856d54998e6e19790fc523afbe347a7a56f39 516 perf-reports/smoke-20260302-105906/summary.txt
+tree 147c8f760b6319fc035bbbd69da4d1ef67ad63f5 291 perf-reports/smoke-20260302-110329
+blob 2323afcda358e913fc88cb05eec349b0bd31c355 173 perf-reports/smoke-20260302-110329/am-start.txt
+blob 34eec23cab9fa2605b9ed49400d65777483eda93 5493 perf-reports/smoke-20260302-110329/gfx-after.txt
+blob 9849ce1bb5d40e3af240e44b8e380611ffcb4408 5436 perf-reports/smoke-20260302-110329/gfx-before.txt
+blob f10bf77652ec3510249bffe17d2fdfa1132b22ba 3700 perf-reports/smoke-20260302-110329/mem-after.txt
+blob 978b297b27a03711497352f561dd93863252e396 3700 perf-reports/smoke-20260302-110329/mem-before.txt
+blob 09a7a6bedecf7a4f4c7d91e7151a85b7473babbd 436636 perf-reports/smoke-20260302-110329/startup-logcat.txt
+blob db08e20f99f27382f89345677c276d2d44664abc 516 perf-reports/smoke-20260302-110329/summary.txt
+tree 349c355f55f55c92aae285d91af2f8947616f2d6 291 perf-reports/smoke-20260302-110633
+blob 84307fd761b300500010a689dc6868e1b3814235 173 perf-reports/smoke-20260302-110633/am-start.txt
+blob c4d3640b19df243e262296652452813b8445ca5e 5584 perf-reports/smoke-20260302-110633/gfx-after.txt
+blob d806b2adf558b3d11b3fc1797a895b068e279871 5437 perf-reports/smoke-20260302-110633/gfx-before.txt
+blob 2d98245ec1bbb44f019ecec03b0a47a16de62fb1 3700 perf-reports/smoke-20260302-110633/mem-after.txt
+blob 446281363727778dec31bcb332aa68e9c7d492de 3700 perf-reports/smoke-20260302-110633/mem-before.txt
+blob 354ebf4ace836f7f2e39b90e84c72785e71110b2 877086 perf-reports/smoke-20260302-110633/startup-logcat.txt
+blob 070947265babce77b685393fdf603aa55f24a2ad 516 perf-reports/smoke-20260302-110633/summary.txt
+tree 4a080a176e74e3d0debecf7c5cad6cdef139898c 291 perf-reports/smoke-20260302-111121
+blob 2df7ddfd42d44301588d689c07e182005fc3e3de 173 perf-reports/smoke-20260302-111121/am-start.txt
+blob 0bf720f9b10bd3bfd859c833c7af305095c05164 5500 perf-reports/smoke-20260302-111121/gfx-after.txt
+blob ea99c33e332330d3b1da10e127d81626003f99f8 5434 perf-reports/smoke-20260302-111121/gfx-before.txt
+blob afc30bd027e9bd5a9a2ba13ec40cc5267a76036f 3700 perf-reports/smoke-20260302-111121/mem-after.txt
+blob 02700e106d39385243b1e86c6071310c3fbc7b97 3700 perf-reports/smoke-20260302-111121/mem-before.txt
+blob 56d25f30130db96063a44c03fc8c254750bd10f2 977660 perf-reports/smoke-20260302-111121/startup-logcat.txt
+blob a356d9135eea0b66101cca1ffd1bddfb32bd0727 406 perf-reports/smoke-20260302-111121/summary.txt
+tree cc4eafdd3af9aa7ca3b3626453dc9d3226f32094 291 perf-reports/smoke-20260302-111541
+blob c63a23214acf6a457d1e347fa9abafce6bb1c030 173 perf-reports/smoke-20260302-111541/am-start.txt
+blob a3d4b9690631a9084d7184c73563fa6fce645ade 5501 perf-reports/smoke-20260302-111541/gfx-after.txt
+blob 4c4dd7cc76b8ac193bc664b168c318fe70da7091 5442 perf-reports/smoke-20260302-111541/gfx-before.txt
+blob ae105a3b5608d583853557a413b56cc7849fb355 3700 perf-reports/smoke-20260302-111541/mem-after.txt
+blob 18ada790b10d4f131da322d28f2734b5e67aab0d 3700 perf-reports/smoke-20260302-111541/mem-before.txt
+blob 1b33bb57d478facb45aa23158011d258912c9a49 448741 perf-reports/smoke-20260302-111541/startup-logcat.txt
+blob 6022ae286a7e0296fb60c3e8ddb7ee2724b82c46 516 perf-reports/smoke-20260302-111541/summary.txt
+tree 991a13b37321ce048d054eb4d0c9b4f817a855c6 291 perf-reports/smoke-20260302-112002
+blob a276ba920c8f0cea204c223d6fe85aa888490365 173 perf-reports/smoke-20260302-112002/am-start.txt
+blob 9c0e5d686fb4adaaa581373a84031b5ffbbead65 5508 perf-reports/smoke-20260302-112002/gfx-after.txt
+blob 0dde4d330e145a044d58201ecba66be9985a93ef 5438 perf-reports/smoke-20260302-112002/gfx-before.txt
+blob 0f84d45406a22ed215b568575407474595fe25a4 3700 perf-reports/smoke-20260302-112002/mem-after.txt
+blob 2899190dae4d2ad8da291bf23a3c90c08ad7b2fc 3700 perf-reports/smoke-20260302-112002/mem-before.txt
+blob 8c6f42e55e74f7b6910b74976abe7552709424dc 620555 perf-reports/smoke-20260302-112002/startup-logcat.txt
+blob 7ce38f45f30226cb4978be6d5f8bd644a3ff6167 516 perf-reports/smoke-20260302-112002/summary.txt
+tree ea0ab80ad44fd7eb442976c35b49d57fefa2dfa3 291 perf-reports/smoke-20260302-112231
+blob c244ab0110b715540732ed9dfe7eeac109244f83 173 perf-reports/smoke-20260302-112231/am-start.txt
+blob 45a8f5691c4c009f4bdc1958d7a776a98d73b97c 5501 perf-reports/smoke-20260302-112231/gfx-after.txt
+blob e27de40257730d223698fcc539a3599fd18f56a2 5444 perf-reports/smoke-20260302-112231/gfx-before.txt
+blob 144c1fd5d48336dd36bc3b476d670576729247ba 3700 perf-reports/smoke-20260302-112231/mem-after.txt
+blob efcb3790602228f1c235cf1e36f1a5ac09a1e5fb 3700 perf-reports/smoke-20260302-112231/mem-before.txt
+blob 683fbc7a1a3c07253b891603369db49c38a9200d 570109 perf-reports/smoke-20260302-112231/startup-logcat.txt
+blob b66c7edb898a5f060547dc4e4a78d2015d3a8738 516 perf-reports/smoke-20260302-112231/summary.txt
+tree c7c23a3ca098ca0351a981d2278996913a44088c 291 perf-reports/smoke-20260302-112403
+blob 748480aae30b9ebdb8b552d43179521907c7e12d 173 perf-reports/smoke-20260302-112403/am-start.txt
+blob f4dadc0542099adf5743813cee19e07f8374eb82 5502 perf-reports/smoke-20260302-112403/gfx-after.txt
+blob 5b36f651899de42e5a8480af4c3759f1c048e0d6 5203 perf-reports/smoke-20260302-112403/gfx-before.txt
+blob b7224d49e42f7033c65a6dfc4d7809d301fe8f0c 3700 perf-reports/smoke-20260302-112403/mem-after.txt
+blob 68afd004ac139f9ffad658333b3b45e7d1c4613f 3093 perf-reports/smoke-20260302-112403/mem-before.txt
+blob a0634d9a8a152ed7b966b4ec573f47f92d9a471b 1151540 perf-reports/smoke-20260302-112403/startup-logcat.txt
+blob 17f5ba9f1f7e8b6b9719a73f75b02f3709afa917 404 perf-reports/smoke-20260302-112403/summary.txt
+tree 6a9cae362e5960ffc4c88d4f1def3974f35ec134 291 perf-reports/smoke-20260302-112608
+blob 3d1f5516c929080ad6ad28655bb7bae90373d721 173 perf-reports/smoke-20260302-112608/am-start.txt
+blob aa63e3f17dcedbdd4035a7f378788940a9387383 5496 perf-reports/smoke-20260302-112608/gfx-after.txt
+blob ce0f01369a63d4f4f19a00c8b11cb4eea21c6009 5340 perf-reports/smoke-20260302-112608/gfx-before.txt
+blob 63da2bdb50bf8da84835bc2cd2e13837c67a8d5f 3700 perf-reports/smoke-20260302-112608/mem-after.txt
+blob f9c9b302690830bd08e6fdb7a7f5287140e06cce 3471 perf-reports/smoke-20260302-112608/mem-before.txt
+blob 6ac9e50c82dd73f5a5209553fd9bf10f4f84dcbd 593396 perf-reports/smoke-20260302-112608/startup-logcat.txt
+blob 3888e87ba11599b18a7413440b3a00c1554cbf67 406 perf-reports/smoke-20260302-112608/summary.txt
+tree ef747261a688fe15c6152e4c1d8c3f57afcebb59 291 perf-reports/smoke-20260302-113243
+blob ed3f94beebc8a6eb94532a7700f0245ae27bffd8 173 perf-reports/smoke-20260302-113243/am-start.txt
+blob e1075b371a89a95b7109be2c6368792e4fecbf76 5500 perf-reports/smoke-20260302-113243/gfx-after.txt
+blob 77cc6e7c4440f89fd0c3af13f82db6f25fe64b05 5440 perf-reports/smoke-20260302-113243/gfx-before.txt
+blob f90b0889ef5c7ec4c68111d0d0639afff63f25bc 3700 perf-reports/smoke-20260302-113243/mem-after.txt
+blob 2f626eb784707c95f6b115a0a8f3bd4bcfcbc88f 3700 perf-reports/smoke-20260302-113243/mem-before.txt
+blob 3c6db3dda8de164599ff1f4b110e0642cde47837 449298 perf-reports/smoke-20260302-113243/startup-logcat.txt
+blob 0eff2a0e38caa7d0c4d7042f91673b997c3a3507 516 perf-reports/smoke-20260302-113243/summary.txt
+tree cb25b9be1859ef151fa32eff965cc6b5052814c0 291 perf-reports/smoke-20260302-113718
+blob bf47d15318e1efe0b9feee7b01ded05b71b555f8 173 perf-reports/smoke-20260302-113718/am-start.txt
+blob 9aa83279b3b5ec1f057c3c1a037a857c11eb1803 5498 perf-reports/smoke-20260302-113718/gfx-after.txt
+blob 0e4b864fe0eb03901f1aabdb11bcd0faac5b162c 5439 perf-reports/smoke-20260302-113718/gfx-before.txt
+blob df6b81db37ef181d73b02a29b144c027f56c7592 3700 perf-reports/smoke-20260302-113718/mem-after.txt
+blob 72e791f3ec042ff8ecae922fef1a105cceffda33 3700 perf-reports/smoke-20260302-113718/mem-before.txt
+blob 38a0f1f789602c05362a1a7e3ab79c35b95e9334 414842 perf-reports/smoke-20260302-113718/startup-logcat.txt
+blob 7a0c5de2625d9fc2b2ed1c4b2715880bbf41ed22 516 perf-reports/smoke-20260302-113718/summary.txt
+tree cc7f19b549c992a0cd2cd3c4f7e34e5d6cf81cee 291 perf-reports/smoke-20260302-114907
+blob d358936005d4fa7afd30e2add89c8c4bb0b296da 173 perf-reports/smoke-20260302-114907/am-start.txt
+blob f055321f2ad1bc6c7c986b86e13a9c9c6daa8b47 5569 perf-reports/smoke-20260302-114907/gfx-after.txt
+blob 453d7b315a8cad3549941630eaa3cb8523118c39 5441 perf-reports/smoke-20260302-114907/gfx-before.txt
+blob 05c9a57ea8db671a5cc740bd2c9cbfd022018dea 3699 perf-reports/smoke-20260302-114907/mem-after.txt
+blob b149579c02f27b47016fa943a0d34a66e02facdf 3699 perf-reports/smoke-20260302-114907/mem-before.txt
+blob 03b21387aaf34bd53cbf6bb228aca78344b00b72 384301 perf-reports/smoke-20260302-114907/startup-logcat.txt
+blob 662044a58aaf7700a3034b6fd837e6da906cdd76 516 perf-reports/smoke-20260302-114907/summary.txt
+tree 2563048eed4ef6c8d3a64662304d44277a3f2d9d 291 perf-reports/smoke-20260302-115701
+blob 82a2b8266d04c648afbf38df42f855f867d520ec 173 perf-reports/smoke-20260302-115701/am-start.txt
+blob 45ab5f5d238fd8d237b4a083eb1de58e7146de2f 5495 perf-reports/smoke-20260302-115701/gfx-after.txt
+blob 8af7bf43891dd91285bedab7e21f24fb1a550f1d 5435 perf-reports/smoke-20260302-115701/gfx-before.txt
+blob 9d4c53f064680f9e37228dfc3933873269852522 3699 perf-reports/smoke-20260302-115701/mem-after.txt
+blob e06a3f1638f39c4e5f2bbecf1b4c27467d26914e 3699 perf-reports/smoke-20260302-115701/mem-before.txt
+blob e39b414aa466cfc48c02a9dea619ee1dc05aeb5c 639976 perf-reports/smoke-20260302-115701/startup-logcat.txt
+blob bcb3d532070e91273dd82b9f507bfa139ccff463 406 perf-reports/smoke-20260302-115701/summary.txt
+tree 1c1ee33463b301fd8050b51300cb78369d56f6e2 291 perf-reports/smoke-20260302-115946
+blob aba92e528226704665f4f50c8173441659dbdecb 173 perf-reports/smoke-20260302-115946/am-start.txt
+blob 9e1e0fba596ab87249c721ef401fe7825b45bac5 5492 perf-reports/smoke-20260302-115946/gfx-after.txt
+blob 29122fefc38f3e2e1faf9987b7aaf9bb154e34b8 5435 perf-reports/smoke-20260302-115946/gfx-before.txt
+blob 5da6254e5ad305c5fe395e4b5a69b33e60d32621 3700 perf-reports/smoke-20260302-115946/mem-after.txt
+blob bda4ba65bd514c836d1ee44c0d6a1ccc17805867 3700 perf-reports/smoke-20260302-115946/mem-before.txt
+blob 879ce6c37984050bb809b84ce7ce2b736cd2cb10 559246 perf-reports/smoke-20260302-115946/startup-logcat.txt
+blob 637f3eacc2a098f01e15dee077bef136406fa16f 516 perf-reports/smoke-20260302-115946/summary.txt
+tree acd1d5a60a30ddd9eb5a7b7c9e3cc4c9373e476b 291 perf-reports/smoke-20260302-120132
+blob f34644c64ead7a9eb93324d6ff1e251e8552244f 173 perf-reports/smoke-20260302-120132/am-start.txt
+blob 8a1b8392f166c42e1e4a827744c54f72bdbbf55a 5541 perf-reports/smoke-20260302-120132/gfx-after.txt
+blob 4e734078e78d7e0e0560011d077bb569e55c495c 5437 perf-reports/smoke-20260302-120132/gfx-before.txt
+blob 9034567e6ec57cba320183641fb3c3e71e7e2822 3700 perf-reports/smoke-20260302-120132/mem-after.txt
+blob ee9937b1182fa6ada294160b7365c6e9454de1c7 3700 perf-reports/smoke-20260302-120132/mem-before.txt
+blob 9c43003700dc4f710f836e43096abd835b24514d 636434 perf-reports/smoke-20260302-120132/startup-logcat.txt
+blob 29723290c61bc0eb6c1d27b5e7aa1b157e02a124 515 perf-reports/smoke-20260302-120132/summary.txt
+tree d663b75e7deae69affb67dc81e625c6d26c6f3a6 291 perf-reports/smoke-20260302-121917
+blob b23420cfc608de340e15b75a6809adf6730f2ee2 173 perf-reports/smoke-20260302-121917/am-start.txt
+blob 9ec7f688a31d077c64a900a1d2f025804810ae66 7479 perf-reports/smoke-20260302-121917/gfx-after.txt
+blob 3651db2ddf2fa0943631f07a1d379fb2da14c8f4 7479 perf-reports/smoke-20260302-121917/gfx-before.txt
+blob 866bd28cab26afcf18dbbbe087749d775dddd4bf 3093 perf-reports/smoke-20260302-121917/mem-after.txt
+blob c1e4efa1f07ac913b5f1315ccb7e5424b8f87295 3093 perf-reports/smoke-20260302-121917/mem-before.txt
+blob 082007afcc80953eb104a0764307f2635a95beb2 396440 perf-reports/smoke-20260302-121917/startup-logcat.txt
+blob a72b8084da223b1fce0da1cc3c2fe9e558191d06 402 perf-reports/smoke-20260302-121917/summary.txt
+blob 4dda2c323f98af45c6ec31b2326fef32716d5175 11326 release-build.log
+tree 6bcdffebf2f3365650ea143463324d7653ac35d6 622 scripts
+blob c9d1b4aad3fc6cfe7a6017bee36be000a24e8e4a 2310 scripts/assign-random-images-to-all.cjs
+blob a46c0003e9b405031465140991a83f37b23914fd 1716 scripts/assign-random-images-to-playlists.cjs
+blob c1b5f213109669e139495d56e4682bb312ab965b 1712 scripts/assign-random-images.cjs
+blob 5c825f1fafc6aed236e99662fd65a386ddaadfbb 852 scripts/clear-all-sermon-downloads.ts
+blob e12f4a63db5a7e171a7b73b4ac7685525cec506a 2812 scripts/create-playlists-from-titles.cjs
+blob a922fe8b3c285d961700ac35be6793718b79e20b 5921 scripts/perf-smoke.ps1
+blob 38cb87724016448df6ca5c4fbbe01f9d30b6a9f2 2180 scripts/process-sermons.cjs
+blob 64b6eef4c318e393c832d21ff4d4121ce8f3fd6c 356 scripts/reset-images.sql
+blob 368af97750c621e37169678a2f97907dcd6f1121 883 scripts/reset-playlists.sql
+blob 51dff15acba333398064fe4cd8008ed4ed5105b9 3608 scripts/reset-project.js
+blob 79eb5f88b07f8b8a44296f1973579169bb318318 633 scripts/reset-sermon-metadata.sql
+blob 75fa3ea78f3741b2a308be7f56936c2cffea6267 1984 scripts/update-sermon-genres.cjs
+tree 7d7f877deb50e6edd88f9789508f8dfc6e0a94b3 479 sermon-sync
+blob a727df347a129093f0269058a3c2c543a4ae5497 185 sermon-sync/.editorconfig
+blob 4138168d756e27d0ee0b302b9b5daa0cae9df928 2056 sermon-sync/.gitignore
+blob 5c7b5d3c7a750a60b91dfbb070153d316893f136 78 sermon-sync/.prettierrc
+tree 24a504eb93c9a18b5b81817c75454e676f4e7bb5 41 sermon-sync/.vscode
+blob 0126e59b82d7cfc3d82de202aa248dcea9b6820b 58 sermon-sync/.vscode/settings.json
+blob 6748df02efcd5355d421e6d86c5e194ed94654fd 72391 sermon-sync/package-lock.json
+blob fe129d6b2e2539088e8ae8facea77932f01b3c3f 388 sermon-sync/package.json
+tree 7bf162d2fdcb6c15662871b6e59337d2acce3c8a 36 sermon-sync/src
+blob 546382d35cce4b7162c864ca2b848031790b2a41 16912 sermon-sync/src/index.ts
+tree 9de5ad4e0dc050bc52307d3cd8ca4225a4b1bbe9 118 sermon-sync/test
+blob d145fc738c5bf8e997821f9709770d4f9fe8f7c9 75 sermon-sync/test/env.d.ts
+blob 7e6c7c5f827f6d6fbe1875ba5128d7260e5b680f 1200 sermon-sync/test/index.spec.ts
+blob 978ecd87b7ce9a38ca48a8647681d3ff8a687866 183 sermon-sync/test/tsconfig.json
+blob 1aba9730e8d4a941578b8fd707d7ef6b2210bba7 624 sermon-sync/tsconfig.json
+blob 977f64c4edc458ac13f6e8e346d5f62c1e579556 225 sermon-sync/vitest.config.mts
+blob 23d18cee92da9b820ef18a03240655d3a8617a62 411197 sermon-sync/worker-configuration.d.ts
+blob 017f619d6a80be938c7a34ca7b49697a6b83ed0d 1053 sermon-sync/wrangler.jsonc
+tree 0ea92c894621880a784aabf8ade6b9e91b74b9e4 90 services
+blob 91eed2c1061c9cb04f119b848a013695dcd6b99c 749 services/playback-service.ts
+blob b8e732b9105dd4eff284b44221e2c3e5f981baec 1303 services/track-player.ts
+blob acf57229a56154e4c7efe58bebe27bde454d65db 104250072 temp-preview-latest.apk
+blob e21dfcb5a2a9f9652f747828611810b24c415309 420 tsconfig.json
+tree b87363a6efc5574267dce646237454669662b7f5 74 types
+blob c6ba45f29edab1907ab1005a69a5d2106414d163 562 types/sermon.ts
+blob 90adb3c5681e7a4636932791c80559dbcb52905e 23 types/uuid.d.ts
+tree 59f39c579c28c600a196559b1ff0e3909366a540 551 
+tree f91d3ca72c01757f732b03e12ff98429244c7bb3 84 .vscode
+blob 48dd63ff3ef9d87e1378e6babeac488e7ecc37b3 1741 README.md
+tree 0bd001e5f1bbdcf50be692630950ba5182629374 303 android
+tree a89855cd8057b55264eace9b7682b8ee13f62cb3 158 android/app
+blob 76c168466dee3707810ccb95831bf901c7c4c3e1 9378 android/app/build.gradle
+blob cc7fc52fe946ade53d0a0fa09fb48b026533ff14 1203 app.json
+tree 089cac1e8114621f83b4647abf34af437407f2e0 109 app
+tree 1fc8ac252de5452a35451a363712612f6cb95556 115 app/(tabs)
+blob 54e11d00f2973a7c377c77acaca7fb664b815fcf 968 app/(tabs)/_layout.tsx
+blob 71518f9a734ac01246c13aa6ad528efdfc8c4fcd 4363 app/(tabs)/explore.tsx
+blob 786b7366c28b40e0b1d844507861f69179889b95 3219 app/(tabs)/index.tsx
+blob f518c9b00020d21cfb98c7c6e3fd1d18156c734d 740 app/_layout.tsx
+tree 5ca12b57f6d1765a70245bb2d7ccb59b5f5e4361 33 assets
+tree a6c79b299b69ce688dc06bd264d7d21c939c5987 465 assets/images
+tree 2a780583c4ded45eaa8743f4fc2951680012bcb7 296 components
+blob d79d0a1c58253114f97328485a9155db2e316379 1285 components/themed-text.tsx
+tree cba8b629c8b404481da2ca6e62dcc26af050409c 133 components/ui
+tree 52695f6a8cc1b4caa529a5ceb99f3a6082ccbaf8 36 constants
+blob f06facd2f6ef28cccef038d12b45aadf2194ed06 1630 constants/theme.ts
+blob 5025da683d6b6ecdced898af11f2e5dc5a73a4c1 237 eslint.config.js
+tree 9d76f72ba6968d3fd379829a60a56607f970c3cd 144 hooks
+blob 17e3c63e1acfe711d436c1c205d90c4e2fe46131 47 hooks/use-color-scheme.ts
+blob 7eb1c1b7071ceedf76252509fabb05c603774ad8 480 hooks/use-color-scheme.web.ts
+blob 0cbc3a6e6f98cc51a7b565df78249a43fe22794d 537 hooks/use-theme-color.ts
+blob 2714c44427fcb6b65c9779c15727cf542afaa2e0 476842 package-lock.json
+blob ba7a10028876df2624b27fa5586c465e4d1b018e 1368 package.json
+tree c52cd2631c5906f2e728503000d7f2f7f2014c24 44 scripts
+blob 909e9010867004d96567d0a03ef3dceea154eff6 242 tsconfig.json
+tree ae681f60629f837e17d61a2e1e309222580d2988 551 
+tree 19a142b790252d67be2c127d341fafcc2f13338c 303 android
+tree 4945612a55901ce5d6f5ad1fd283d91610f77d7a 158 android/app
+tree 046e3c6a810279a23f3a0e554bdff3a28573395f 104 android/app/src
+tree f9aeaff4476db02796c5b6501a9fd2729a9bc88c 108 android/app/src/main
+tree b0aab472e5be284207ba1b9cdf9a4191c9bc46c3 30 android/app/src/main/java
+tree 336a6d919aef3ea47a82a0beeeeb68fdb94d43f8 37 android/app/src/main/java/com
+tree e94615337d29c5a2d8f5845f8ec93c16724f3150 31 android/app/src/main/java/com/softnation
+tree 3e28de5e90268e6fda844e62d8b4affe690d61de 93 android/app/src/main/java/com/softnation/ojam
+blob b80b4b21ae235f1b6d3a5969c9518843eba04a87 1322 android/app/src/main/java/com/softnation/ojam/MainActivity.java
+blob 5a9f928320fc73ac196cf7caa8c2e5431aa99090 2312 android/app/src/main/java/com/softnation/ojam/MainApplication.java
+tree 2addecd0adb111df767f8d21be97fa72de06d84a 551 
+tree 9e376845a5011e77e499b2daf392e8efcd7b603e 303 android
+tree 21cc073b088910a3a582afb2b51ca7b349f214fe 158 android/app
+blob fb045b81f0e58ce0355ea577c860eeed910f946d 8168 android/app/build.gradle
+tree 1a1911fa09b1a9f1d470230d4e4af5feb8cc87a2 551 
+tree a3d217370ac6a1f4add90e6047b1629177f6e9d4 303 android
+tree 8c1842266dffa2b9b75204a59ba2647b48161b7f 158 android/app
+blob 8ec765c2872c0dc856cb80712ff33a350083edb0 8074 android/app/build.gradle
+tree 5ce24ea3585afae73627fda17e86a922bc2f033a 551 
+tree 625a7d4e75162cd2ec9bdba8d50b6512649befdd 303 android
+tree 02c10bd5d9f55e145a0f265973a675ddfbfd6e02 158 android/app
+tree 88d2f6b6c85c60fb5dcd77c30596f13e782c9bc4 104 android/app/src
+tree 741e78e8911d4706d59485b1ebff4296d17d514b 108 android/app/src/main
+tree d29262ac7ded519888b0476ac074ffa933ba65dc 30 android/app/src/main/java
+tree dd42c1b169e0c10140c9b892732b81a2b26dd0cc 37 android/app/src/main/java/com
+tree de3754932838caaea3b948282d781859fe96dfff 31 android/app/src/main/java/com/softnation
+tree 37ef8e905a58839639659e76d9798f9ac3eb29f8 89 android/app/src/main/java/com/softnation/ojam
+blob a3e33ea052229ffa5b9f301dafc3cde478a1a210 2454 android/app/src/main/java/com/softnation/ojam/MainActivity.kt
+blob 988067d94c807039164c8294673967f616d61ae6 2032 android/app/src/main/java/com/softnation/ojam/MainApplication.kt
+tree d2b72b6eb9469b4cd1658e9195e791b5c04668b2 517 
+blob f8c6c2e83a6de11bc0beffa256c9c2808fc375f6 453 .gitignore

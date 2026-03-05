@@ -2,12 +2,11 @@
   "expo": {
     "icon": "./assets/images/icon.png",
     "name": "Ojam",
-    "slug": "Ojam",
+    "slug": "ojam",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "ojam",
     "userInterfaceStyle": "automatic",
-
     "ios": {
       "supportsTablet": true
     },
@@ -18,7 +17,6 @@
         "backgroundImage": "./assets/images/icon.png",
         "monochromeImage": "./assets/images/icon.png"
       },
-
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
@@ -68,8 +66,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1c8dd1fc-d3b8-4551-b791-bb01c5c6b536"
+        "projectId": "b5811d67-5ee2-4a20-9348-03ced0470274"
       }
-    }
+    },
+    "owner": "soft-nation-devs-organization"
   }
 }
