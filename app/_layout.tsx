@@ -1,21 +1,21 @@
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
+import { AudioPlayerProvider, useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DownloadsProvider } from "@/contexts/DownloadsContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { PlaylistsProvider } from "@/contexts/PlaylistsContext";
 import { SermonsProvider } from "@/contexts/SermonsContext";
-import { SettingsProvider } from "@/contexts/SettingsContext";
+import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initializeTrackPlayer } from "@/services/track-player";
 import { useEffect } from "react";
@@ -23,6 +23,19 @@ import { useEffect } from "react";
 export const unstable_settings = {
   anchor: "(tabs)",
 };
+
+function PlaybackSettingsSync() {
+  const { settings } = useSettings();
+  const { setPlaybackRate } = useAudioPlayer();
+
+  useEffect(() => {
+    void setPlaybackRate(settings.playbackSpeed).catch(() => {});
+    // setPlaybackRate identity is recreated by context; speed is the real trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.playbackSpeed]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -41,6 +54,7 @@ export default function RootLayout() {
                 <FavoritesProvider>
                   <DownloadsProvider>
                     <PlaylistsProvider>
+                      <PlaybackSettingsSync />
                       <ThemeProvider
                         value={
                           colorScheme === "dark" ? DarkTheme : DefaultTheme

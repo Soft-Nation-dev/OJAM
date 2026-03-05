@@ -14,6 +14,12 @@ let playlistsCacheFull: PlaylistCacheEntry | null = null;
 let inFlightPlaylistsRequestCompact: Promise<Playlist[]> | null = null;
 let inFlightPlaylistsRequestFull: Promise<Playlist[]> | null = null;
 
+const encodeR2Key = (key: string) =>
+  key
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
 export function invalidatePlaylistsCache() {
   playlistsCacheCompact = null;
   playlistsCacheFull = null;
@@ -26,10 +32,10 @@ const mapPlaylistSermonRow = (item: any): Sermon => ({
   date: item.date || item.created_at || "",
   duration: item.duration || 0,
   audioUrl: item.audio_key
-    ? `${WORKER_URL}/audio/${encodeURIComponent(item.audio_key)}`
+    ? `${WORKER_URL}/audio/${encodeR2Key(item.audio_key)}`
     : "",
   imageUrl: item.image_key
-    ? `${WORKER_URL}/images/${encodeURIComponent(item.image_key)}`
+    ? `${WORKER_URL}/images/${encodeR2Key(item.image_key)}`
     : undefined,
   category: ["sunday", "tuesday", "friday"].includes(
     String(item.category || "").toLowerCase(),
@@ -81,12 +87,6 @@ export async function fetchPlaylists(
         );
         return [];
       }
-
-      const encodeR2Key = (key: string) =>
-        key
-          .split("/")
-          .map((segment) => encodeURIComponent(segment))
-          .join("/");
 
       const playlists: Playlist[] = (playlistsData || []).map((item: any) => ({
         id: item.id,
@@ -213,12 +213,6 @@ export async function fetchPlaylistById(
     }
     return null;
   }
-
-  const encodeR2Key = (key: string) =>
-    key
-      .split("/")
-      .map((segment) => encodeURIComponent(segment))
-      .join("/");
 
   const playlist: Playlist = {
     id: playlistData.id,

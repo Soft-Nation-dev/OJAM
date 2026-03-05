@@ -1,15 +1,15 @@
 import {
-  loadSettingsFromSupabase,
-  syncSettingsToSupabase,
-  type UserSettingsUpdate,
+    loadSettingsFromSupabase,
+    syncSettingsToSupabase,
+    type UserSettingsUpdate,
 } from "@/lib/user-settings";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
 } from "react";
 import { useAuth } from "./AuthContext";
 
@@ -144,7 +144,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       notifications_enabled: settings.notificationsEnabled,
       email_notifications: settings.emailNotifications,
     };
-    syncSettingsToSupabase(payload);
+    void syncSettingsToSupabase(payload);
   }, [
     settings.notificationsEnabled,
     settings.emailNotifications,

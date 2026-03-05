@@ -10,7 +10,16 @@ An Audiomack-style mobile app for streaming sermons from your church. Built with
    npm install
    ```
 
-2. Start the app
+2. Configure environment variables
+
+Create a `.env` file in the project root with:
+
+```bash
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+3. Start the app
 
    ```bash
    npx expo start
@@ -67,6 +76,7 @@ types/
 4. **Connect to API** (optional): Replace the sample data with API calls to your backend
 
 Example sermon structure:
+
 ```typescript
 {
   id: '1',
