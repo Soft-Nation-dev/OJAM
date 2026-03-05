@@ -1,62 +1,45 @@
-# EAS Build ignore file
+# EAS upload exclusions
 
-# Exclude files and folders not needed for cloud builds
+# Keep this focused on generated outputs, local tooling data, and heavy non-build assets.
 
-# Node modules (already handled by EAS)
+# Dependency/build artifacts
 
 node_modules/
-
-# Build outputs
-
-build/
+.expo/
 dist/
+build/
+coverage/
 
-# Mac/Windows system files
+# Android generated files (native sources are still included)
 
+android/.gradle/
+android/\*\*/build/
+android/local.properties
+
+# Git/IDE/system noise
+
+.git/
+.idea/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs and archives
 
-\*.log
+_.log
+_.bak
+_.zip
+_.tar
+\*.tar.gz
 
-# Large assets (keep only what's needed for app)
+# Large workspace-only folders not required for cloud builds
 
-assets/videos/
-assets/audio/
-!assets/images/icon.png
-!assets/images/test-background-1.jpg
-assets/videos/
-assets/audio/
-
-# Database and scripts
-
+perf-reports/
 scripts/
 database/
 sermon-sync/
 OJAM/
 
-# Misc
+# Optional bulky asset folders not used by current app bundle
 
-_.tar.gz
-_.zip
-\*.bak
-
-# Expo Go cache
-
-.expo/
-
-# Ignore markdown and docs
-
-\*.md
-
-# Ignore SQL and migration guides
-
-\*.sql
-
-# Ignore test folders
-
-**tests**/
-test/
-
-# You can add more folders/files if needed
+assets/videos/
+assets/audio/
