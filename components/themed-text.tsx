@@ -1,60 +1,82 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import { StyleSheet, Text, type TextProps } from "react-native";
 
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { Fonts } from "@/constants/theme";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
 };
 
 export function ThemedText({
   style,
   lightColor,
   darkColor,
-  type = 'default',
+  type = "default",
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, "text");
+  const { settings } = useSettings();
+  const scale =
+    settings.textSize === "small"
+      ? 0.92
+      : settings.textSize === "large"
+        ? 1.1
+        : 1;
 
-  return (
-    <Text
-      style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
-        style,
-      ]}
-      {...rest}
-    />
-  );
+  const scaledStyles = [
+    { color },
+    type === "default" ? styles.default : undefined,
+    type === "title" ? styles.title : undefined,
+    type === "defaultSemiBold" ? styles.defaultSemiBold : undefined,
+    type === "subtitle" ? styles.subtitle : undefined,
+    type === "link" ? styles.link : undefined,
+    style,
+  ].map((item) => {
+    if (!item) return item;
+    const flat = StyleSheet.flatten(item);
+    const next = { ...flat } as typeof flat;
+    if (typeof flat.fontSize === "number") {
+      next.fontSize = flat.fontSize * scale;
+    }
+    if (typeof flat.lineHeight === "number") {
+      next.lineHeight = flat.lineHeight * scale;
+    }
+    return next;
+  });
+
+  return <Text style={scaledStyles} {...rest} />;
 }
 
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,
     lineHeight: 24,
+    fontFamily: Fonts.sans,
   },
   defaultSemiBold: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: '600',
+    fontWeight: "600",
+    fontFamily: Fonts.sans,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     lineHeight: 32,
+    fontFamily: Fonts.sans,
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    fontFamily: Fonts.sans,
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
-    color: '#0a7ea4',
+    color: "#0a7ea4",
+    fontFamily: Fonts.sans,
   },
 });

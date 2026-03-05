@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Ojam - Sermon Streaming App 📿
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An Audiomack-style mobile app for streaming sermons from your church. Built with React Native and Expo.
 
 ## Get started
 
@@ -23,17 +23,75 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Features
 
-## Get a fresh project
+- 🎵 **Stream Sermons**: Play audio sermons with a beautiful, modern interface
+- 🏠 **Home Feed**: Browse trending and recently added sermons
+- 📚 **Library**: Manage your downloads, queue, and favorites
+- 🔍 **Search**: Search sermons by title, preacher, or category
+- ▶️ **Audio Player**: Full-featured player with play/pause, seek, and queue management
+- 🎨 **Dark Mode**: Automatic theme support
+- 📱 **Mini Player**: Quick access player bar at the bottom
 
-When you're ready, run:
+## Project Structure
 
-```bash
-npm run reset-project
+```
+app/
+  (tabs)/
+    index.tsx      # Home screen with trending sermons
+    library.tsx    # Library with downloads, queue, favorites
+    search.tsx     # Search sermons and browse by category
+    _layout.tsx    # Tab navigation
+  player.tsx       # Full player screen
+  _layout.tsx      # Root layout with AudioPlayerProvider
+
+components/
+  sermon-card.tsx  # Sermon list item component
+  mini-player.tsx  # Bottom mini player bar
+
+contexts/
+  AudioPlayerContext.tsx  # Global audio player state management
+
+data/
+  sermons.ts       # Sample sermon data (replace with your API)
+
+types/
+  sermon.ts        # TypeScript types for sermons
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Setup Your Sermons
+
+1. **Update Sermon Data**: Edit `data/sermons.ts` with your actual sermon URLs and information
+2. **Add Audio URLs**: Replace the sample URLs with your actual sermon audio file URLs
+3. **Add Images**: Update image URLs or use local images
+4. **Connect to API** (optional): Replace the sample data with API calls to your backend
+
+Example sermon structure:
+```typescript
+{
+  id: '1',
+  title: 'Walking in Faith',
+  preacher: 'Pastor John Doe',
+  date: '2024-01-15',
+  duration: 3600, // in seconds
+  audioUrl: 'https://your-domain.com/sermons/audio.mp3',
+  imageUrl: 'https://your-domain.com/sermons/image.jpg',
+  description: 'Sermon description...',
+  category: 'Faith',
+  plays: 1250,
+  likes: 89,
+}
+```
+
+## Next Steps
+
+- Connect to your backend API to fetch real sermon data
+- Implement download functionality for offline listening
+- Add user authentication
+- Implement favorites/likes system
+- Add playlist creation
+- Enable background audio playback
+- Add push notifications for new sermons
 
 ## Learn more
 

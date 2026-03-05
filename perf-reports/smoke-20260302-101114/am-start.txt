@@ -1,0 +1,6 @@
+﻿Starting: Intent { cmp=com.softnation.Ojam/.MainActivity }
+Status: timeout
+LaunchState: UNKNOWN (-1)
+Activity: com.softnation.Ojam/.MainActivity
+WaitTime: 11869
+Complete

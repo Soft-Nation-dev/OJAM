@@ -1,0 +1,14 @@
+﻿run_timestamp=20260302-101855
+package=com.softnation.Ojam
+launch_activity=com.softnation.Ojam/.MainActivity
+am_start_status=timeout
+am_start_this_time_ms=
+am_start_total_time_ms=
+am_start_wait_time_ms=11921
+startup_displayed_line=03-02 10:19:12.402  1621  1638 I ActivityTaskManager: Displayed com.softnation.Ojam/.MainActivity for user 0: +17s377ms
+mem_total_pss_before_kb=504419
+mem_total_pss_after_kb=762082
+gfx_total_frames_before=28
+gfx_total_frames_after=1724
+gfx_janky_before=17.86%
+gfx_janky_after=8.41%

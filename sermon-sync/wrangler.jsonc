@@ -1,0 +1,34 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "sermon-sync",
+	"main": "src/index.ts",
+	"compatibility_date": "2024-11-01",
+	"observability": {
+		"enabled": true
+	},
+  
+  "r2_buckets": [
+    { "bucket_name": "sermons", 
+    "binding": "PROD_SERMONS",
+     "preview_bucket_name": "sermons-dev", 
+     "remote": true },
+    { "bucket_name": "sermon-images",
+     "binding": "PROD_IMAGES", 
+     "preview_bucket_name": "sermon-images-dev",
+      "remote": true }
+  ]
+
+,
+
+	"vars": {
+		// Supabase REST URL (replace with your actual project URL)
+		"SUPABASE_URL": "https://lrlbygqbtylnrfsbgdkp.supabase.co",
+		// Supabase service role key (replace with your actual key)
+		"SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxybGJ5Z3FidHlsbnJmc2JnZGtwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODQ2NjUzMywiZXhwIjoyMDg0MDQyNTMzfQ.zt2gHaRsGQcbCHpHQtQG-7u16faAOw398VZs5Ty6uUk"
+	},
+	// Optional: Enable miniflare logs to debug locally
+	"dev": {
+		"local_protocol": "http",
+		"port": 8787,
+	}
+}

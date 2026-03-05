@@ -1,0 +1,61 @@
+﻿Applications Memory Usage (in Kilobytes):
+Uptime: 611565313 Realtime: 1029331184
+
+** MEMINFO in pid 13515 [com.softnation.Ojam] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap   338350   338320        4       90   339636   372652   336648    30590
+  Dalvik Heap    34053    29304     4624       19    35396    61292    24428    36864
+ Dalvik Other    20286     9960       52        0    30832                           
+        Stack     3676     3676        0        0     3684                           
+       Ashmem     2254     2064        0        0     3612                           
+    Other dev       47        0       36        0      680                           
+     .so mmap     8268      564      992       11    71204                           
+    .jar mmap     4292        0     1292        0    57104                           
+    .apk mmap    49816     1628    46384        0    55764                           
+    .ttf mmap      641        0      344        0     1376                           
+    .dex mmap      182        0      168        0     1020                           
+    .oat mmap       32        0        0        0     2380                           
+    .art mmap     9987     7840     1640       35    20852                           
+   Other mmap     6226        4      620        0    13552                           
+   EGL mtrack    20959    20959        0        0    20959                           
+    GL mtrack   135780   135780        0        0   135780                           
+      Unknown    98739    96328     2052       29   102568                           
+        TOTAL   733772   646427    58208      184   896399   433944   361076    67454
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:    38784                          56248
+         Native Heap:   338320                         339636
+                Code:    51672                         209684
+               Stack:     3676                           3684
+            Graphics:   156739                         156739
+       Private Other:   115444
+              System:    29137
+             Unknown:                                  130408
+ 
+           TOTAL PSS:   733772            TOTAL RSS:   896399       TOTAL SWAP PSS:      184
+ 
+ Objects
+               Views:     1095         ViewRootImpl:        1
+         AppContexts:        7           Activities:        1
+              Assets:       55        AssetManagers:        0
+       Local Binders:       56        Proxy Binders:      117
+       Parcel memory:       19         Parcel count:       77
+    Death Recipients:        3             WebViews:        0
+ 
+ SQL
+         MEMORY_USED:      182
+  PAGECACHE_OVERFLOW:       62          MALLOC_SIZE:       46
+ 
+ DATABASES
+      pgsz     dbsz   Lookaside(b) cache hits cache misses cache size  Dbname
+PER CONNECTION STATS
+         4       20             34    42    47     3  /data/user/0/com.softnation.Ojam/databases/RKStorage
+         4       32             60    13    26     6  /data/user/0/com.softnation.Ojam/databases/exoplayer_internal.db
+POOL STATS
+     cache hits  cache misses    cache size  Dbname
+             42            48            90  /data/user/0/com.softnation.Ojam/databases/RKStorage
+             13            27            40  /data/user/0/com.softnation.Ojam/databases/exoplayer_internal.db

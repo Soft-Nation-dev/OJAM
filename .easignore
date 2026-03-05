@@ -1,0 +1,62 @@
+# EAS Build ignore file
+
+# Exclude files and folders not needed for cloud builds
+
+# Node modules (already handled by EAS)
+
+node_modules/
+
+# Build outputs
+
+build/
+dist/
+
+# Mac/Windows system files
+
+.DS_Store
+Thumbs.db
+
+# Logs
+
+\*.log
+
+# Large assets (keep only what's needed for app)
+
+assets/videos/
+assets/audio/
+!assets/images/icon.png
+!assets/images/test-background-1.jpg
+assets/videos/
+assets/audio/
+
+# Database and scripts
+
+scripts/
+database/
+sermon-sync/
+OJAM/
+
+# Misc
+
+_.tar.gz
+_.zip
+\*.bak
+
+# Expo Go cache
+
+.expo/
+
+# Ignore markdown and docs
+
+\*.md
+
+# Ignore SQL and migration guides
+
+\*.sql
+
+# Ignore test folders
+
+**tests**/
+test/
+
+# You can add more folders/files if needed

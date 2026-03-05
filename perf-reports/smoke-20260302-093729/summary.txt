@@ -1,0 +1,14 @@
+﻿run_timestamp=20260302-093729
+package=com.softnation.Ojam
+launch_activity=com.softnation.Ojam/.MainActivity
+am_start_status=timeout
+am_start_this_time_ms=
+am_start_total_time_ms=
+am_start_wait_time_ms=12880
+startup_displayed_line=NOT_FOUND
+mem_total_pss_before_kb=390896
+mem_total_pss_after_kb=707404
+gfx_total_frames_before=1
+gfx_total_frames_after=1635
+gfx_janky_before=100.00%
+gfx_janky_after=6.91%

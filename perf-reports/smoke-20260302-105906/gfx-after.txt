@@ -1,0 +1,87 @@
+﻿Applications Graphics Acceleration Info:
+Uptime: 610824591 Realtime: 1028590462
+
+** Graphics info for pid 7645 [com.softnation.Ojam] **
+
+Stats since: 610741568171402ns
+Total frames rendered: 1184
+Janky frames: 152 (12.84%)
+Janky frames (legacy): 411 (34.71%)
+50th percentile: 16ms
+90th percentile: 40ms
+95th percentile: 81ms
+99th percentile: 350ms
+Number Missed Vsync: 51
+Number High input latency: 1601
+Number Slow UI thread: 145
+Number Slow bitmap uploads: 3
+Number Slow issue draw commands: 36
+Number Frame deadline missed: 152
+Number Frame deadline missed (legacy): 163
+HISTOGRAM: 5ms=4 6ms=24 7ms=34 8ms=55 9ms=38 10ms=79 11ms=94 12ms=62 13ms=44 14ms=56 15ms=62 16ms=72 17ms=41 18ms=40 19ms=38 20ms=35 21ms=30 22ms=49 23ms=38 24ms=26 25ms=25 26ms=7 27ms=9 28ms=10 29ms=8 30ms=8 31ms=7 32ms=16 34ms=18 36ms=11 38ms=15 40ms=11 42ms=11 44ms=6 46ms=3 48ms=10 53ms=3 57ms=6 61ms=5 65ms=4 69ms=3 73ms=3 77ms=2 81ms=4 85ms=3 89ms=7 93ms=3 97ms=1 101ms=2 105ms=2 109ms=1 113ms=1 117ms=1 121ms=0 125ms=0 129ms=2 133ms=0 150ms=9 200ms=4 250ms=5 300ms=3 350ms=4 400ms=4 450ms=0 500ms=1 550ms=2 600ms=0 650ms=0 700ms=2 750ms=0 800ms=0 850ms=0 900ms=1 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 3ms
+90th gpu percentile: 11ms
+95th gpu percentile: 15ms
+99th gpu percentile: 20ms
+GPU HISTOGRAM: 1ms=32 2ms=306 3ms=348 4ms=112 5ms=60 6ms=73 7ms=24 8ms=17 9ms=60 10ms=9 11ms=36 12ms=18 13ms=17 14ms=10 15ms=13 16ms=25 17ms=0 18ms=6 19ms=5 20ms=8 21ms=2 22ms=0 23ms=0 24ms=1 25ms=0 4950ms=2
+
+Pipeline=Skia (Vulkan)
+Memory policy:
+  Max surface area: 2656800
+  Max resource usage: 382.58MB (x144)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 1 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 1.54 MB (1 entry)
+  Glyph Count: 92 
+Total CPU memory usage:
+  1613455 bytes, 1.54 MB (0.00 bytes is purgeable)
+
+GPU Caches:
+  Other:
+    Other: 623.80 KB (1 entry)
+    StencilAttachment: 30.00 KB (4 entries)
+  Image:
+    Surface: 101.77 MB (79 entries)
+  Scratch:
+    Buffer Object: 22.26 MB (22 entries)
+    Surface: 73.17 MB (97 entries)
+Total GPU memory usage:
+  207455168 bytes, 197.84 MB (131.70 MB is purgeable)
+Total VMA Memory Statistics:
+  VulkanMemoryAllocator.BlockBytes = 157707 KB 
+  VulkanMemoryAllocator.AllocationBytes = 157608 KB 
+  VulkanMemoryAllocator.PercentUsed = 99 percent 
+
+GraphicBufferAllocator buffers:
+        Handle |        Size |     W (Stride) x H | Layers |   Format |      Usage | Requestor
+0xb400007af1a5bd10 | 10455.00 KiB | 1080 (1088) x 2460 |      1 |        1 | 0x     b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007af1a5be70 | 10455.00 KiB | 1080 (1088) x 2460 |      1 |        1 | 0x     b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007af1a5e390 | 10455.00 KiB | 1080 (1088) x 2460 |      1 |        1 | 0x     b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007af1a5f2b0 | 10455.00 KiB | 1080 (1088) x 2460 |      1 |        1 | 0x     b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007af1a5fdb0 | 10455.00 KiB | 1080 (1088) x 2460 |      1 |        1 | 0x     b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007af1a60330 | 10455.00 KiB | 1080 (1088) x 2460 |      1 |        1 | 0x     b00 | VRI[MainActivity]#0(BLAST Consumer)0
+Total allocated by GraphicBufferAllocator (estimate): 62730.00 KB
+Imported gralloc buffers:
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:3642132603380, size:10455.00KiB, w/h:1080x2460, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:3642132603381, size:10455.00KiB, w/h:1080x2460, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:3642132603385, size:10455.00KiB, w/h:1080x2460, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:3642132603384, size:10455.00KiB, w/h:1080x2460, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:3642132603382, size:10455.00KiB, w/h:1080x2460, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:3642132603383, size:10455.00KiB, w/h:1080x2460, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
+Total imported by gralloc: 62730.00KiB
+
+Profile data in ms:
+
+	com.softnation.Ojam/com.softnation.Ojam.MainActivity/android.view.ViewRootImpl@fa43ca6 (visibility=0)
+View hierarchy:
+
+  com.softnation.Ojam/com.softnation.Ojam.MainActivity/android.view.ViewRootImpl@fa43ca6
+  168 views, 330.45 kB of render nodes
+
+
+Total ViewRootImpl   : 1
+Total attached Views : 168
+Total RenderNode     : 330.45 kB (used) / 964.76 kB (capacity)
+
