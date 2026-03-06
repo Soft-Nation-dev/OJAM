@@ -1,21 +1,25 @@
 import {
-  cancelDownload as cancelSermonDownload,
-  deleteSermonFile,
-  downloadSermon,
-  getSermonFilePath,
+    cancelDownload as cancelSermonDownload,
+    deleteSermonFile,
+    downloadSermon,
+    getSermonFilePath,
 } from "@/lib/download-service";
+import {
+    removeDownload as removeUserDownload,
+    trackDownload,
+} from "@/lib/user-downloads";
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 import * as FileSystemLegacy from "expo-file-system/legacy";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { InteractionManager } from "react-native";
 import { useSermons } from "./SermonsContext";
@@ -38,6 +42,8 @@ interface PersistedDownloadItem {
   sermonId: string;
   localPath: string;
 }
+
+const LOCAL_AUDIO_EXTENSION_PATTERN = /\.(mp3|m4a|wav|aac|ogg)$/i;
 
 interface DownloadsContextProps {
   downloads: Map<string, DownloadItem>;
@@ -116,16 +122,19 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
     [downloadedSermons],
   );
 
-  const persistCompletedDownloads = async (map: Map<string, DownloadItem>) => {
-    const completed: PersistedDownloadItem[] = Array.from(map.values())
-      .filter((item) => item.status === "completed" && !!item.localPath)
-      .map((item) => ({
-        sermonId: item.sermon.id,
-        localPath: item.localPath as string,
-      }));
+  const persistCompletedDownloads = useCallback(
+    async (map: Map<string, DownloadItem>) => {
+      const completed: PersistedDownloadItem[] = Array.from(map.values())
+        .filter((item) => item.status === "completed" && !!item.localPath)
+        .map((item) => ({
+          sermonId: item.sermon.id,
+          localPath: item.localPath as string,
+        }));
 
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
-  };
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
+    },
+    [STORAGE_KEY],
+  );
 
   const getFallbackSermon = useCallback(
     (sermonId: string): Sermon => ({
@@ -151,11 +160,14 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
         const parsed = JSON.parse(stored) as Array<
           PersistedDownloadItem | DownloadItem
         >;
-        parsed.forEach((item) => {
+        for (const item of parsed) {
           const sermonId = "sermonId" in item ? item.sermonId : item.sermon?.id;
           const localPath = "localPath" in item ? item.localPath : undefined;
 
-          if (!sermonId || !localPath) return;
+          if (!sermonId || !localPath) continue;
+
+          const info = await FileSystemLegacy.getInfoAsync(localPath);
+          if (!info.exists) continue;
 
           map.set(sermonId, {
             sermon:
@@ -166,7 +178,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
             progress: 100,
             localPath,
           });
-        });
+        }
       }
 
       // --- Use new Expo FileSystem Directory/File API for reconciliation ---
@@ -190,13 +202,13 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
       if (sermonsDir.exists) {
         const files = sermonsDir.list();
         for (const file of files) {
-          if (!file.name.endsWith(".mp3")) continue;
+          if (!LOCAL_AUDIO_EXTENSION_PATTERN.test(file.name)) continue;
           // Auto-healing: remove phantom or corrupted files
           if (!file.exists || !file.size || file.size < 50 * 1024) {
             await file.delete({ idempotent: true });
             continue;
           }
-          const sermonId = file.name.replace(/\.mp3$/, "");
+          const sermonId = file.name.replace(LOCAL_AUDIO_EXTENSION_PATTERN, "");
           if (!map.has(sermonId)) {
             let sermon: Sermon | undefined = sermonsById.get(sermonId);
             if (!sermon) {
@@ -212,7 +224,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      void persistCompletedDownloads(map);
+      await persistCompletedDownloads(map);
 
       setDownloads(map);
       console.log(
@@ -223,7 +235,15 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  }, [getFallbackSermon]);
+  }, [getFallbackSermon, persistCompletedDownloads]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      void persistCompletedDownloads(downloadsRef.current);
+    }, 200);
+
+    return () => clearTimeout(timeoutId);
+  }, [downloads, persistCompletedDownloads]);
 
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
@@ -327,7 +347,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
                       : "downloading",
             localPath:
               progress.status === "completed"
-                ? getSermonFilePath(sermon.id)
+                ? getSermonFilePath(sermon.id, sermon.audioUrl)
                 : existing.localPath,
           };
 
@@ -340,7 +360,6 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           }
 
           next.set(sermon.id, updated);
-          if (updated.status === "completed") persistCompletedDownloads(next);
           return next;
         });
       });
@@ -357,9 +376,10 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
               progress: 100,
               localPath: fileUri,
             });
-            persistCompletedDownloads(next);
             return next;
           });
+
+          await trackDownload(sermon.id, fileUri, fileInfo.size || 0);
         }
       }
     } catch (e) {
@@ -381,12 +401,12 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
     setDownloads((prev) => {
       const next = new Map(prev);
       next.delete(sermonId);
-      persistCompletedDownloads(next);
       return next;
     });
 
     try {
       await deleteSermonFile(sermonId);
+      await removeUserDownload(sermonId);
     } catch (e) {
       console.error("Failed to delete file:", e);
     }
@@ -396,6 +416,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
   const cancelDownload = useCallback(async (sermonId: string) => {
     try {
       await cancelSermonDownload(sermonId);
+      await removeUserDownload(sermonId);
     } catch (e) {
       console.warn("Failed to cancel download:", e);
     }
@@ -414,6 +435,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
       for (const item of downloads.values()) {
         try {
           await deleteSermonFile(item.sermon.id);
+          await removeUserDownload(item.sermon.id);
         } catch (e) {
           console.error("Failed deleting file:", item.sermon.id, e);
         }

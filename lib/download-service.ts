@@ -14,8 +14,18 @@ export interface DownloadProgress {
 type ProgressCallback = (progress: DownloadProgress) => void;
 
 const activeDownloads = new Map<string, FileSystemLegacy.DownloadResumable>();
+const activeDownloadPaths = new Map<string, string>();
 const canceledDownloads = new Set<string>();
 const progressCallbacks = new Map<string, ProgressCallback[]>();
+
+const SUPPORTED_EXTENSIONS = ["mp3", "m4a", "wav", "aac", "ogg"];
+
+function inferAudioExtension(audioUrl?: string): string {
+  if (!audioUrl) return "mp3";
+  const match = audioUrl.match(/\.([a-zA-Z0-9]+)(?:$|[?#])/);
+  const ext = match?.[1]?.toLowerCase();
+  return ext && SUPPORTED_EXTENSIONS.includes(ext) ? ext : "mp3";
+}
 
 function emitProgress(
   progress: DownloadProgress,
@@ -29,10 +39,11 @@ function emitProgress(
 /**
  * Get the local file path for a downloaded sermon (new API)
  */
-export function getSermonFilePath(sermonId: string): string {
+export function getSermonFilePath(sermonId: string, audioUrl?: string): string {
   const { File, Directory, Paths } = FileSystem as any;
   const directory = new Directory(Paths.document, "sermons");
-  return new File(directory, `${sermonId}.mp3`).uri;
+  const extension = inferAudioExtension(audioUrl);
+  return new File(directory, `${sermonId}.${extension}`).uri;
 }
 
 /**
@@ -54,11 +65,11 @@ export async function downloadSermon(
   onProgress?: ProgressCallback,
 ): Promise<string | null> {
   const sermonId = sermon.id;
-  const fileUri = getSermonFilePath(sermonId);
   const audioUrl = sermon.audioUrl;
   if (!audioUrl) {
     throw new Error("Sermon has no audio URL");
   }
+  const fileUri = getSermonFilePath(sermonId, audioUrl);
   // Check if already downloading
   if (activeDownloads.has(sermonId)) {
     emitProgress(
@@ -119,6 +130,7 @@ export async function downloadSermon(
     );
 
     activeDownloads.set(sermonId, resumable);
+    activeDownloadPaths.set(sermonId, fileUri);
     const downloadResult = await resumable.downloadAsync();
 
     if (canceledDownloads.has(sermonId)) {
@@ -157,6 +169,7 @@ export async function downloadSermon(
     throw error;
   } finally {
     activeDownloads.delete(sermonId);
+    activeDownloadPaths.delete(sermonId);
   }
 }
 
@@ -173,7 +186,9 @@ export async function cancelDownload(sermonId: string): Promise<void> {
   } catch {}
 
   try {
-    await FileSystemLegacy.deleteAsync(getSermonFilePath(sermonId), {
+    const activePath = activeDownloadPaths.get(sermonId);
+    const fallbackPath = getSermonFilePath(sermonId);
+    await FileSystemLegacy.deleteAsync(activePath || fallbackPath, {
       idempotent: true,
     });
   } catch {}
@@ -188,6 +203,7 @@ export async function cancelDownload(sermonId: string): Promise<void> {
   emitProgress(canceledProgress);
 
   activeDownloads.delete(sermonId);
+  activeDownloadPaths.delete(sermonId);
   progressCallbacks.delete(sermonId);
 }
 
@@ -202,11 +218,13 @@ export function isDownloading(sermonId: string): boolean {
  * Delete a downloaded sermon file
  */
 export async function deleteSermonFile(sermonId: string): Promise<void> {
-  const fileUri = getSermonFilePath(sermonId);
   const { File } = FileSystem as any;
-  const file = new File(fileUri);
-  if (file.exists) {
-    file.delete();
+
+  for (const extension of SUPPORTED_EXTENSIONS) {
+    const file = new File(getSermonFilePath(sermonId, `x.${extension}`));
+    if (file.exists) {
+      file.delete();
+    }
   }
 }
 
@@ -214,8 +232,12 @@ export async function deleteSermonFile(sermonId: string): Promise<void> {
  * Check if a sermon file exists locally
  */
 export async function isSermonDownloaded(sermonId: string): Promise<boolean> {
-  const fileUri = getSermonFilePath(sermonId);
   const { File } = FileSystem as any;
-  const file = new File(fileUri);
-  return !!file.exists;
+
+  for (const extension of SUPPORTED_EXTENSIONS) {
+    const file = new File(getSermonFilePath(sermonId, `x.${extension}`));
+    if (file.exists) return true;
+  }
+
+  return false;
 }

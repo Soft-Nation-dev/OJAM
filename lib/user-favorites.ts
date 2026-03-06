@@ -8,6 +8,18 @@ export interface UserFavorite {
   created_at: string;
 }
 
+const encodeR2Key = (key: string) =>
+  key
+    .split("/")
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    })
+    .join("/");
+
 /**
  * Check if a sermon is favorited by the current user
  */
@@ -150,10 +162,10 @@ export async function fetchFavoriteSermons(): Promise<Sermon[]> {
         date: sermon.date || sermon.created_at,
         duration: sermon.duration || 0,
         audioUrl: sermon.audio_key
-          ? `https://sermon-sync.ojam.workers.dev/audio/${encodeURIComponent(sermon.audio_key)}`
+          ? `https://sermon-sync.ojam.workers.dev/audio/${encodeR2Key(sermon.audio_key)}`
           : "",
         imageUrl: sermon.image_key
-          ? `https://sermon-sync.ojam.workers.dev/images/${encodeURIComponent(sermon.image_key)}`
+          ? `https://sermon-sync.ojam.workers.dev/images/${encodeR2Key(sermon.image_key)}`
           : undefined,
         description: sermon.description || "",
         category: sermon.category || "sunday",

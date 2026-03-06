@@ -15,13 +15,13 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  FlatList,
-  Image,
-  RefreshControl,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Image,
+    RefreshControl,
+    StatusBar,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -161,8 +161,14 @@ export default function HomeScreen() {
 
   const handleSermonPress = useCallback(
     (sermon: Sermon) => {
-      playFromList(queueSermons, sermon.id);
-      router.push("/player");
+      void playFromList(queueSermons, sermon.id)
+        .then(() => {
+          router.push("/player");
+        })
+        .catch((error) => {
+          console.error("[Home] Failed to start playback", error);
+          router.push("/player");
+        });
     },
     [playFromList, queueSermons, router],
   );

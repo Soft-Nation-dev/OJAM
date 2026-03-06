@@ -1,16 +1,36 @@
+import Constants from "expo-constants";
 import { Platform } from "react-native";
-import TrackPlayer, {
-    AndroidAudioContentType,
-    AppKilledPlaybackBehavior,
-    Capability,
-} from "react-native-track-player";
 
 let setupPromise: Promise<void> | null = null;
 
+const isExpoGo = Constants.executionEnvironment === "storeClient";
+export const isTrackPlayerSupported = Platform.OS !== "web" && !isExpoGo;
+
+type TrackPlayerModule = typeof import("react-native-track-player");
+
+let cachedTrackPlayerModule: TrackPlayerModule | null = null;
+
+export function getTrackPlayerModule(): TrackPlayerModule | null {
+  if (!isTrackPlayerSupported) {
+    return null;
+  }
+
+  if (!cachedTrackPlayerModule) {
+    cachedTrackPlayerModule = require("react-native-track-player");
+  }
+
+  return cachedTrackPlayerModule;
+}
+
 export function initializeTrackPlayer() {
-  if (Platform.OS === "web") {
+  const trackPlayerModule = getTrackPlayerModule();
+  if (!trackPlayerModule) {
     return Promise.resolve();
   }
+
+  const TrackPlayer = trackPlayerModule.default;
+  const { AndroidAudioContentType, AppKilledPlaybackBehavior, Capability } =
+    trackPlayerModule;
 
   if (!setupPromise) {
     setupPromise = (async () => {
@@ -31,11 +51,6 @@ export function initializeTrackPlayer() {
           Capability.SkipToPrevious,
           Capability.SeekTo,
           Capability.Stop,
-        ],
-        compactCapabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.SkipToNext,
         ],
         progressUpdateEventInterval: 2,
         android: {

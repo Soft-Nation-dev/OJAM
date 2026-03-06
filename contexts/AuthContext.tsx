@@ -1,11 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
 interface AuthContextType {
@@ -33,11 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      })
+      .catch(() => {
+        setSession(null);
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     // Listen for auth changes
     const {

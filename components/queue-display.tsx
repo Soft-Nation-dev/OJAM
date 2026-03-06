@@ -2,13 +2,13 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
 import React, { useCallback } from "react";
 import {
-  LayoutAnimation,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    LayoutAnimation,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import DraggableFlatList, {
-  RenderItemParams,
+    RenderItemParams,
 } from "react-native-draggable-flatlist";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -178,7 +178,9 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
 
   const handlePlayFromQueue = useCallback(
     (itemId: string) => {
-      playFromList(queueRef.current, itemId);
+      void playFromList(queueRef.current, itemId).catch((error) => {
+        console.error("[Queue] Failed to play selected item", error);
+      });
     },
     [playFromList],
   );

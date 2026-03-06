@@ -1,12 +1,12 @@
 import { Playlist } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
 } from "react";
 import { InteractionManager } from "react-native";
 import { useSermons } from "./SermonsContext";
@@ -137,18 +137,8 @@ export const PlaylistsProvider: React.FC<{ children: React.ReactNode }> = ({
       description: playlist.description,
       imageUrl: playlist.imageUrl,
       sermons: playlist.sermonIds
-        .map(
-          (sermonId) =>
-            sermonsById.get(sermonId) ?? {
-              id: sermonId,
-              title: "",
-              preacher: "",
-              date: "",
-              duration: 0,
-              audioUrl: "",
-            },
-        )
-        .filter(Boolean),
+        .map((sermonId) => sermonsById.get(sermonId))
+        .filter((sermon): sermon is Sermon => Boolean(sermon)),
     }));
   }, [sermonsById, userPlaylistsState]);
 

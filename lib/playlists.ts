@@ -17,7 +17,13 @@ let inFlightPlaylistsRequestFull: Promise<Playlist[]> | null = null;
 const encodeR2Key = (key: string) =>
   key
     .split("/")
-    .map((segment) => encodeURIComponent(segment))
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    })
     .join("/");
 
 export function invalidatePlaylistsCache() {

@@ -2,11 +2,11 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
-  BackHandler,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    BackHandler,
+    FlatList,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -142,15 +142,23 @@ export default function DownloadsScreen() {
                       return;
                     }
 
-                    playFromList(
+                    void playFromList(
                       downloadedSermons.map((item) => ({
                         ...item.sermon,
                         localPath: item.localPath,
                       })),
                       sermon.id,
-                    );
-
-                    router.push("/player");
+                    )
+                      .then(() => {
+                        router.push("/player");
+                      })
+                      .catch((error) => {
+                        console.error(
+                          "[Downloads] Failed to start playback",
+                          error,
+                        );
+                        router.push("/player");
+                      });
                   }}
                 />
 

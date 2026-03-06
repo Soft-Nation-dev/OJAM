@@ -1,14 +1,17 @@
 import {
-    DarkTheme,
-    DefaultTheme,
-    ThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { AudioPlayerProvider, useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import {
+  AudioPlayerProvider,
+  useAudioPlayer,
+} from "@/contexts/AudioPlayerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DownloadsProvider } from "@/contexts/DownloadsContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
@@ -17,7 +20,10 @@ import { PlaylistsProvider } from "@/contexts/PlaylistsContext";
 import { SermonsProvider } from "@/contexts/SermonsContext";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { initializeTrackPlayer } from "@/services/track-player";
+import {
+  initializeTrackPlayer,
+  isTrackPlayerSupported,
+} from "@/services/track-player";
 import { useEffect } from "react";
 
 export const unstable_settings = {
@@ -41,6 +47,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
+    if (!isTrackPlayerSupported) return;
     void initializeTrackPlayer().catch(() => {});
   }, []);
 

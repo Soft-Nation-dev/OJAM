@@ -20,6 +20,19 @@ const SERMON_SELECT_LIGHT =
 const SERMON_SELECT_WITH_DESCRIPTION =
   "id,title,preacher,date,duration,audio_key,image_key,description,category,genre,created_at";
 
+const encodeR2Key = (key: string) =>
+  key
+    .split("/")
+    .map((segment) => {
+      try {
+        // Avoid double encoding when DB values already contain escaped characters.
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    })
+    .join("/");
+
 export function invalidateSermonsCache() {
   sermonsCacheLight = null;
   sermonDetailCache.clear();
@@ -58,12 +71,6 @@ export async function fetchSermons(
       }
       return [];
     }
-
-    const encodeR2Key = (key: string) =>
-      key
-        .split("/")
-        .map((segment) => encodeURIComponent(segment))
-        .join("/");
 
     const normalizeCategory = (value?: string) => {
       if (!value) return undefined;
@@ -147,12 +154,6 @@ export async function fetchSermonById(id: string): Promise<Sermon | null> {
     if (error) console.error("Error fetching sermon by id:", error);
     return null;
   }
-
-  const encodeR2Key = (key: string) =>
-    key
-      .split("/")
-      .map((segment) => encodeURIComponent(segment))
-      .join("/");
 
   const normalizeCategory = (value?: string) => {
     if (!value) return undefined;

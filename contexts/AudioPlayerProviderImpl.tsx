@@ -1,17 +1,24 @@
-import { initializeTrackPlayer } from "@/services/track-player";
+import {
+    getTrackPlayerModule,
+    initializeTrackPlayer,
+    isTrackPlayerSupported,
+} from "@/services/track-player";
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
-import { Platform } from "react-native";
-import TrackPlayer, { Event, RepeatMode } from "react-native-track-player";
+
+const trackPlayerModule = getTrackPlayerModule();
+const TrackPlayer = trackPlayerModule?.default as any;
+const Event = trackPlayerModule?.Event as any;
+const RepeatMode = trackPlayerModule?.RepeatMode as any;
 
 const AUDIO_REPEAT_MODE_KEY = "audio_repeat_mode";
 const AUDIO_SHUFFLE_MODE_KEY = "audio_shuffle_mode";
@@ -51,14 +58,24 @@ const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(
 );
 
 const normalizeAudioUrl = (sermon: Sermon) => {
-  const source = sermon.localPath || sermon.audioUrl;
+  const source = (sermon.localPath || sermon.audioUrl || "").trim();
   if (!source) return "";
 
-  if (source.startsWith("http://") || source.startsWith("https://"))
+  if (source.startsWith("http://") || source.startsWith("https://")) {
+    // URLs are normalized when built from data sources; avoid double encoding here.
     return source;
+  }
+
   if (source.startsWith("file://")) return source;
+  if (source.startsWith("content://")) return source;
+
+  if (source.startsWith("/")) {
+    return `file://${source}`;
+  }
+
   if (/^[A-Za-z]:\\/.test(source))
     return `file:///${source.replace(/\\/g, "/")}`;
+
   return source;
 };
 
@@ -100,6 +117,7 @@ const shuffleArray = <T,>(items: T[]) => {
 };
 
 const mapRepeatToTrackMode = (mode: "off" | "one" | "all") => {
+  if (!RepeatMode) return undefined;
   if (mode === "one") return RepeatMode.Track;
   if (mode === "all") return RepeatMode.Queue;
   return RepeatMode.Off;
@@ -243,7 +261,10 @@ export function AudioPlayerProvider({
     setQueue(nextQueue);
     syncActiveFromIndex(activeIndex);
 
-    if (Platform.OS === "web") {
+    if (!isTrackPlayerSupported) {
+      console.warn(
+        "[AudioPlayer] TrackPlayer unsupported in current runtime (likely Expo Go).",
+      );
       setProgress((prev) => ({ ...prev, position: initialPosition }));
       if (typeof options?.play === "boolean") {
         setIsPlaying(options.play);
@@ -252,13 +273,39 @@ export function AudioPlayerProvider({
     }
 
     await initializeTrackPlayer();
-    await TrackPlayer.setQueue(nextQueue.map(toTrack));
 
-    if (activeIndex >= 0 && nextQueue[activeIndex]) {
+    const preparedQueue = nextQueue
+      .map((sermon, index) => ({
+        index,
+        track: toTrack(sermon),
+      }))
+      .filter((item) => Boolean(item.track.url));
+
+    if (!preparedQueue.length) {
+      console.warn("[AudioPlayer] No playable sermon URL found in queue.");
+      await TrackPlayer.stop();
+      setIsPlaying(false);
+      setProgress({ position: 0, duration: 0 });
+      return;
+    }
+
+    if (preparedQueue.length !== nextQueue.length) {
+      console.warn(
+        `[AudioPlayer] Skipping ${nextQueue.length - preparedQueue.length} sermon(s) with invalid audio URLs.`,
+      );
+    }
+
+    await TrackPlayer.setQueue(preparedQueue.map((item) => item.track));
+
+    const mappedActiveIndex = preparedQueue.findIndex(
+      (item) => item.index === activeIndex,
+    );
+
+    if (mappedActiveIndex >= 0 && nextQueue[activeIndex]) {
       const activeTrack = nextQueue[activeIndex];
       const isStreaming = !activeTrack.localPath && activeTrack.audioUrl;
 
-      await TrackPlayer.skip(activeIndex, initialPosition);
+      await TrackPlayer.skip(mappedActiveIndex, initialPosition);
       await TrackPlayer.setRate(playbackRateRef.current);
 
       if (shouldPlay) {
@@ -267,6 +314,10 @@ export function AudioPlayerProvider({
           await new Promise((resolve) => setTimeout(resolve, 300));
         }
         await TrackPlayer.play();
+        console.log("[AudioPlayer] Playback started", {
+          id: activeTrack.id,
+          url: normalizeAudioUrl(activeTrack),
+        });
       } else {
         await TrackPlayer.pause();
       }
@@ -278,7 +329,7 @@ export function AudioPlayerProvider({
   };
 
   const syncProgress = useCallback(async () => {
-    if (Platform.OS === "web") return;
+    if (!isTrackPlayerSupported) return;
     try {
       const next = await TrackPlayer.getProgress();
       const nextPosition = Number.isFinite(next.position) ? next.position : 0;
@@ -299,7 +350,7 @@ export function AudioPlayerProvider({
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === "web") return;
+    if (!isTrackPlayerSupported) return;
 
     let isMounted = true;
 
@@ -312,7 +363,9 @@ export function AudioPlayerProvider({
       await syncProgress();
     };
 
-    void setup().catch(() => {});
+    void setup().catch((error) => {
+      console.error("[AudioPlayer] Setup failed", error);
+    });
 
     const progressSub = TrackPlayer.addEventListener(
       Event.PlaybackProgressUpdated,
@@ -379,20 +432,30 @@ export function AudioPlayerProvider({
       },
     );
 
+    const errorSub = TrackPlayer.addEventListener(
+      Event.PlaybackError,
+      (event) => {
+        console.error("[AudioPlayer] Playback error", event);
+      },
+    );
+
     return () => {
       isMounted = false;
       progressSub.remove();
       playWhenReadySub.remove();
       activeTrackSub.remove();
       queueEndedSub.remove();
+      errorSub.remove();
     };
   }, [syncProgress]);
 
   useEffect(() => {
-    if (Platform.OS === "web") return;
+    if (!isTrackPlayerSupported) return;
     void initializeTrackPlayer()
       .then(() => TrackPlayer.setRepeatMode(mapRepeatToTrackMode(repeat)))
-      .catch(() => {});
+      .catch((error) => {
+        console.error("[AudioPlayer] Failed setting repeat mode", error);
+      });
   }, [repeat]);
 
   const loadAndPlaySermon = async (
@@ -459,7 +522,7 @@ export function AudioPlayerProvider({
   };
 
   const pause = async () => {
-    if (Platform.OS === "web") {
+    if (!isTrackPlayerSupported) {
       setIsPlaying(false);
       return;
     }
@@ -470,7 +533,7 @@ export function AudioPlayerProvider({
   };
 
   const resume = async () => {
-    if (Platform.OS === "web") {
+    if (!isTrackPlayerSupported) {
       setIsPlaying(true);
       return;
     }
@@ -482,7 +545,7 @@ export function AudioPlayerProvider({
 
   const seekTo = async (seconds: number) => {
     const nextPosition = Math.max(0, seconds);
-    if (Platform.OS === "web") {
+    if (!isTrackPlayerSupported) {
       setProgress((prev) => ({ ...prev, position: nextPosition }));
       return;
     }
@@ -493,21 +556,21 @@ export function AudioPlayerProvider({
   };
 
   const playNext = async () => {
-    if (Platform.OS === "web") return;
+    if (!isTrackPlayerSupported) return;
     await initializeTrackPlayer();
     await TrackPlayer.skipToNext();
     await TrackPlayer.play();
   };
 
   const playPrevious = async () => {
-    if (Platform.OS === "web") return;
+    if (!isTrackPlayerSupported) return;
     await initializeTrackPlayer();
     await TrackPlayer.skipToPrevious();
     await TrackPlayer.play();
   };
 
   const setPlaybackRate = async (rate: number) => {
-    if (Platform.OS !== "web") {
+    if (isTrackPlayerSupported) {
       await initializeTrackPlayer();
       await TrackPlayer.setRate(rate);
     }
@@ -516,7 +579,7 @@ export function AudioPlayerProvider({
 
   const setRepeat = async (mode: "off" | "one" | "all") => {
     setRepeatState(mode);
-    if (Platform.OS === "web") return;
+    if (!isTrackPlayerSupported) return;
 
     await initializeTrackPlayer();
     await TrackPlayer.setRepeatMode(mapRepeatToTrackMode(mode));
@@ -583,7 +646,7 @@ export function AudioPlayerProvider({
         unshuffledQueueRef.current = null;
       }
 
-      if (Platform.OS === "web") return;
+      if (!isTrackPlayerSupported) return;
 
       await initializeTrackPlayer();
       await TrackPlayer.add(toTrack(sermon));
