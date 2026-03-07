@@ -45,6 +45,12 @@ class MainApplication : Application(), ReactApplication {
     } catch (e: IllegalArgumentException) {
       ReleaseLevel.STABLE
     }
+
+    if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
+      // Keep New Architecture enabled but force bridge mode for runtime stability.
+      DefaultNewArchitectureEntryPoint.load(bridgelessEnabled = false)
+    }
+
     loadReactNative(this)
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
   }
