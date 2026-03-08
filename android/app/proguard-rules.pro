@@ -12,16 +12,3 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
-
-# Keep the application and activity classes from being stripped
--keep class com.softnation.ojam.MainApplication { *; }
--keep class com.softnation.ojam.MainActivity { *; }
-
-# Keep React Native and New Architecture internal glue code
--keep class com.facebook.react.** { *; }
--keep class com.facebook.jni.** { *; }
-
-# Essential for react-native-track-player
--keep class com.doublesymmetry.trackplayer.** { *; }
--keep class com.google.android.exoplayer2.** { *; }
--keep class androidx.media3.** { *; }
