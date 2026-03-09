@@ -16,7 +16,12 @@ export function getTrackPlayerModule(): TrackPlayerModule | null {
   }
 
   if (!cachedTrackPlayerModule) {
-    cachedTrackPlayerModule = require("react-native-track-player");
+    try {
+      cachedTrackPlayerModule = require("react-native-track-player");
+    } catch (e) {
+      console.warn("Failed to load react-native-track-player:", e);
+      return null;
+    }
   }
 
   return cachedTrackPlayerModule;
