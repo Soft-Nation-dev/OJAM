@@ -6,17 +6,32 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "prebuild": [
+        {
+          "command": "npx patch-package"
+        }
+      ]
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk",
         "ndk": "26.1.10909125"
-      }
+      },
+      "prebuild": [
+        {
+          "command": "npx patch-package"
+        }
+      ]
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "prebuild": [
+        {
+          "command": "npx patch-package"
+        }
+      ]
     }
   },
   "submit": {
