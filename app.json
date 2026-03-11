@@ -41,7 +41,7 @@
       "favicon": "./assets/images/icon.png"
     },
     "plugins": [
-      "./plugins/withExpoViewPropsFix/app.plugin",
+      "./plugins/withExpoViewPropsFix/app.plugin.cjs",
       "expo-router",
       [
         "expo-notifications",
