@@ -1,4 +1,31 @@
 {
+  "plugins": [
+    "expo-router",
+    [
+      "expo-notifications",
+      {
+        "icon": "./assets/images/android-icon-monochrome.png",
+        "color": "#2063FA",
+        "defaultChannel": "service-reminders"
+      }
+    ],
+    [
+      "expo-splash-screen",
+      {
+        "image": "./assets/images/icon.png",
+        "imageWidth": 200,
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff",
+        "dark": {
+          "backgroundColor": "#000000"
+        }
+      }
+    ],
+    "expo-audio",
+    "expo-asset",
+    "expo-build-properties",
+    "./plugins/withExpoViewPropsFix"
+  ],
   "expo": {
     "icon": "./assets/images/icon.png",
     "name": "Ojam",
@@ -40,31 +67,6 @@
       "output": "static",
       "favicon": "./assets/images/icon.png"
     },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/android-icon-monochrome.png",
-          "color": "#2063FA",
-          "defaultChannel": "service-reminders"
-        }
-      ],
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
-        }
-      ],
-      "expo-audio",
-      "expo-asset"
-    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
