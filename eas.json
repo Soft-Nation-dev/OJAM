@@ -15,7 +15,8 @@
         "ndk": "26.1.10909125"
       },
       "env": {
-        "EAS_USE_CACHE": "0"
+        "EAS_USE_CACHE": "0",
+        "NODE_ENV": "production"
       }
     },
     "production": {
