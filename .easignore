@@ -9,7 +9,8 @@ node_modules/
 dist/
 build/
 coverage/
-
+OJAM/
+friday/
 # Android generated files (native sources are still included)
 
 android/.gradle/
