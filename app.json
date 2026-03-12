@@ -2,7 +2,7 @@
   "expo": {
     "icon": "./assets/images/icon.png",
     "name": "Ojam",
-    "slug": "ojam",
+    "slug": "ojam-dev",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "ojam",
@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -74,9 +76,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b5811d67-5ee2-4a20-9348-03ced0470274"
+        "projectId": "adbc4378-08bd-431b-b447-bbec680dfef4"
       }
     },
-    "owner": "soft-nation-devs-organization"
+    "owner": "ojams-organization"
   }
 }
