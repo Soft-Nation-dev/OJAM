@@ -88,6 +88,14 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.softnation.ojam'
+
+    sourceSets {
+        main {
+            java.srcDirs += 'src/main/java'
+            kotlin.srcDirs += 'src/main/java'
+        }
+    }
+
     defaultConfig {
         applicationId 'com.softnation.ojam'
         minSdkVersion rootProject.ext.minSdkVersion
