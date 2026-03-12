@@ -11,6 +11,9 @@ build/
 coverage/
 OJAM/
 friday/
+sunday/
+tuesday/
+other/
 # Android generated files (native sources are still included)
 
 android/.gradle/
