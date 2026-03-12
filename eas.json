@@ -10,14 +10,14 @@
     },
     "preview": {
       "distribution": "internal",
-      "env": {
-        "EAS_USE_CACHE": "0"
-      }
-    },
       "android": {
         "buildType": "apk",
         "ndk": "26.1.10909125"
       },
+      "env": {
+        "EAS_USE_CACHE": "0"
+      }
+    },
     "production": {
       "autoIncrement": true
     }
