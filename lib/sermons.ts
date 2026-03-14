@@ -18,7 +18,7 @@ const sermonDetailCache = new Map<
 const SERMON_SELECT_LIGHT =
   "id,title,preacher,date,duration,audio_key,image_key,category,genre,created_at";
 const SERMON_SELECT_WITH_DESCRIPTION =
-  "id,title,preacher,date,duration,audio_key,image_key,description,category,genre,created_at";
+  "id,title,preacher,date,duration,audio_key,image_key,category,genre,created_at";
 
 const encodeR2Key = (key: string) =>
   key
@@ -78,7 +78,8 @@ export async function fetchSermons(
       if (
         lowered === "sunday" ||
         lowered === "tuesday" ||
-        lowered === "friday"
+        lowered === "friday" ||
+        lowered === "other"
       ) {
         return lowered;
       }
@@ -89,7 +90,7 @@ export async function fetchSermons(
       id: item.id,
       title: item.title || "Untitled Sermon",
       preacher: item.preacher || "Unknown",
-      date: item.date || item.created_at,
+      date: item.date, // Always use backend date as-is
       duration: item.duration || 0,
       audioUrl: item.audio_key
         ? `${WORKER_URL}/audio/${encodeR2Key(item.audio_key)}`
@@ -176,7 +177,7 @@ export async function fetchSermonById(id: string): Promise<Sermon | null> {
     imageUrl: data.image_key
       ? `${WORKER_URL}/images/${encodeR2Key(data.image_key)}`
       : undefined,
-    description: data.description || "",
+    // description: data.description || "",
     category: normalizeCategory(data.category) || "sunday",
     genre: data.genre || "General Teaching",
     plays: data.plays ?? data.play_count ?? 0,

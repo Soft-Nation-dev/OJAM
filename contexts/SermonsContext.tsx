@@ -1,13 +1,13 @@
 import { fetchSermons } from "@/lib/sermons";
 import { Sermon } from "@/types/sermon";
 import React, {
-    createContext,
-    ReactNode,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 type SermonsContextValue = {

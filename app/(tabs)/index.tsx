@@ -6,32 +6,32 @@ import { ThemedText } from "@/components/themed-text";
 import TabMenu from "@/components/ui/tab-menu";
 import { Colors } from "@/constants/theme";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
-import { useSermons } from "@/contexts/SermonsContext";
+import { useMergedSermons } from "@/contexts/useMergedSermons";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNotifications } from "@/hooks/use-notifications";
 import { fetchPlaylists } from "@/lib/playlists";
 import { Playlist, Sermon } from "@/types/sermon";
+import type { TabType } from "@/types/tab";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    Image,
-    RefreshControl,
-    StatusBar,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  RefreshControl,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-type TabType = "all" | "friday" | "sunday" | "tuesday";
 
 const HOME_TABS: { id: TabType; label: string }[] = [
   { id: "all", label: "All" },
   { id: "friday", label: "Friday LSTS Messages" },
   { id: "sunday", label: "Sunday Messages" },
   { id: "tuesday", label: "Tuesday Messages" },
+  { id: "other", label: "Other" },
 ];
 
 type HomeBlock =
@@ -64,7 +64,7 @@ export default function HomeScreen() {
     sermons,
     loading: sermonsLoading,
     refresh: refreshSermons,
-  } = useSermons();
+  } = useMergedSermons();
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [refreshing, setRefreshing] = useState(false);
 
@@ -102,16 +102,24 @@ export default function HomeScreen() {
         return sermons.filter((s) => s.category === "sunday");
       case "tuesday":
         return sermons.filter((s) => s.category === "tuesday");
+      case "other":
+        return sermons.filter((s) => s.category === "other");
       default:
         return sermons;
     }
   }, [activeTab, sermons]);
 
+  // Prioritize by year, then by full date (descending)
   const sortedFilteredSermons = React.useMemo(
     () =>
-      [...filteredSermons].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      ),
+      [...filteredSermons].sort((a, b) => {
+        // Parse years
+        const yearA = a.date ? new Date(a.date).getFullYear() : 0;
+        const yearB = b.date ? new Date(b.date).getFullYear() : 0;
+        if (yearA !== yearB) return yearB - yearA;
+        // If same year, sort by full date
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }),
     [filteredSermons],
   );
 
@@ -125,13 +133,23 @@ export default function HomeScreen() {
     [sortedFilteredSermons],
   );
 
+  // Shuffle utility
+  function shuffleArray<T>(array: T[]): T[] {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   const recommendedPlaylists = React.useMemo(
     () => playlists.slice(0, 4),
     [playlists],
   );
 
   const trendingPlaylists = React.useMemo(
-    () => playlists.slice(0, 4),
+    () => shuffleArray(playlists).slice(0, 4),
     [playlists],
   );
 

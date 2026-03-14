@@ -216,7 +216,8 @@ export default function PlayerScreen() {
               </View>
             </View>
 
-            {!!currentSermon.description && (
+            {/* Description (playlists only) */}
+            {false && !!currentSermon.description && (
               <ThemedText style={styles.description}>
                 {currentSermon.description}
               </ThemedText>

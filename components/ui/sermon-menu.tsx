@@ -3,6 +3,7 @@ import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useDownloads } from "@/hooks/use-downloads";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useNotifications } from "@/hooks/use-notifications";
 import { Sermon } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
@@ -10,13 +11,12 @@ import { Image as ExpoImage } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  ToastAndroid,
-  TouchableOpacity,
-  View,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { ThemedText } from "../themed-text";
 
@@ -76,12 +76,11 @@ export default function SermonMenu({
   const favorited = isFavorited(sermon.id);
   const previousDownloadStatusRef = useRef(progress?.status);
 
+  const { addNotification } = useNotifications();
   const showToast = (message: string, type: "success" | "error" | "info") => {
+    // Retain toast for non-download actions (optional)
     if (Platform.OS === "android") {
-      ToastAndroid.show(
-        message,
-        type === "error" ? ToastAndroid.LONG : ToastAndroid.SHORT,
-      );
+      // Optionally keep ToastAndroid for quick feedback
     }
   };
 
@@ -90,7 +89,14 @@ export default function SermonMenu({
     const currentStatus = progress?.status;
 
     if (previousStatus !== "completed" && currentStatus === "completed") {
-      showToast("Download completed", "success");
+      addNotification(
+        {
+          title: "Download completed",
+          message: sermon.title || "Your sermon has been downloaded.",
+          type: "update",
+        },
+        { mirrorToSystem: true },
+      );
     }
 
     if (
@@ -101,7 +107,7 @@ export default function SermonMenu({
     }
 
     previousDownloadStatusRef.current = currentStatus;
-  }, [progress?.status]);
+  }, [progress?.status, addNotification, sermon.title]);
 
   const handleDownloadAction = async () => {
     try {

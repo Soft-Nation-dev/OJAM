@@ -2,10 +2,16 @@
 
 # dependencies
 node_modules/
-OJAM/
 temp-eas-logs/
+friday/
+sunday/
+json/
+other/
+tuesday/
+scripts/
 # Expo
 .expo/
+sermons-metadata.json
 dist/
 web-build/
 expo-env.d.ts
@@ -32,6 +38,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript

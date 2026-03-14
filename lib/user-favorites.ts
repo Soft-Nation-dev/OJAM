@@ -167,7 +167,7 @@ export async function fetchFavoriteSermons(): Promise<Sermon[]> {
         imageUrl: sermon.image_key
           ? `https://sermon-sync.ojam.workers.dev/images/${encodeR2Key(sermon.image_key)}`
           : undefined,
-        description: sermon.description || "",
+        // description: sermon.description || "", // playlists only
         category: sermon.category || "sunday",
         genre: sermon.genre || "General Teaching",
         plays: sermon.plays || 0,

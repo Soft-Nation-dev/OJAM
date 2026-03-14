@@ -1,4 +1,4 @@
-export type SermonCategory = "sunday" | "tuesday" | "friday";
+export type SermonCategory = "sunday" | "tuesday" | "friday" | "other";
 
 export interface Sermon {
   id: string;

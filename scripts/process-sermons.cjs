@@ -17,44 +17,24 @@ async function processSermons() {
   const sermons = data;
   console.log(`Found ${sermons.length} sermons`);
 
-  // Shuffle sermons for random assignment
-  const shuffled = [...sermons].sort(() => Math.random() - 0.5);
+  // Use the category already assigned to each sermon (from Cloudflare folder structure)
+  // and update Supabase accordingly.
+  // Assumes each sermon object has a 'category' field set to 'friday', 'sunday', 'tuesday', or 'other'.
 
-  // Divide into 3 groups evenly: Tuesday, Friday, Sunday
-  const groupSize = Math.floor(shuffled.length / 3);
-  const tuesday = shuffled.slice(0, groupSize);
-  const friday = shuffled.slice(groupSize, groupSize * 2);
-  const sunday = shuffled.slice(groupSize * 2);
-
-  console.log(
-    `Groups: Tuesday: ${tuesday.length}, Friday: ${friday.length}, Sunday: ${sunday.length}`,
-  );
-
-  // Prepare updates: only allowed categories
-  const updates = [];
-  tuesday.forEach((s) =>
-    updates.push({ id: s.id, messagetype: "tuesday", category: "tuesday" }),
-  );
-  friday.forEach((s) =>
-    updates.push({ id: s.id, messagetype: "friday", category: "friday" }),
-  );
-  sunday.forEach((s) =>
-    updates.push({ id: s.id, messagetype: "sunday", category: "sunday" }),
-  );
-
-  // Update database
-  console.log("Updating sermons...");
-  for (const update of updates) {
+  console.log("Updating sermons using existing categories...");
+  for (const sermon of sermons) {
+    if (!sermon.category) {
+      console.warn(`Skipping sermon with missing category: ${sermon.id}`);
+      continue;
+    }
     const { error: updateError } = await supabase
       .from("sermons")
-      .update({ messagetype: update.messagetype, category: update.category })
-      .eq("id", update.id);
+      .update({ messagetype: sermon.category, category: sermon.category })
+      .eq("id", sermon.id);
     if (updateError) {
-      console.error(`Error updating ${update.id}:`, updateError);
+      console.error(`Error updating ${sermon.id}:`, updateError);
     } else {
-      console.log(
-        `Updated ${update.id}: ${update.messagetype}, ${update.category}`,
-      );
+      console.log(`Updated ${sermon.id}: ${sermon.category}`);
     }
   }
 

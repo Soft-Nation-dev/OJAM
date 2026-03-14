@@ -227,9 +227,6 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
       await persistCompletedDownloads(map);
 
       setDownloads(map);
-      console.log(
-        "[DownloadsContext] Loaded downloads and reconciled local files",
-      );
     } catch (e) {
       console.error("Failed to load downloads:", e);
     } finally {

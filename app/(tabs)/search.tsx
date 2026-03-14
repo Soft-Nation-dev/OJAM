@@ -2,8 +2,7 @@ import { SermonCard } from "@/components/sermon-card";
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
-import { useDownloadsContext } from "@/contexts/DownloadsContext";
-import { useSermons } from "@/contexts/SermonsContext";
+import { useMergedSermons } from "@/contexts/useMergedSermons";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -28,10 +27,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 export default function SearchScreen() {
-  const { downloadedSermons } = useDownloadsContext();
-  const { sermons } = useSermons();
+  const { sermons } = useMergedSermons();
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -43,11 +40,7 @@ export default function SearchScreen() {
   const router = useRouter();
   const { height } = useWindowDimensions();
 
-  const searchableSermons = useMemo(() => {
-    const downloaded = downloadedSermons.map((item) => item.sermon);
-    const downloadedIds = new Set(downloaded.map((item) => item.id));
-    return [...downloaded, ...sermons.filter((s) => !downloadedIds.has(s.id))];
-  }, [downloadedSermons, sermons]);
+  const searchableSermons = sermons;
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", () => {

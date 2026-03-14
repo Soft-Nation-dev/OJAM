@@ -1,18 +1,18 @@
 import {
-    getTrackPlayerModule,
-    initializeTrackPlayer,
-    isTrackPlayerSupported,
+  getTrackPlayerModule,
+  initializeTrackPlayer,
+  isTrackPlayerSupported,
 } from "@/services/track-player";
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 
 const trackPlayerModule = getTrackPlayerModule();
@@ -86,7 +86,7 @@ const toTrack = (sermon: Sermon) => ({
   artist: sermon.preacher,
   artwork: sermon.imageUrl,
   duration: sermon.duration,
-  description: sermon.description,
+  // description: sermon.description, // playlists only
   genre: sermon.genre,
   date: sermon.date,
 });
@@ -105,6 +105,7 @@ const toRetainedSermon = (sermon: Sermon): Sermon => ({
   likes: sermon.likes,
   favorites: sermon.favorites,
   localPath: sermon.localPath,
+  // description: sermon.description, // playlists only
 });
 
 const shuffleArray = <T,>(items: T[]) => {
@@ -314,10 +315,6 @@ export function AudioPlayerProvider({
           await new Promise((resolve) => setTimeout(resolve, 300));
         }
         await TrackPlayer.play();
-        console.log("[AudioPlayer] Playback started", {
-          id: activeTrack.id,
-          url: normalizeAudioUrl(activeTrack),
-        });
       } else {
         await TrackPlayer.pause();
       }

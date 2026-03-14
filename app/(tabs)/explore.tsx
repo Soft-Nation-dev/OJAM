@@ -3,7 +3,7 @@ import { SermonRowCard } from "@/components/sermon-row-card";
 import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
-import { useSermons } from "@/contexts/SermonsContext";
+import { useMergedSermons } from "@/contexts/useMergedSermons";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { fetchPlaylists } from "@/lib/playlists";
 import { Playlist } from "@/types/sermon";
@@ -41,11 +41,12 @@ const EXPLORE_CATEGORIES: CategoryType[] = [
     icon: "calendar-today",
     color: "#f59e0b",
   },
+  { id: "other", name: "Other", icon: "more-horiz", color: "#6366f1" },
   { id: "worship", name: "Worship", icon: "music-note", color: "#10b981" },
   { id: "prayer", name: "Prayer", icon: "favorite", color: "#ef4444" },
 ];
 
-const DAY_CATEGORIES = new Set(["friday", "sunday", "tuesday"]);
+const DAY_CATEGORIES = new Set(["friday", "sunday", "tuesday", "other"]);
 
 type ExploreBlock = "categories" | "topMessages" | "featuredSeries";
 
@@ -61,7 +62,7 @@ export default function ExploreScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { currentSermon } = useAudioPlayer();
-  const { sermons, refresh: refreshSermons } = useSermons();
+  const { sermons, refresh: refreshSermons } = useMergedSermons();
 
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [refreshing, setRefreshing] = useState(false);
