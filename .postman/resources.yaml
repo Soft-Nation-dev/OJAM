@@ -1,0 +1,12 @@
+# Use this workspace to collaborate
+workspace:
+  id: dae6638d-d31e-4e86-8f32-ea2ced84ffa8
+
+localResources:
+  specs:
+    - ..\dexcheck\local\client_analytics.proto
+    - ..\dexcheck\local\messaging_event.proto
+    - ..\dexcheck\local\messaging_event_extension.proto
+    - ..\dexcheck\remote\client_analytics.proto
+    - ..\dexcheck\remote\messaging_event.proto
+    - ..\dexcheck\remote\messaging_event_extension.proto

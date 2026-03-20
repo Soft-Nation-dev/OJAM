@@ -75,23 +75,13 @@ export default function PlaylistDetail() {
     );
   }, [currentPlaylist]);
 
+  // Always sort sermons by title for display
   const sortedSermons = useMemo(() => {
     if (!currentPlaylist) return [] as Sermon[];
-    const list = [...currentPlaylist.sermons];
-    switch (sortOption) {
-      case "plays":
-        return list.sort((a, b) => (b.plays || 0) - (a.plays || 0));
-      case "title":
-        return list.sort((a, b) =>
-          (a.title || "").localeCompare(b.title || ""),
-        );
-      case "recent":
-      default:
-        return list.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-        );
-    }
-  }, [currentPlaylist, sortOption]);
+    return [...currentPlaylist.sermons].sort((a, b) =>
+      (a.title || "").localeCompare(b.title || ""),
+    );
+  }, [currentPlaylist]);
 
   const handlePlayAll = () => {
     if (!sortedSermons.length) return;

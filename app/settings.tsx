@@ -2,8 +2,11 @@ import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { clearOldCache } from "@/lib/clear-cache";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system/legacy";
+import { useRouter, useFocusEffect } from "expo-router";
 import React from "react";
 import {
   Alert,
@@ -83,6 +86,37 @@ const SettingItem = ({
 };
 
 export default function SettingsScreen() {
+
+  useFocusEffect(
+  React.useCallback(() => {
+    getCacheSizeMB().then(setCacheSize);
+  }, [])
+);
+  const [cacheSize, setCacheSize] = React.useState<string>("-");
+
+  async function getCacheSizeMB() {
+  try {
+    const dir = FileSystem.cacheDirectory!;
+    const files = await getAllFilesSafe(dir);
+
+    const infos = await Promise.all(
+  files.map(async (file) => {
+    try {
+      const info = await FileSystem.getInfoAsync(file);
+      return info.exists && info.size ? info.size : 0;
+    } catch {
+      return 0;
+    }
+  })
+);
+
+const total = infos.reduce((sum, size) => sum + size, 0);
+
+    return (total / (1024 * 1024)).toFixed(2);
+  } catch {
+    return "-";
+  }
+}
   const showToast = (
     message: string,
     type: "success" | "info" | "error" = "success",
@@ -129,24 +163,101 @@ export default function SettingsScreen() {
         : "Medium";
   const speedLabel = `${settings.playbackSpeed.toFixed(2)}x`;
 
-  const handleClearCache = () => {
+  
+const PROTECTED_PATTERNS = [
+  "ExponentAsset", // expo assets (fonts/images)
+  ".ttf",
+  ".otf",
+  "google_fonts",
+];
+
+function isProtected(path: string) {
+  return PROTECTED_PATTERNS.some((p) => path.includes(p));
+}
+
+async function getAllFilesSafe(dir: string): Promise<string[]> {
+  try {
+    const items = await FileSystem.readDirectoryAsync(dir);
+    let results: string[] = [];
+
+    for (const item of items) {
+      const path = dir + item;
+
+      try {
+        const info = await FileSystem.getInfoAsync(path);
+
+        if (!info.exists) continue;
+
+        if (info.isDirectory) {
+          results = results.concat(await getAllFilesSafe(path + "/"));
+        } else {
+          results.push(path);
+        }
+      } catch {
+        // skip unreadable files (prevents crash)
+      }
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+const handleClearCache = async () => {
+  return new Promise<void>((resolve) => {
     Alert.alert(
       "Clear Cache",
-      "This will delete all cached data. Are you sure?",
+      "This will remove temporary files and free up space. Downloads will NOT be deleted.",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: "Cancel", style: "cancel", onPress: () => resolve() },
         {
           text: "Clear",
           style: "destructive",
-          onPress: () => {
-            // Handle clear cache
-            showToast("Cache cleared successfully.", "success");
+          onPress: async () => {
+            try {
+              const dir = FileSystem.cacheDirectory!;
+
+
+              const files = await getAllFilesSafe(dir);
+
+              let deletedCount = 0;
+
+              for (const file of files) {
+                if (isProtected(file)) continue;
+
+                try {
+                  await FileSystem.deleteAsync(file, {
+                    idempotent: true,
+                  });
+                  deletedCount++;
+                } catch {}
+              }
+
+              const keys = await AsyncStorage.getAllKeys();
+              const tempKeys = keys.filter((k) =>
+                k.startsWith("@cache_")
+              );
+
+              if (tempKeys.length) {
+                await AsyncStorage.multiRemove(tempKeys);
+              }
+
+              showToast(`Cleared ${deletedCount} files 🧹`, "success");
+
+              resolve();
+            } catch (e) {
+              console.log("Cache clear failed", e);
+              showToast("Failed to clear cache 😬", "error");
+              resolve();
+            }
           },
         },
       ],
-      { cancelable: true },
+      { cancelable: true }
     );
-  };
+  });
+};
 
   return (
     <SafeAreaView
@@ -409,8 +520,12 @@ export default function SettingsScreen() {
               icon="cleaning-services"
               iconColor="#ef4444"
               title="Clear Cache"
-              subtitle="Free up space"
-              onPress={handleClearCache}
+              subtitle={`Cache size: ${cacheSize} MB`}
+              onPress={async () => {
+                await handleClearCache();
+                // Refresh cache size after clearing
+                setCacheSize(await getCacheSizeMB());
+              }}
             />
             {/* Download Location removed. */}
           </View>

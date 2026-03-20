@@ -20,6 +20,7 @@ import { PlaylistsProvider } from "@/contexts/PlaylistsContext";
 import { SermonsProvider } from "@/contexts/SermonsContext";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { runCacheMaintenance } from "@/lib/clear-cache";
 import {
   initializeTrackPlayer,
   isTrackPlayerSupported,
@@ -49,6 +50,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isTrackPlayerSupported) return;
     void initializeTrackPlayer().catch(() => {});
+    // Run cache maintenance (clear old files and enforce size limit) on app start
+    void runCacheMaintenance();
   }, []);
 
   return (
