@@ -107,6 +107,13 @@ export default function RootLayout() {
                             options={{ headerShown: false }}
                           />
                           <Stack.Screen
+                            name="NetworkTest"
+                            options={{
+                              headerShown: true,
+                              title: "Network Test",
+                            }}
+                          />
+                          <Stack.Screen
                             name="auth"
                             options={{
                               presentation: "modal",

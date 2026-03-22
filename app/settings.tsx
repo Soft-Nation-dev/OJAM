@@ -324,6 +324,13 @@ export default function SettingsScreen() {
             ACCOUNT
           </ThemedText>
           <View style={styles.sectionContent}>
+            <SettingItem
+              icon="wifi"
+              iconColor="#3b82f6"
+              title="Test Network"
+              subtitle="Check if app can access the internet"
+              onPress={() => router.push("/NetworkTest")}
+            />
             {/* <SettingItem
               icon="person"
               iconColor="#3b82f6"
@@ -525,60 +532,70 @@ export default function SettingsScreen() {
                 setCacheSize(await getCacheSizeMB());
               }}
             />
-           
-           
           </View>
-             <View style={styles.section}>
-  {/* <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+          <View style={styles.section}>
+            {/* <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
     ACCOUNT
   </ThemedText> */}
 
-  <View style={styles.sectionContent}>
-    {user && (
-      <TouchableOpacity
-        style={styles.deleteButton}
-        activeOpacity={0.8}
-        onPress={() => {
-          Alert.alert(
-            "Delete Account",
-            "Are you sure you want to permanently delete your account? This cannot be undone.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: async () => {
-                  try {
-                    const { error } = await deleteAccount();
+            <View style={styles.sectionContent}>
+              {user && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    Alert.alert(
+                      "Delete Account",
+                      "Are you sure you want to permanently delete your account? This cannot be undone.",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: async () => {
+                            try {
+                              const { error } = await deleteAccount();
 
-                    if (error) {
-                      showToast(`Failed to delete account: ${error}`, "error");
-                    } else {
-                      showToast("Account deleted successfully!", "success");
-                    }
-                  } catch (err: any) {
-                    console.error("Unexpected error deleting account:", err);
-                    showToast("An unexpected error occurred", "error");
-                  }
-                },
-              },
-            ]
-          );
-        }}
-      >
-        <MaterialIcons
-          name="delete"
-          size={24}
-          color="#fff"
-          style={{ marginRight: 10 }}
-        />
-        <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-          Delete Account
-        </ThemedText>
-      </TouchableOpacity>
-    )}
-  </View>
-</View>
+                              if (error) {
+                                showToast(
+                                  `Failed to delete account: ${error}`,
+                                  "error",
+                                );
+                              } else {
+                                showToast(
+                                  "Account deleted successfully!",
+                                  "success",
+                                );
+                              }
+                            } catch (err: any) {
+                              console.error(
+                                "Unexpected error deleting account:",
+                                err,
+                              );
+                              showToast(
+                                "An unexpected error occurred",
+                                "error",
+                              );
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  }}
+                >
+                  <MaterialIcons
+                    name="delete"
+                    size={24}
+                    color="#fff"
+                    style={{ marginRight: 10 }}
+                  />
+                  <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                    Delete Account
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </View>
 
         {/* Logout Button */}
