@@ -1,12 +1,12 @@
 import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { clearOldCache } from "@/lib/clear-cache";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
   Alert,
@@ -86,37 +86,36 @@ const SettingItem = ({
 };
 
 export default function SettingsScreen() {
-
   useFocusEffect(
-  React.useCallback(() => {
-    getCacheSizeMB().then(setCacheSize);
-  }, [])
-);
+    React.useCallback(() => {
+      getCacheSizeMB().then(setCacheSize);
+    }, []),
+  );
   const [cacheSize, setCacheSize] = React.useState<string>("-");
 
   async function getCacheSizeMB() {
-  try {
-    const dir = FileSystem.cacheDirectory!;
-    const files = await getAllFilesSafe(dir);
-
-    const infos = await Promise.all(
-  files.map(async (file) => {
     try {
-      const info = await FileSystem.getInfoAsync(file);
-      return info.exists && info.size ? info.size : 0;
+      const dir = FileSystem.cacheDirectory!;
+      const files = await getAllFilesSafe(dir);
+
+      const infos = await Promise.all(
+        files.map(async (file) => {
+          try {
+            const info = await FileSystem.getInfoAsync(file);
+            return info.exists && info.size ? info.size : 0;
+          } catch {
+            return 0;
+          }
+        }),
+      );
+
+      const total = infos.reduce((sum, size) => sum + size, 0);
+
+      return (total / (1024 * 1024)).toFixed(2);
     } catch {
-      return 0;
+      return "-";
     }
-  })
-);
-
-const total = infos.reduce((sum, size) => sum + size, 0);
-
-    return (total / (1024 * 1024)).toFixed(2);
-  } catch {
-    return "-";
   }
-}
   const showToast = (
     message: string,
     type: "success" | "info" | "error" = "success",
@@ -130,6 +129,7 @@ const total = infos.reduce((sum, size) => sum + size, 0);
   };
   const colorScheme = useColorScheme();
   const router = useRouter();
+
   const {
     settings,
     setThemeMode,
@@ -139,6 +139,7 @@ const total = infos.reduce((sum, size) => sum + size, 0);
     setNotificationsEnabled,
     setEmailNotifications,
   } = useSettings();
+  const { deleteAccount, user } = useAuth();
 
   // Modal state
   const [modal, setModal] = React.useState<
@@ -163,101 +164,97 @@ const total = infos.reduce((sum, size) => sum + size, 0);
         : "Medium";
   const speedLabel = `${settings.playbackSpeed.toFixed(2)}x`;
 
-  
-const PROTECTED_PATTERNS = [
-  "ExponentAsset", // expo assets (fonts/images)
-  ".ttf",
-  ".otf",
-  "google_fonts",
-];
+  const PROTECTED_PATTERNS = [
+    "ExponentAsset", // expo assets (fonts/images)
+    ".ttf",
+    ".otf",
+    "google_fonts",
+  ];
 
-function isProtected(path: string) {
-  return PROTECTED_PATTERNS.some((p) => path.includes(p));
-}
-
-async function getAllFilesSafe(dir: string): Promise<string[]> {
-  try {
-    const items = await FileSystem.readDirectoryAsync(dir);
-    let results: string[] = [];
-
-    for (const item of items) {
-      const path = dir + item;
-
-      try {
-        const info = await FileSystem.getInfoAsync(path);
-
-        if (!info.exists) continue;
-
-        if (info.isDirectory) {
-          results = results.concat(await getAllFilesSafe(path + "/"));
-        } else {
-          results.push(path);
-        }
-      } catch {
-        // skip unreadable files (prevents crash)
-      }
-    }
-
-    return results;
-  } catch {
-    return [];
+  function isProtected(path: string) {
+    return PROTECTED_PATTERNS.some((p) => path.includes(p));
   }
-}
 
-const handleClearCache = async () => {
-  return new Promise<void>((resolve) => {
-    Alert.alert(
-      "Clear Cache",
-      "This will remove temporary files and free up space. Downloads will NOT be deleted.",
-      [
-        { text: "Cancel", style: "cancel", onPress: () => resolve() },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const dir = FileSystem.cacheDirectory!;
+  async function getAllFilesSafe(dir: string): Promise<string[]> {
+    try {
+      const items = await FileSystem.readDirectoryAsync(dir);
+      let results: string[] = [];
 
+      for (const item of items) {
+        const path = dir + item;
 
-              const files = await getAllFilesSafe(dir);
+        try {
+          const info = await FileSystem.getInfoAsync(path);
 
-              let deletedCount = 0;
+          if (!info.exists) continue;
 
-              for (const file of files) {
-                if (isProtected(file)) continue;
+          if (info.isDirectory) {
+            results = results.concat(await getAllFilesSafe(path + "/"));
+          } else {
+            results.push(path);
+          }
+        } catch {
+          // skip unreadable files (prevents crash)
+        }
+      }
 
-                try {
-                  await FileSystem.deleteAsync(file, {
-                    idempotent: true,
-                  });
-                  deletedCount++;
-                } catch {}
+      return results;
+    } catch {
+      return [];
+    }
+  }
+
+  const handleClearCache = async () => {
+    return new Promise<void>((resolve) => {
+      Alert.alert(
+        "Clear Cache",
+        "This will remove temporary files and free up space. Downloads will NOT be deleted.",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => resolve() },
+          {
+            text: "Clear",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                const dir = FileSystem.cacheDirectory!;
+
+                const files = await getAllFilesSafe(dir);
+
+                let deletedCount = 0;
+
+                for (const file of files) {
+                  if (isProtected(file)) continue;
+
+                  try {
+                    await FileSystem.deleteAsync(file, {
+                      idempotent: true,
+                    });
+                    deletedCount++;
+                  } catch {}
+                }
+
+                const keys = await AsyncStorage.getAllKeys();
+                const tempKeys = keys.filter((k) => k.startsWith("@cache_"));
+
+                if (tempKeys.length) {
+                  await AsyncStorage.multiRemove(tempKeys);
+                }
+
+                showToast(`Cleared ${deletedCount} files 🧹`, "success");
+
+                resolve();
+              } catch (e) {
+                console.log("Cache clear failed", e);
+                showToast("Failed to clear cache 😬", "error");
+                resolve();
               }
-
-              const keys = await AsyncStorage.getAllKeys();
-              const tempKeys = keys.filter((k) =>
-                k.startsWith("@cache_")
-              );
-
-              if (tempKeys.length) {
-                await AsyncStorage.multiRemove(tempKeys);
-              }
-
-              showToast(`Cleared ${deletedCount} files 🧹`, "success");
-
-              resolve();
-            } catch (e) {
-              console.log("Cache clear failed", e);
-              showToast("Failed to clear cache 😬", "error");
-              resolve();
-            }
+            },
           },
-        },
-      ],
-      { cancelable: true }
-    );
-  });
-};
+        ],
+        { cancelable: true },
+      );
+    });
+  };
 
   return (
     <SafeAreaView
@@ -510,6 +507,7 @@ const handleClearCache = async () => {
             />
           </View>
         </View>
+
         {/* Storage Section */}
         <View style={styles.section}>
           <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
@@ -527,8 +525,60 @@ const handleClearCache = async () => {
                 setCacheSize(await getCacheSizeMB());
               }}
             />
-            {/* Download Location removed. */}
+           
+           
           </View>
+             <View style={styles.section}>
+  {/* <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+    ACCOUNT
+  </ThemedText> */}
+
+  <View style={styles.sectionContent}>
+    {user && (
+      <TouchableOpacity
+        style={styles.deleteButton}
+        activeOpacity={0.8}
+        onPress={() => {
+          Alert.alert(
+            "Delete Account",
+            "Are you sure you want to permanently delete your account? This cannot be undone.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  try {
+                    const { error } = await deleteAccount();
+
+                    if (error) {
+                      showToast(`Failed to delete account: ${error}`, "error");
+                    } else {
+                      showToast("Account deleted successfully!", "success");
+                    }
+                  } catch (err: any) {
+                    console.error("Unexpected error deleting account:", err);
+                    showToast("An unexpected error occurred", "error");
+                  }
+                },
+              },
+            ]
+          );
+        }}
+      >
+        <MaterialIcons
+          name="delete"
+          size={24}
+          color="#fff"
+          style={{ marginRight: 10 }}
+        />
+        <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+          Delete Account
+        </ThemedText>
+      </TouchableOpacity>
+    )}
+  </View>
+</View>
         </View>
 
         {/* Logout Button */}
@@ -576,6 +626,27 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ef4444",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 30,
+    margin: 10,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5, // for android shadow
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   scrollView: {
     flex: 1,

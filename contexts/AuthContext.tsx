@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
+
 import React, {
   createContext,
   ReactNode,
@@ -22,6 +23,7 @@ interface AuthContextType {
     fullName?: string,
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(({ data: { session } }) => {
         setSession(session);
         setUser(session?.user ?? null);
+              // console.log("[AuthContext] Session:", session);
+              // console.log("[AuthContext] Access Token:", session?.access_token);
       })
       .catch(() => {
         setSession(null);
@@ -53,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      // console.log("[AuthContext] Auth state changed. Session:", session);
+      // console.log("[AuthContext] Access Token:", session?.access_token);
     });
 
     return () => subscription.unsubscribe();
@@ -104,6 +110,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+
+
+const deleteAccount = async (): Promise<{ error: string | null }> => {
+  try {
+    // 1️⃣ Ensure we have a valid session (refresh it)
+    const { data: refreshData, error: refreshError } =
+      await supabase.auth.refreshSession();
+
+    if (refreshError || !refreshData.session?.access_token) {
+      return { error: "Session expired. Please log in again." };
+    }
+
+    const token = refreshData.session.access_token;
+
+    // 2️⃣ Call Edge Function
+    const response = await fetch(
+      "https://lrlbygqbtylnrfsbgdkp.supabase.co/functions/v1/delete-user",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // 🔥 critical
+          "Content-Type": "application/json",
+          apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "", // RN needs this
+        },
+        body: JSON.stringify({}),
+      }
+    );
+
+    // 3️⃣ Parse response safely
+    let data: any = {};
+    try {
+      data = await response.json();
+    } catch {
+      // ignore JSON parse failure
+    }
+
+    // 4️⃣ Handle error response
+    if (!response.ok) {
+      console.error("[deleteAccount] Edge Function error:", data);
+
+      return {
+        error:
+          data?.error ||
+          data?.message ||
+          `Delete failed (status ${response.status})`,
+      };
+    }
+
+    // 5️⃣ IMPORTANT: Clear session locally AFTER deletion
+    await supabase.auth.signOut();
+
+    return { error: null };
+  } catch (err: any) {
+    console.error("[deleteAccount] Exception:", err);
+
+    return {
+      error: err?.message || "Something went wrong",
+    };
+  }
+};
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -113,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signOut,
+        deleteAccount,
       }}
     >
       {children}
