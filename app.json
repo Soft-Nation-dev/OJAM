@@ -1,7 +1,7 @@
 {
   "expo": {
     "icon": "./assets/images/icon.png",
-    "name": "Ojam",
+    "name": "Ojam-dev",
     "slug": "ojam-dev",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -26,7 +28,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-        "android.permission.WAKE_LOCK"
+        "android.permission.WAKE_LOCK",
+        "android.permission.RECORD_AUDIO"
       ],
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
@@ -74,9 +77,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "adbc4378-08bd-431b-b447-bbec680dfef4"
+        "projectId": "bc2a3e50-b8ab-4e88-8de0-66e6572fcdd0"
       }
     },
-    "owner": "ojams-organization"
+    "owner": "ojam-devs-organization"
   }
 }

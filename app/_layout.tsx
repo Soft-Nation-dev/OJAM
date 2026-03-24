@@ -27,6 +27,8 @@ import {
 } from "@/services/track-player";
 import { useEffect } from "react";
 
+import { Alert } from "react-native";
+
 export const unstable_settings = {
   anchor: "(tabs)",
 };
@@ -46,6 +48,17 @@ function PlaybackSettingsSync() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  // Debug: Check Supabase URL at runtime
+  useEffect(() => {
+    // This will show exactly what the production app "sees"
+    const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    if (!url) {
+      Alert.alert("Config Error", "Supabase URL is missing in this build!");
+    } else {
+      console.log("Supabase connected to:", url);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isTrackPlayerSupported) return;
