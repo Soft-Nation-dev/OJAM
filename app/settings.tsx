@@ -546,7 +546,7 @@ export default function SettingsScreen() {
                   onPress={() => {
                     Alert.alert(
                       "Delete Account",
-                      "Are you sure you want to permanently delete your account? This cannot be undone.",
+                      "Are you sure you want to permanently delete your account and all associated Data? This cannot be undone.",
                       [
                         { text: "Cancel", style: "cancel" },
                         {
