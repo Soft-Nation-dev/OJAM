@@ -46,10 +46,17 @@ export function SermonCard({ sermon, onPress }: SermonCardProps) {
     }
   };
   const dayBadgeSource = getDayBadgeSource(sermon.category);
-  const coverSource = useMemo(
-    () => (sermon.imageUrl ? { uri: sermon.imageUrl } : null),
-    [sermon.imageUrl],
-  );
+const coverSource = useMemo(() => {
+  if (sermon.localImagePath) {
+    return { uri: sermon.localImagePath }; // 🟢 offline first
+  }
+
+  if (sermon.imageUrl) {
+    return { uri: sermon.imageUrl }; // 🟡 fallback online
+  }
+
+  return null;
+}, [sermon.localImagePath, sermon.imageUrl]);
 
   return (
     <TouchableOpacity

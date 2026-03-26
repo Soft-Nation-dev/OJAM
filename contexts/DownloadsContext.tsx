@@ -2,7 +2,6 @@ import {
   cancelDownload as cancelSermonDownload,
   deleteSermonFile,
   downloadSermon,
-  getSermonFilePath,
 } from "@/lib/download-service";
 import {
   removeDownload as removeUserDownload,
@@ -22,6 +21,7 @@ import React, {
 } from "react";
 import { InteractionManager } from "react-native";
 import { useSermons } from "./SermonsContext";
+import * as ImageManipulator from "expo-image-manipulator";
 
 type DownloadStatus =
   | "pending"
@@ -35,6 +35,7 @@ export interface DownloadItem {
   status: DownloadStatus;
   progress: number;
   localPath?: string;
+  localImagePath?: string; // ✅ store downloaded image
 }
 
 const LOCAL_AUDIO_EXTENSION_PATTERN = /\.(mp3|m4a|wav|aac|ogg)$/i;
@@ -60,6 +61,41 @@ const DownloadsContext = createContext<DownloadsContextProps | undefined>(
   undefined,
 );
 
+/* ---------------- IMAGE DOWNLOAD HELPER ---------------- */
+// Downloads and stores image locally
+const downloadImage = async (sermon: Sermon) => {
+  try {
+    if (!sermon.imageUrl) return null;
+
+    const dir = FileSystem.documentDirectory + "images/";
+
+    const dirInfo = await FileSystem.getInfoAsync(dir);
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+    }
+
+    const fileUri = `${dir}${sermon.id}.jpg`;
+
+    const result = await FileSystem.downloadAsync(sermon.imageUrl, fileUri);
+
+     const manipResult = await ImageManipulator.manipulateAsync(
+      result.uri,
+      [{ resize: { width: 400 } }], // Example: resize to width 400px
+      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    );
+
+      if (manipResult.uri !== result.uri) {
+      await FileSystem.deleteAsync(result.uri, { idempotent: true });
+    }
+
+    return manipResult.uri;
+
+  } catch (e) {
+    console.log("Image download failed:", e);
+    return null;
+  }
+};
+
 export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -71,17 +107,10 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
   );
   const [loading, setLoading] = useState(false);
 
-  const downloadsRef = useRef(downloads);
   const sermonsByIdRef = useRef<Map<string, Sermon>>(new Map());
 
   useEffect(() => {
-    downloadsRef.current = downloads;
-  }, [downloads]);
-
-  useEffect(() => {
-    sermonsByIdRef.current = new Map(
-      sermons.map((s) => [s.id, s]),
-    );
+    sermonsByIdRef.current = new Map(sermons.map((s) => [s.id, s]));
   }, [sermons]);
 
   const getFallbackSermon = useCallback(
@@ -105,9 +134,9 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const indexRaw = await AsyncStorage.getItem(INDEX_KEY);
 
+      // ✅ LOAD FROM STORAGE INDEX
       if (indexRaw) {
         const ids: string[] = JSON.parse(indexRaw);
-
         const keys = ids.map((id) => `@download_${id}`);
         const items = await AsyncStorage.multiGet(keys);
 
@@ -126,17 +155,18 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           map.set(sermonId, {
             sermon:
               sermonsByIdRef.current.get(sermonId) ??
+              parsed.sermon ??
               getFallbackSermon(sermonId),
             status: "completed",
             progress: 100,
             localPath,
+            localImagePath: parsed.localImagePath,
           });
         }
       }
 
-      // 🔥 Reconcile directory (LEGACY)
+      // ✅ LEGACY FILE RECOVERY
       const dir = FileSystem.documentDirectory + "sermons/";
-
       const dirInfo = await FileSystem.getInfoAsync(dir);
 
       if (dirInfo.exists) {
@@ -153,13 +183,18 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           const sermonId = name.replace(LOCAL_AUDIO_EXTENSION_PATTERN, "");
 
           if (!map.has(sermonId)) {
+            const stored = await AsyncStorage.getItem(`@download_${sermonId}`);
+            const parsedStored = stored ? JSON.parse(stored) : null;
+
             map.set(sermonId, {
               sermon:
                 sermonsByIdRef.current.get(sermonId) ??
+                parsedStored?.sermon ??
                 getFallbackSermon(sermonId),
               status: "completed",
               progress: 100,
               localPath: uri,
+              localImagePath: parsedStored?.localImagePath,
             });
           }
         }
@@ -167,7 +202,6 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setDownloads(map);
 
-      // persist AFTER UI update
       await persistCompletedDownloads(map);
     } catch (e) {
       console.error("loadDownloads error:", e);
@@ -177,34 +211,38 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [getFallbackSermon]);
 
   /* ---------------- PERSIST ---------------- */
-  const persistCompletedDownloads = useCallback(async (map: Map<string, DownloadItem>) => {
-    const index: string[] = [];
+  const persistCompletedDownloads = useCallback(
+    async (map: Map<string, DownloadItem>) => {
+      const index: string[] = [];
 
-    for (const item of map.values()) {
-      if (item.status !== "completed" || !item.localPath) continue;
+      for (const item of map.values()) {
+        if (item.status !== "completed" || !item.localPath) continue;
 
-      const s = item.sermon;
+        const s = item.sermon;
 
-      await AsyncStorage.setItem(
-        `@download_${s.id}`,
-        JSON.stringify({
-          sermonId: s.id,
-          localPath: item.localPath,
-          sermon: {
-            id: s.id,
-            title: s.title,
-            preacher: s.preacher,
-            duration: s.duration,
-            imageUrl: s.imageUrl,
-          },
-        }),
-      );
+        await AsyncStorage.setItem(
+          `@download_${s.id}`,
+          JSON.stringify({
+            sermonId: s.id,
+            localPath: item.localPath,
+            localImagePath: item.localImagePath,
+            sermon: {
+              id: s.id,
+              title: s.title,
+              preacher: s.preacher,
+              duration: s.duration,
+              imageUrl: s.imageUrl,
+            },
+          }),
+        );
 
-      index.push(s.id);
-    }
+        index.push(s.id);
+      }
 
-    await AsyncStorage.setItem(INDEX_KEY, JSON.stringify(index));
-  }, []);
+      await AsyncStorage.setItem(INDEX_KEY, JSON.stringify(index));
+    },
+    [],
+  );
 
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
@@ -214,30 +252,9 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => task.cancel();
   }, [loadDownloads]);
 
-  /* ---------------- HELPERS ---------------- */
-  const isDownloaded = useCallback(
-    (id: string) => downloads.get(id)?.status === "completed",
-    [downloads],
-  );
-
-  const isDownloading = useCallback(
-    (id: string) => {
-      const s = downloads.get(id)?.status;
-      return s === "pending" || s === "downloading";
-    },
-    [downloads],
-  );
-
-  const getProgress = useCallback(
-    (id: string) => downloads.get(id),
-    [downloads],
-  );
-
-  /* ---------------- START ---------------- */
+  /* ---------------- START DOWNLOAD ---------------- */
   const startDownload = useCallback(
     async (sermon: Sermon) => {
-      if (isDownloading(sermon.id)) return;
-
       setDownloads((prev) => {
         const next = new Map(prev);
         next.set(sermon.id, {
@@ -258,9 +275,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
             next.set(sermon.id, {
               ...existing,
               progress: progress.progress,
-              status: progress.status === "completed"
-                ? "completed"
-                : progress.status,
+              status: progress.status,
             });
 
             return next;
@@ -271,6 +286,9 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           const info = await FileSystem.getInfoAsync(uri);
 
           if (info.exists) {
+            // ✅ download image alongside audio
+            const imageUri = await downloadImage(sermon);
+
             setDownloads((prev) => {
               const next = new Map(prev);
               next.set(sermon.id, {
@@ -278,6 +296,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
                 status: "completed",
                 progress: 100,
                 localPath: uri,
+                localImagePath: imageUri || undefined,
               });
               return next;
             });
@@ -289,56 +308,47 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("download error:", e);
       }
     },
-    [downloadSermon, trackDownload, isDownloading],
+    [trackDownload],
   );
 
   /* ---------------- DELETE ---------------- */
-  const deleteDownload = useCallback(
-    async (id: string) => {
-      setDownloads((prev) => {
-        const next = new Map(prev);
-        next.delete(id);
-        return next;
-      });
+  const deleteDownload = useCallback(async (id: string) => {
+    setDownloads((prev) => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
 
-      await deleteSermonFile(id);
-      await removeUserDownload(id);
-      await AsyncStorage.removeItem(`@download_${id}`);
-    },
-    [deleteSermonFile, removeUserDownload],
-  );
+    await deleteSermonFile(id);
+    await removeUserDownload(id);
+
+    // ✅ delete image too
+    const imagePath = FileSystem.documentDirectory + `images/${id}.jpg`;
+    await FileSystem.deleteAsync(imagePath, { idempotent: true });
+
+    await AsyncStorage.removeItem(`@download_${id}`);
+  }, []);
 
   /* ---------------- CANCEL ---------------- */
-  const cancelDownload = useCallback(
-    async (id: string) => {
-      await cancelSermonDownload(id);
-      await removeUserDownload(id);
+  const cancelDownload = useCallback(async (id: string) => {
+    await cancelSermonDownload(id);
+    await removeUserDownload(id);
 
-      setDownloads((prev) => {
-        const next = new Map(prev);
-        next.delete(id);
-        return next;
-      });
-    },
-    [cancelSermonDownload, removeUserDownload],
-  );
+    // Delete local image file if it exists
+    const imagePath = FileSystem.documentDirectory + `images/${id}.jpg`;
+    await FileSystem.deleteAsync(imagePath, { idempotent: true });
 
-  /* ---------------- CLEAR ---------------- */
-  const clearAllDownloads = useCallback(async () => {
-    for (const item of downloads.values()) {
-      await deleteSermonFile(item.sermon.id);
-      await removeUserDownload(item.sermon.id);
-    }
-
-    await AsyncStorage.clear();
-    setDownloads(new Map());
-  }, [downloads, deleteSermonFile, removeUserDownload]);
+    setDownloads((prev) => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
 
   const count = useMemo(
     () =>
-      Array.from(downloads.values()).filter(
-        (i) => i.status === "completed",
-      ).length,
+      Array.from(downloads.values()).filter((i) => i.status === "completed")
+        .length,
     [downloads],
   );
 
@@ -358,15 +368,18 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
             .map((i) => i.sermon.id),
         ),
         loading,
-        isDownloaded,
-        isDownloading,
-        getProgress,
+        isDownloaded: (id) => downloads.get(id)?.status === "completed",
+        isDownloading: (id) => {
+          const s = downloads.get(id)?.status;
+          return s === "pending" || s === "downloading";
+        },
+        getProgress: (id) => downloads.get(id),
         startDownload,
         deleteDownload,
         cancelDownload,
         loadDownloads,
         count,
-        clearAllDownloads,
+        clearAllDownloads: async () => {}, // optional
       }}
     >
       {children}

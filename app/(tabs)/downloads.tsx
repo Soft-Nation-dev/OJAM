@@ -2,11 +2,11 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
-    BackHandler,
-    FlatList,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  BackHandler,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -116,9 +116,11 @@ export default function DownloadsScreen() {
             )
           }
           renderItem={({ item }) => {
+            // ✅ IMPORTANT: pass localImagePath to UI
             const sermon = {
               ...item.sermon,
               localPath: item.localPath,
+              imageUrl: item.localImagePath || item.sermon.imageUrl, // 👈 THIS is the magic
             };
 
             const progress = getProgress(sermon.id);
@@ -186,7 +188,6 @@ export default function DownloadsScreen() {
             );
           }}
         />
-        {/* Up Next queue removed from downloads. Now only in player screen. */}
       </SafeAreaView>
     </ThemedView>
   );

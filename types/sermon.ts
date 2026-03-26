@@ -15,6 +15,7 @@ export interface Sermon {
   favorites?: number;
   genre?: string;
   localPath?: string; // Optional local file path for downloaded sermons
+  localImagePath?: string; // ✅ store downloaded image
 }
 
 export interface Playlist {

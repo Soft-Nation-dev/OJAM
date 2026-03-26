@@ -55,26 +55,36 @@ function SermonRowCardComponent({
     }
   }, [sermon.category]);
 
-  const getDefaultImage = useMemo(() => {
-    if (sermon.imageUrl) return { uri: sermon.imageUrl };
-    switch (sermon.category) {
-      case "sunday":
-        return require("@/assets/images/black-disk.png");
-      case "friday":
-        return require("@/assets/images/blue-disk.png");
-      case "tuesday":
-        return require("@/assets/images/music_disk.png");
-      default:
-        return require("@/assets/images/black-disk.png");
-    }
-  }, [sermon.imageUrl, sermon.category]);
+ const imageSource = useMemo(() => {
+  // 🟢 1. Use offline image FIRST
+  if (sermon.localImagePath) {
+    return { uri: sermon.localImagePath };
+  }
 
+  // 🟡 2. Fallback to online image
+  if (sermon.imageUrl) {
+    return { uri: sermon.imageUrl };
+  }
+
+  // 🔵 3. Final fallback (local assets)
+  switch (sermon.category) {
+    case "sunday":
+      return require("@/assets/images/black-disk.png");
+    case "friday":
+      return require("@/assets/images/blue-disk.png");
+    case "tuesday":
+      return require("@/assets/images/music_disk.png");
+    default:
+      return require("@/assets/images/black-disk.png");
+  }
+ }, [sermon.localImagePath, sermon.imageUrl, sermon.category]);
+  
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.imageContainer}>
         <View style={styles.thumbnailWrapper}>
           <ExpoImage
-            source={getDefaultImage}
+            source={imageSource}
             style={styles.circularImage}
             contentFit="cover"
             cachePolicy="disk"
