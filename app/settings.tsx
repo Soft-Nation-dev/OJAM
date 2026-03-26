@@ -324,13 +324,13 @@ export default function SettingsScreen() {
             ACCOUNT
           </ThemedText>
           <View style={styles.sectionContent}>
-            <SettingItem
+            {/* <SettingItem
               icon="wifi"
               iconColor="#3b82f6"
               title="Test Network"
               subtitle="Check if app can access the internet"
               onPress={() => router.push("/NetworkTest")}
-            />
+            /> */}
             {/* <SettingItem
               icon="person"
               iconColor="#3b82f6"

@@ -9,6 +9,7 @@ json/
 other/
 tuesday/
 scripts/
+credentials.json
 # Expo
 .expo/
 sermons-metadata.json
