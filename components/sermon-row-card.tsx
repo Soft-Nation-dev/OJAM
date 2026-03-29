@@ -4,7 +4,8 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { Sermon } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
-import React, { useMemo } from "react";
+import * as FileSystem from "expo-file-system/legacy";
+import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "./themed-text";
 import SermonMenu from "./ui/sermon-menu";
@@ -12,8 +13,8 @@ import SermonMenu from "./ui/sermon-menu";
 interface SermonRowCardProps {
   sermon: Sermon;
   onPress?: () => void;
-  onRemoveFromPlaylist?: () => void; // ✅ callback for removing from playlist
-  showRemoveFromPlaylist?: boolean; // ✅ controls visibility
+  onRemoveFromPlaylist?: () => void;
+  showRemoveFromPlaylist?: boolean;
 }
 
 function SermonRowCardComponent({
@@ -30,11 +31,72 @@ function SermonRowCardComponent({
   const downloading = isDownloading(sermon.id);
   const progress = getProgress(sermon.id);
 
+  const [coverSource, setCoverSource] = React.useState<any>(null);
+
+  // ✅ REAL FIX: resolve valid image source upfront
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const resolveImage = async () => {
+      // 1. Try local if it actually exists
+      if (sermon.localImagePath) {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(
+            sermon.localImagePath
+          );
+
+          if (fileInfo.exists) {
+            if (isMounted) {
+              setCoverSource({ uri: sermon.localImagePath });
+            }
+            return;
+          }
+        } catch (e) {
+          console.log("Local image check failed:", e);
+        }
+      }
+
+      // 2. fallback to network
+      if (sermon.imageUrl) {
+        if (isMounted) {
+          setCoverSource({ uri: sermon.imageUrl });
+        }
+        return;
+      }
+
+      // 3. fallback to asset
+      switch (sermon.category) {
+        case "sunday":
+          if (isMounted)
+            setCoverSource(require("@/assets/images/black-disk.png"));
+          return;
+        case "friday":
+          if (isMounted)
+            setCoverSource(require("@/assets/images/blue-disk.png"));
+          return;
+        case "tuesday":
+          if (isMounted)
+            setCoverSource(require("@/assets/images/music_disk.png"));
+          return;
+        default:
+          if (isMounted)
+            setCoverSource(require("@/assets/images/black-disk.png"));
+      }
+    };
+
+    resolveImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sermon.localImagePath, sermon.imageUrl, sermon.category]);
+
   const formatDuration = (seconds?: number) => {
     if (!seconds || seconds <= 0) return "0:00";
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
+
     return hours > 0
       ? `${hours}:${minutes.toString().padStart(2, "0")}:${secs
           .toString()
@@ -42,7 +104,7 @@ function SermonRowCardComponent({
       : `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const dayBadgeSource = useMemo(() => {
+  const dayBadgeSource = React.useMemo(() => {
     switch (sermon.category) {
       case "sunday":
         return require("@/assets/images/SS.jpg");
@@ -55,41 +117,18 @@ function SermonRowCardComponent({
     }
   }, [sermon.category]);
 
- const imageSource = useMemo(() => {
-  // 🟢 1. Use offline image FIRST
-  if (sermon.localImagePath) {
-    return { uri: sermon.localImagePath };
-  }
-
-  // 🟡 2. Fallback to online image
-  if (sermon.imageUrl) {
-    return { uri: sermon.imageUrl };
-  }
-
-  // 🔵 3. Final fallback (local assets)
-  switch (sermon.category) {
-    case "sunday":
-      return require("@/assets/images/black-disk.png");
-    case "friday":
-      return require("@/assets/images/blue-disk.png");
-    case "tuesday":
-      return require("@/assets/images/music_disk.png");
-    default:
-      return require("@/assets/images/black-disk.png");
-  }
- }, [sermon.localImagePath, sermon.imageUrl, sermon.category]);
-  
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.imageContainer}>
         <View style={styles.thumbnailWrapper}>
-          <ExpoImage
-            source={imageSource}
-            style={styles.circularImage}
-            contentFit="cover"
-            cachePolicy="disk"
-            recyclingKey={`sermon-row-cover-${sermon.id}`}
-          />
+          {coverSource && (
+            <ExpoImage
+              source={coverSource}
+              style={styles.circularImage}
+              contentFit="cover"
+              cachePolicy="none" // ✅ prevent stale cache issues
+            />
+          )}
 
           {isFavorited(sermon.id) && (
             <View style={styles.thumbnailHeart}>
@@ -97,7 +136,6 @@ function SermonRowCardComponent({
             </View>
           )}
 
-          {/* Download badges */}
           {downloading ? (
             <View
               style={[
@@ -114,7 +152,6 @@ function SermonRowCardComponent({
             </View>
           ) : null}
 
-          {/* Progress bar (no text) */}
           {downloading && (
             <View style={styles.progressBarWrapper}>
               <View style={styles.progressBarBg}>
@@ -137,8 +174,7 @@ function SermonRowCardComponent({
               source={dayBadgeSource}
               style={styles.indicatorImage}
               contentFit="cover"
-              cachePolicy="disk"
-              recyclingKey={`sermon-row-badge-${sermon.id}`}
+              cachePolicy="none"
             />
           )}
           <ThemedText
@@ -158,14 +194,13 @@ function SermonRowCardComponent({
           <ThemedText type="default" style={styles.metaText}>
             {formatDuration(sermon.duration)}
           </ThemedText>
+
           {sermon.plays != null &&
             Number.isFinite(sermon.plays) &&
             sermon.plays > 0 && (
               <>
-                <ThemedText type="default" style={styles.metaText}>
-                  •
-                </ThemedText>
-                <ThemedText type="default" style={styles.metaText}>
+                <ThemedText style={styles.metaText}>•</ThemedText>
+                <ThemedText style={styles.metaText}>
                   {sermon.plays.toLocaleString()} plays
                 </ThemedText>
               </>
@@ -173,7 +208,6 @@ function SermonRowCardComponent({
         </View>
       </View>
 
-      {/* Sermon Menu */}
       <SermonMenu
         sermon={sermon}
         onAddToQueue={() => addToQueue(sermon)}
@@ -186,24 +220,7 @@ function SermonRowCardComponent({
   );
 }
 
-export const SermonRowCard = React.memo(
-  SermonRowCardComponent,
-  (prev, next) => {
-    const prevSermon = prev.sermon;
-    const nextSermon = next.sermon;
-
-    return (
-      prevSermon.id === nextSermon.id &&
-      prevSermon.title === nextSermon.title &&
-      prevSermon.preacher === nextSermon.preacher &&
-      prevSermon.duration === nextSermon.duration &&
-      prevSermon.imageUrl === nextSermon.imageUrl &&
-      prevSermon.category === nextSermon.category &&
-      prevSermon.plays === nextSermon.plays &&
-      prev.showRemoveFromPlaylist === next.showRemoveFromPlaylist
-    );
-  },
-);
+export const SermonRowCard = React.memo(SermonRowCardComponent);
 
 const styles = StyleSheet.create({
   card: {
@@ -244,7 +261,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: -10,
     alignItems: "center",
-    zIndex: 10,
   },
   progressBarBg: {
     width: 60,
@@ -252,9 +268,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#E0E0E0",
     borderRadius: 3,
     overflow: "hidden",
-    marginBottom: 2,
   },
-  progressBarFill: { height: 5, backgroundColor: "#2063FA", borderRadius: 3 },
+  progressBarFill: {
+    height: 5,
+    backgroundColor: "#2063FA",
+    borderRadius: 3,
+  },
   info: { flex: 1 },
   titleRow: {
     flexDirection: "row",

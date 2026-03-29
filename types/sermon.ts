@@ -11,6 +11,7 @@ export interface Sermon {
   description?: string;
   category?: SermonCategory;
   plays?: number;
+  playCount?: number; // Optional play count for compatibility
   likes?: number;
   favorites?: number;
   genre?: string;
@@ -24,4 +25,5 @@ export interface Playlist {
   description?: string;
   sermons: Sermon[];
   imageUrl?: string;
+  localImagePath?: string; // Optional local file path for downloaded playlist image
 }

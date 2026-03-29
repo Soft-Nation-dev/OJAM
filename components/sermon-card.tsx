@@ -6,7 +6,8 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { Sermon } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
-import React, { useMemo } from "react";
+import * as FileSystem from "expo-file-system/legacy";
+import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "./themed-text";
 import SermonMenu from "./ui/sermon-menu";
@@ -25,6 +26,52 @@ export function SermonCard({ sermon, onPress }: SermonCardProps) {
   const downloading = isDownloading(sermon.id);
   const downloaded = isDownloaded(sermon.id);
   const progress = getProgress(sermon.id);
+
+  const [coverSource, setCoverSource] = React.useState<any>(null);
+
+  // ✅ REAL FIX: verify file exists
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const resolveImage = async () => {
+      // 1. Try local ONLY if it exists
+      if (sermon.localImagePath) {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(
+            sermon.localImagePath
+          );
+
+          if (fileInfo.exists) {
+            if (isMounted) {
+              setCoverSource({ uri: sermon.localImagePath });
+            }
+            return;
+          }
+        } catch (e) {
+          console.log("Local image check failed:", e);
+        }
+      }
+
+      // 2. fallback to network
+      if (sermon.imageUrl) {
+        if (isMounted) {
+          setCoverSource({ uri: sermon.imageUrl });
+        }
+        return;
+      }
+
+      // 3. fallback to null
+      if (isMounted) {
+        setCoverSource(null);
+      }
+    };
+
+    resolveImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sermon.localImagePath, sermon.imageUrl]);
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -45,18 +92,8 @@ export function SermonCard({ sermon, onPress }: SermonCardProps) {
         return null;
     }
   };
+
   const dayBadgeSource = getDayBadgeSource(sermon.category);
-const coverSource = useMemo(() => {
-  if (sermon.localImagePath) {
-    return { uri: sermon.localImagePath }; // 🟢 offline first
-  }
-
-  if (sermon.imageUrl) {
-    return { uri: sermon.imageUrl }; // 🟡 fallback online
-  }
-
-  return null;
-}, [sermon.localImagePath, sermon.imageUrl]);
 
   return (
     <TouchableOpacity
@@ -74,15 +111,15 @@ const coverSource = useMemo(() => {
               source={coverSource}
               style={styles.image}
               contentFit="cover"
-              cachePolicy="disk"
-              recyclingKey={`sermon-cover-${sermon.id}`}
+              cachePolicy="none" // ✅ prevents stale cache issues
             />
           ) : (
             <View
               style={[
                 styles.image,
                 {
-                  backgroundColor: Colors[colorScheme ?? "light"].tint + "20",
+                  backgroundColor:
+                    Colors[colorScheme ?? "light"].tint + "20",
                   justifyContent: "center",
                   alignItems: "center",
                 },
@@ -143,8 +180,7 @@ const coverSource = useMemo(() => {
               source={dayBadgeSource}
               style={styles.indicatorImage}
               contentFit="cover"
-              cachePolicy="disk"
-              recyclingKey={`sermon-badge-${sermon.id}`}
+              cachePolicy="none"
             />
           )}
           <ThemedText
@@ -185,7 +221,9 @@ const coverSource = useMemo(() => {
         onAddToQueue={() => addToQueue(sermon)}
         onPlayNext={() => addToQueueNext(sermon)}
         onRemoveFromQueue={() => removeFromQueue(sermon.id)}
-        onAddToPlaylist={() => console.log("Add to playlist", sermon.id)}
+        onAddToPlaylist={() =>
+          console.log("Add to playlist", sermon.id)
+        }
       />
     </TouchableOpacity>
   );
@@ -218,11 +256,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 1,
-    elevation: 2,
   },
   favoriteBadge: {
     position: "absolute",
@@ -233,11 +266,6 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 4,
   },
   downloadBadge: { top: 32, backgroundColor: "#4CAF50" },
   progressBarWrapper: {
@@ -246,7 +274,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: -18,
     alignItems: "center",
-    zIndex: 10,
   },
   progressBarBg: {
     width: 70,
@@ -256,8 +283,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 2,
   },
-  progressBarFill: { height: 6, backgroundColor: "#2063FA", borderRadius: 3 },
-  progressText: { fontSize: 10, color: "#2063FA", marginTop: 0 },
+  progressBarFill: {
+    height: 6,
+    backgroundColor: "#2063FA",
+    borderRadius: 3,
+  },
+  progressText: { fontSize: 10, color: "#2063FA" },
   info: { flex: 1 },
   titleRow: {
     flexDirection: "row",

@@ -1,4 +1,6 @@
+import { MiniPlayer } from "@/components/mini-player";
 import SelectPlaylistMessagesModal from "@/components/SelectPlaylistMessagesModal";
+// import { MiniPlayer } from "@/components/mini-player";
 import { SermonRowCard } from "@/components/sermon-row-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -9,6 +11,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNotifications } from "@/hooks/use-notifications";
 import { fetchPlaylistById } from "@/lib/playlists";
 import { Playlist, Sermon } from "@/types/sermon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
 import {
@@ -31,14 +34,15 @@ export default function PlaylistDetail() {
   const globalParams = useGlobalSearchParams();
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const { playFromList } = useAudioPlayer();
   const { userPlaylists, updatePlaylist, removePlaylist } = usePlaylists();
 
   const { addNotification } = useNotifications();
+  const [sortOption, setSortOption] = useState<
+    "recent" | "plays" | "title" | "series"
+  >("series");
 
-  const [sortOption, setSortOption] = useState<"recent" | "plays" | "title">(
-    "recent",
-  );
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [remotePlaylist, setRemotePlaylist] = useState<Playlist | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,10 +82,49 @@ export default function PlaylistDetail() {
   // Always sort sermons by title for display
   const sortedSermons = useMemo(() => {
     if (!currentPlaylist) return [] as Sermon[];
-    return [...currentPlaylist.sermons].sort((a, b) =>
-      (a.title || "").localeCompare(b.title || ""),
-    );
-  }, [currentPlaylist]);
+
+    const getPartNumber = (title: string) => {
+      if (!title) return null;
+
+      const match = title.match(/(pt|part)[\s.-]*(\d+)/i);
+      return match ? parseInt(match[2], 10) : null;
+    };
+
+    return [...currentPlaylist.sermons].sort((a, b) => {
+      const titleA = a.title || "";
+      const titleB = b.title || "";
+
+      const partA = getPartNumber(titleA);
+      const partB = getPartNumber(titleB);
+
+      switch (sortOption) {
+        case "title":
+          return titleA.localeCompare(titleB);
+
+        case "plays":
+          return (b.playCount || 0) - (a.playCount || 0);
+
+        case "recent":
+          return (
+            new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+          );
+
+        case "series":
+          if (partA !== null && partB !== null) {
+            return partA - partB;
+          }
+          return titleA.localeCompare(titleB);
+      }
+
+      // If both have parts → sort numerically
+      if (partA !== null && partB !== null) {
+        return partA - partB;
+      }
+
+      // If only one has part → fallback to title (less aggressive)
+      return titleA.localeCompare(titleB);
+    });
+  }, [currentPlaylist, sortOption]);
 
   const handlePlayAll = () => {
     if (!sortedSermons.length) return;
@@ -236,7 +279,7 @@ export default function PlaylistDetail() {
           data={sortedSermons}
           keyExtractor={(item) => item.id}
           renderItem={renderSermonItem}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={styles.content} // 👈 space for mini player
           showsVerticalScrollIndicator={false}
           removeClippedSubviews
           initialNumToRender={10}
@@ -313,7 +356,7 @@ export default function PlaylistDetail() {
                 </TouchableOpacity>
 
                 <View style={styles.sortRow}>
-                  {["recent", "plays", "title"].map((option) => (
+                  {["series", "recent", "plays", "title"].map((option) => (
                     <TouchableOpacity
                       key={option}
                       style={[
@@ -321,7 +364,9 @@ export default function PlaylistDetail() {
                         sortOption === option && styles.sortChipActive,
                       ]}
                       onPress={() =>
-                        setSortOption(option as "recent" | "plays" | "title")
+                        setSortOption(
+                          option as "recent" | "plays" | "title" | "series",
+                        )
                       }
                     >
                       <ThemedText
@@ -355,7 +400,10 @@ export default function PlaylistDetail() {
 
         {/* Add messages FAB */}
         {isUserPlaylist && (
-          <TouchableOpacity style={styles.fab} onPress={handleAddMessages}>
+          <TouchableOpacity   style={[
+              styles.fab,
+              { bottom: 100 + insets.bottom }, // ✅ now valid
+            ]} onPress={handleAddMessages}>
             <MaterialIcons name="add" size={32} color="#fff" />
           </TouchableOpacity>
         )}
@@ -368,6 +416,17 @@ export default function PlaylistDetail() {
           existingSermonIds={currentPlaylist?.sermons.map((s) => s.id) || []}
         />
       </ThemedView>
+      <View
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: -insets.bottom - 13, // 👈 THIS is the magic
+          zIndex: 20,
+        }}
+      >
+      <MiniPlayer />
+</View>
     </SafeAreaView>
   );
 }

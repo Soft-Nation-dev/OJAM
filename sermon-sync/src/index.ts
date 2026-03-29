@@ -1,209 +1,218 @@
 export default {
-  async fetch(request: Request, env: any) {
-    const url = new URL(request.url);
-    const SECRET = 'RUN-ONCE-COPY';
+	async fetch(request: Request, env: any) {
+		const url = new URL(request.url);
 
-    if (request.headers.get('x-sync-secret') !== SECRET) {
-      return new Response('Unauthorized', { status: 401 });
-    }
+		// ---------- Helper Functions ----------
+		const estimateDurationFromSize = (size?: number) => {
+			if (!size) return 0;
+			const estimatedBitrate = 128000; // 128 kbps
+			return Math.round((size * 8) / estimatedBitrate);
+		};
 
-    const sermonsBucket = env.PROD_SERMONS;
-    const imagesBucket = env.PROD_IMAGES; // ✅ your actual bucket name
+		const isAudioKey = (key: string) => /\.(mp3|m4a|wav|aac|ogg)$/i.test(key);
+		const isImageKey = (key: string) => /\.(jpg|jpeg|png|webp)$/i.test(key);
 
-    if (!sermonsBucket || !imagesBucket) {
-      return new Response('Missing R2 bindings', { status: 500 });
-    }
+		const getTitle = (key: string) =>
+			key.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') || 'Untitled';
 
-    const estimateDurationFromSize = (size?: number) => {
-      if (!size) return 0;
-      return Math.round((size * 8) / 128000);
-    };
+		const getContentType = (key: string) => {
+			const lower = key.toLowerCase();
+			if (lower.endsWith('.png')) return 'image/png';
+			if (lower.endsWith('.webp')) return 'image/webp';
+			if (lower.endsWith('.gif')) return 'image/gif';
+			return 'image/jpeg'; // default
+		};
 
-    const isAudioKey = (key: string) =>
-      /\.(mp3|m4a|wav|aac|ogg)$/i.test(key);
+		const listAllObjects = async (bucket: any) => {
+			let cursor;
+			const objects: { key: string; size?: number }[] = [];
+			do {
+				const res = await bucket.list({ cursor, limit: 1000 });
+				objects.push(...(res.objects || []));
+				cursor = res.truncated ? res.cursor : undefined;
+			} while (cursor);
+			return objects;
+		};
 
-    const isImageKey = (key: string) =>
-      /\.(jpg|jpeg|png|webp)$/i.test(key);
+		// ---------- GET Routes (Media) ----------
+		if (request.method === 'GET') {
+			// Serve audio files
+			if (url.pathname.startsWith('/audio/')) {
+				const key = decodeURIComponent(url.pathname.slice('/audio/'.length));
+				if (!key) return new Response('Key required', { status: 400 });
+				const sermonsBucket = env.PROD_SERMONS;
+				if (!sermonsBucket) return new Response('Bucket not found', { status: 500 });
+				try {
+					const obj = await sermonsBucket.get(key);
+					if (!obj) return new Response('Not found', { status: 404 });
+					return new Response(obj.body, {
+						headers: {
+							'Content-Type': 'audio/mpeg',
+							'Cache-Control': 'public, max-age=31536000',
+							'Access-Control-Allow-Origin': '*',
+							'Access-Control-Allow-Methods': 'GET',
+							'Access-Control-Allow-Headers': '*',
+						},
+					});
+				} catch (err: any) {
+					return new Response(`Error: ${err.message}`, { status: 500 });
+				}
+			}
 
-    const getTitle = (key: string) =>
-      key.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') || 'Untitled';
+			// Serve image files
+			if (url.pathname.startsWith('/images/')) {
+				const key = decodeURIComponent(url.pathname.slice('/images/'.length));
+				if (!key) return new Response('Key required', { status: 400 });
+				const imagesBucket = env.PROD_IMAGES;
+				if (!imagesBucket) return new Response('Bucket not found', { status: 500 });
+				try {
+					const obj = await imagesBucket.get(key);
+					if (!obj) return new Response('Not found', { status: 404 });
+					return new Response(obj.body, {
+						headers: {
+							'Content-Type': getContentType(key),
+							'Cache-Control': 'public, max-age=31536000',
+							'Access-Control-Allow-Origin': '*',
+							'Access-Control-Allow-Methods': 'GET',
+							'Access-Control-Allow-Headers': '*',
+						},
+					});
+				} catch (err: any) {
+					return new Response(`Error: ${err.message}`, { status: 500 });
+				}
+			}
 
-    // ✅ paginate R2 properly
-    const listAllObjects = async (bucket: any) => {
-      let cursor;
-      const objects: any[] = [];
+			return new Response('Not found', { status: 404 });
+		}
 
-      do {
-        const res = await bucket.list({ cursor, limit: 1000 });
-        objects.push(...(res.objects || []));
-        cursor = res.truncated ? res.cursor : undefined;
-      } while (cursor);
+		// ---------- POST /sync (Optimized) ----------
+		if (request.method === 'POST' && url.pathname === '/sync') {
+			const SECRET = 'RUN-ONCE-COPY';
+			if (request.headers.get('x-sync-secret') !== SECRET) {
+				return new Response('Unauthorized', { status: 401 });
+			}
 
-      return objects;
-    };
+			const sermonsBucket = env.PROD_SERMONS;
+			const imagesBucket = env.PROD_IMAGES;
+			if (!sermonsBucket || !imagesBucket) {
+				return new Response('Missing R2 bindings', { status: 500 });
+			}
 
-    try {
-      console.log("🚀 Starting sync...");
+			try {
+				console.log("🚀 Starting optimized sync...");
 
-      // =========================
-      // 1️⃣ FETCH EXISTING DATA
-      // =========================
+				// ----------------- Helpers -----------------
+				const estimateDurationFromSize = (size?: number) => {
+					if (!size || size <= 0) return 0;
+					const estimatedBitrate = 128000; // bits per second
+					return Math.round((size * 8) / estimatedBitrate);
+				};
 
-      const [sermonsRes, imagesRes] = await Promise.all([
-        fetch(`${env.SUPABASE_URL}/rest/v1/sermons?select=audio_key`, {
-          headers: {
-            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-        }),
-        fetch(`${env.SUPABASE_URL}/rest/v1/images?select=image_key`, {
-          headers: {
-            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-        }),
-      ]);
+				const isAudioKey = (obj: any) => /\.(mp3|m4a|wav|aac|ogg)$/i.test(obj.key);
+				const isImageKey = (obj: any) => /\.(jpg|jpeg|png|webp)$/i.test(obj.key);
+				const getTitle = (key: string) =>
+					key.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') || 'Untitled';
 
-      if (!sermonsRes.ok || !imagesRes.ok) {
-        throw new Error("Failed to fetch existing Supabase data");
-      }
+				const listAllObjects = async (bucket: any) => {
+					let cursor;
+					const objects: any[] = [];
+					do {
+						const res = await bucket.list({ cursor, limit: 1000 });
+						objects.push(...(res.objects || []));
+						cursor = res.truncated ? res.cursor : undefined;
+					} while (cursor);
+					return objects;
+				};
 
-      const existingSermons = new Set(
-        (await sermonsRes.json()).map((s: any) => s.audio_key)
-      );
+				// ----------------- Fetch Supabase -----------------
+				const [sermonsRes, imagesRes] = await Promise.all([
+					fetch(`${env.SUPABASE_URL}/rest/v1/sermons?select=audio_key`, {
+						headers: {
+							apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+						},
+					}),
+					fetch(`${env.SUPABASE_URL}/rest/v1/images?select=image_key`, {
+						headers: {
+							apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+						},
+					}),
+				]);
 
-      const existingImages = new Set(
-        (await imagesRes.json()).map((i: any) => i.image_key)
-      );
+				if (!sermonsRes.ok || !imagesRes.ok) throw new Error("Failed to fetch Supabase data");
 
-      // =========================
-      // 2️⃣ SYNC IMAGES FIRST
-      // =========================
+				const existingSermons = new Set((await sermonsRes.json()).map((s: any) => s.audio_key));
+				const existingImages = new Set((await imagesRes.json()).map((i: any) => i.image_key));
 
-      const allImageObjects = (await listAllObjects(imagesBucket))
-        .filter((obj) => isImageKey(obj.key))
-        .sort((a, b) => (b.uploaded || 0) - (a.uploaded || 0)); // ✅ newest first
+				// ----------------- Sync Images -----------------
+				const allImageObjects = (await listAllObjects(imagesBucket)).filter(isImageKey);
+				const newImages: string[] = [];
 
-      let newImages: string[] = [];
+				for (const img of allImageObjects) {
+					if (!existingImages.has(img.key)) {
+						const res = await fetch(`${env.SUPABASE_URL}/rest/v1/images?on_conflict=image_key`, {
+							method: "POST",
+							headers: {
+								apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+								Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({ image_key: img.key }),
+						});
+						if (res.ok) newImages.push(img.key);
+					}
+				}
 
-      for (const img of allImageObjects) {
-        if (existingImages.has(img.key)) continue;
+				const allImages = [...newImages, ...Array.from(existingImages)];
+				if (allImages.length === 0) throw new Error("No images available");
 
-        const res = await fetch(`${env.SUPABASE_URL}/rest/v1/images`, {
-          method: "POST",
-          headers: {
-            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ image_key: img.key }),
-        });
+				// ----------------- Sync Sermons -----------------
+				const allAudioObjects = (await listAllObjects(sermonsBucket)).filter(isAudioKey);
+				const newSermons = allAudioObjects.filter(obj => !existingSermons.has(obj.key));
 
-        if (res.ok) {
-          console.log("🖼️ Added image:", img.key);
-          newImages.push(img.key);
-        } else {
-          console.error("❌ Failed image:", img.key);
-        }
-      }
+				// Batch upload new sermons
+				const uploadPromises = newSermons.map(obj => {
+					const audioKey = obj.key;
+					const randomImage = allImages[Math.floor(Math.random() * allImages.length)];
+					const duration = estimateDurationFromSize(obj.size);
 
-      console.log(`✅ Image sync done. Added ${newImages.length}`);
+					return fetch(`${env.SUPABASE_URL}/rest/v1/sermons?on_conflict=audio_key`, {
+						method: "POST",
+						headers: {
+							apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							title: getTitle(audioKey),
+							audio_key: audioKey,
+							image_key: randomImage,
+							preacher: null,
+							date: new Date().toISOString(),
+							duration,
+							category: audioKey.split('/')[0] || 'other',
+						}),
+					}).then(res => {
+						if (!res.ok) console.error(`❌ Failed to sync sermon ${audioKey}: ${res.status}`);
+					});
+				});
 
-      // combine new + old images (prioritize new ones)
-      const allImages = [
-        ...newImages,
-        ...Array.from(existingImages),
-      ];
+				await Promise.all(uploadPromises);
 
-      if (allImages.length === 0) {
-        throw new Error("No images available");
-      }
+				console.log(`🎉 Optimized sync complete. Added ${newSermons.length} sermons, ${newImages.length} images.`);
 
-      // =========================
-      // 3️⃣ SYNC AUDIO (ONLY NEW)
-      // =========================
+				return new Response(JSON.stringify({
+					new_sermons: newSermons.length,
+					new_images: newImages.length,
+				}), { headers: { "Content-Type": "application/json" } });
 
-      const allAudioObjects = (await listAllObjects(sermonsBucket))
-        .filter((obj) => isAudioKey(obj.key))
-        .sort((a, b) => a.key.localeCompare(b.key)); // stable
+			} catch (err: any) {
+				console.error("💥 Sync failed:", err.message);
+				return new Response(`Error: ${err.message}`, { status: 500 });
+			}
+		}
 
-      const newAudio = allAudioObjects.filter(
-        (obj) => !existingSermons.has(obj.key)
-      );
-
-      if (newAudio.length === 0) {
-        console.log("✅ No new sermons");
-        return new Response("No new sermons to sync.");
-      }
-
-      console.log(`🎧 Found ${newAudio.length} new sermons`);
-
-      // =========================
-      // 4️⃣ INSERT WITH CHUNKING
-      // =========================
-
-      const chunkSize = 20;
-      let inserted = 0;
-
-      for (let i = 0; i < newAudio.length; i += chunkSize) {
-        const chunk = newAudio.slice(i, i + chunkSize);
-
-        await Promise.all(
-          chunk.map(async (obj) => {
-            try {
-              const audioKey = obj.key;
-
-              // 🎯 bias toward newest images
-              const imagePool = allImages.slice(0, 20); // top 20 newest
-              const randomImage =
-                imagePool[Math.floor(Math.random() * imagePool.length)];
-
-              const duration = estimateDurationFromSize(obj.size);
-
-              const res = await fetch(`${env.SUPABASE_URL}/rest/v1/sermons`, {
-                method: "POST",
-                headers: {
-                  apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-                  Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  title: getTitle(audioKey),
-                  audio_key: audioKey,
-                  image_key: randomImage,
-                  preacher: null,
-                  date: new Date().toISOString(),
-                  duration,
-                  category: audioKey.split('/')[0] || 'other',
-                }),
-              });
-
-              if (res.ok) {
-                inserted++;
-                console.log("✅ Added sermon:", audioKey);
-              } else {
-                console.error("❌ Failed sermon:", audioKey);
-              }
-            } catch (err) {
-              console.error("🔥 Error:", obj.key, err);
-            }
-          })
-        );
-      }
-
-      console.log(`🎉 Sync complete. Inserted ${inserted}`);
-
-      return new Response(
-        JSON.stringify({
-          new_sermons: inserted,
-          new_images: newImages.length,
-        }),
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-    } catch (err: any) {
-      console.error("💥 Sync failed:", err.message);
-      return new Response(`Error: ${err.message}`, { status: 500 });
-    }
-  },
+		return new Response('Use GET for media or POST /sync to sync', { status: 405 })
+	}
 };

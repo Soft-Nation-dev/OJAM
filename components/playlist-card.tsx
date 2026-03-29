@@ -5,7 +5,8 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { Playlist } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
-import React, { useMemo } from "react";
+import * as FileSystem from "expo-file-system/legacy";
+import React from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -32,35 +33,76 @@ function PlaylistCardComponent({
 
   const favoritesCtx = useFavorites();
   const downloadsCtx = useDownloads();
-  const sermons = useMemo(() => playlist?.sermons ?? [], [playlist?.sermons]);
-  const coverSource = useMemo(
-    () => (playlist?.imageUrl ? { uri: playlist.imageUrl } : null),
-    [playlist?.imageUrl],
-  );
-  const emptyIdSet = useMemo(() => new Set<string>(), []);
 
-  // SAFE FALLBACKS — prevents .has crash
-  const favoritedIds = useMemo(
+  const [coverSource, setCoverSource] = React.useState<any>(null);
+
+  // ✅ REAL FIX: verify local file exists before using it
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const resolveImage = async () => {
+      // 1. Try local file ONLY if it exists
+      if (playlist?.localImagePath) {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(
+            playlist.localImagePath
+          );
+
+          if (fileInfo.exists) {
+            if (isMounted) {
+              setCoverSource({ uri: playlist.localImagePath });
+            }
+            return;
+          }
+        } catch (e) {
+          console.log("Local image check failed:", e);
+        }
+      }
+
+      // 2. Fallback to network
+      if (playlist?.imageUrl) {
+        if (isMounted) {
+          setCoverSource({ uri: playlist.imageUrl });
+        }
+        return;
+      }
+
+      // 3. Nothing available
+      if (isMounted) {
+        setCoverSource(null);
+      }
+    };
+
+    resolveImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [playlist?.localImagePath, playlist?.imageUrl]);
+
+  const sermons = React.useMemo(() => playlist?.sermons ?? [], [playlist?.sermons]);
+
+  const emptyIdSet = React.useMemo(() => new Set<string>(), []);
+
+  const favoritedIds = React.useMemo(
     () => favoritesCtx?.favoritedIds ?? new Set<string>(),
-    [favoritesCtx?.favoritedIds],
+    [favoritesCtx?.favoritedIds]
   );
+
   const downloadedIds = downloadsCtx?.downloadedIds ?? emptyIdSet;
   const downloadingIds = downloadsCtx?.downloadingIds ?? emptyIdSet;
 
-  // ❤️ Any favorited?
-  const isAnyFavorited = useMemo(() => {
+  const isAnyFavorited = React.useMemo(() => {
     if (!sermons.length) return false;
     return sermons.some((s: any) => favoritedIds.has(s.id));
   }, [sermons, favoritedIds]);
 
-  // ✅ All completed?
-  const isAllDownloaded = useMemo(() => {
+  const isAllDownloaded = React.useMemo(() => {
     if (!sermons.length) return false;
     return sermons.every((s: any) => downloadedIds.has(s.id));
   }, [sermons, downloadedIds]);
 
-  // 🔄 Any currently downloading?
-  const isAnyDownloading = useMemo(() => {
+  const isAnyDownloading = React.useMemo(() => {
     if (!sermons.length) return false;
     return sermons.some((s: any) => downloadingIds.has(s.id));
   }, [sermons, downloadingIds]);
@@ -77,8 +119,7 @@ function PlaylistCardComponent({
             source={coverSource}
             style={styles.image}
             contentFit="cover"
-            cachePolicy="disk"
-            recyclingKey={`playlist-cover-${playlist.id}`}
+            cachePolicy="none" // ✅ disable caching issues
           />
         ) : (
           <View
@@ -95,31 +136,29 @@ function PlaylistCardComponent({
           </View>
         )}
 
-        {/* ❤️ Favorite Badge */}
         {isAnyFavorited && (
           <View style={styles.favoriteBadge}>
             <MaterialIcons name="favorite" size={18} color="#fff" />
           </View>
         )}
 
-        {/* 🔄 Downloading Badge */}
         {!isAllDownloaded && isAnyDownloading && (
           <View style={styles.downloadingBadge}>
             <MaterialIcons name="downloading" size={18} color="#fff" />
           </View>
         )}
 
-        {/* ✅ Completed Badge */}
         {isAllDownloaded && (
           <View style={styles.downloadBadge}>
             <MaterialIcons name="download-done" size={18} color="#fff" />
           </View>
         )}
 
-        {/* 🎵 Queue Count */}
         <View style={styles.queueBadge}>
           <MaterialIcons name="queue-music" size={18} color="#fff" />
-          <ThemedText style={styles.queueCount}>{sermons.length}</ThemedText>
+          <ThemedText style={styles.queueCount}>
+            {sermons.length}
+          </ThemedText>
         </View>
       </View>
 
@@ -136,19 +175,7 @@ function PlaylistCardComponent({
   );
 }
 
-export const PlaylistCard = React.memo(PlaylistCardComponent, (prev, next) => {
-  const prevPlaylist = prev.playlist;
-  const nextPlaylist = next.playlist;
-
-  return (
-    prevPlaylist.id === nextPlaylist.id &&
-    prevPlaylist.name === nextPlaylist.name &&
-    prevPlaylist.description === nextPlaylist.description &&
-    prevPlaylist.imageUrl === nextPlaylist.imageUrl &&
-    prevPlaylist.sermons.length === nextPlaylist.sermons.length &&
-    prev.style === next.style
-  );
-});
+export const PlaylistCard = React.memo(PlaylistCardComponent);
 
 const styles = StyleSheet.create({
   container: {
