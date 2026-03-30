@@ -34,56 +34,96 @@ export default {
 			return objects;
 		};
 
+		const getAudioType = (key: string) => {
+				const lower = key.toLowerCase();
+				if (lower.endsWith('.m4a')) return 'audio/mp4';
+				if (lower.endsWith('.wav')) return 'audio/wav';
+				if (lower.endsWith('.aac')) return 'audio/aac';
+				if (lower.endsWith('.ogg')) return 'audio/ogg';
+				return 'audio/mpeg';
+			};
+
 		// ---------- GET Routes (Media) ----------
 		if (request.method === 'GET') {
 			// Serve audio files
 			if (url.pathname.startsWith('/audio/')) {
 				const key = decodeURIComponent(url.pathname.slice('/audio/'.length));
 				if (!key) return new Response('Key required', { status: 400 });
+
 				const sermonsBucket = env.PROD_SERMONS;
-				if (!sermonsBucket) return new Response('Bucket not found', { status: 500 });
+				if (!sermonsBucket) {
+					return new Response('Bucket not found', { status: 500 });
+				}
+
 				try {
-					const obj = await sermonsBucket.get(key);
+					const range = request.headers.get('range');
+
+					const obj = await sermonsBucket.get(
+						key,
+						range
+							? {
+									range: request.headers,
+							}
+							: undefined
+					);	
+
 					if (!obj) return new Response('Not found', { status: 404 });
+
+					const headers = new Headers({
+						'Content-Type': getAudioType(key),
+						'Cache-Control': 'public, max-age=31536000',
+						'Access-Control-Allow-Origin': '*',
+						'Access-Control-Allow-Methods': 'GET',
+						'Access-Control-Allow-Headers': '*',
+						'Accept-Ranges': 'bytes',
+					});
+
+					// VERY IMPORTANT
+					if (obj.range) {
+						headers.set(
+							'Content-Range',
+							`bytes ${obj.range.offset}-${obj.range.end}/${obj.size}`
+						);
+
+						return new Response(obj.body, {
+							status: 206,
+							headers,
+						});
+					}
+
 					return new Response(obj.body, {
-						headers: {
-							'Content-Type': 'audio/mpeg',
-							'Cache-Control': 'public, max-age=31536000',
-							'Access-Control-Allow-Origin': '*',
-							'Access-Control-Allow-Methods': 'GET',
-							'Access-Control-Allow-Headers': '*',
-						},
+						status: 200,
+						headers,
 					});
 				} catch (err: any) {
 					return new Response(`Error: ${err.message}`, { status: 500 });
 				}
 			}
+						// Serve image files
+						if (url.pathname.startsWith('/images/')) {
+							const key = decodeURIComponent(url.pathname.slice('/images/'.length));
+							if (!key) return new Response('Key required', { status: 400 });
+							const imagesBucket = env.PROD_IMAGES;
+							if (!imagesBucket) return new Response('Bucket not found', { status: 500 });
+							try {
+								const obj = await imagesBucket.get(key);
+								if (!obj) return new Response('Not found', { status: 404 });
+								return new Response(obj.body, {
+									headers: {
+										'Content-Type': getContentType(key),
+										'Cache-Control': 'public, max-age=31536000',
+										'Access-Control-Allow-Origin': '*',
+										'Access-Control-Allow-Methods': 'GET',
+										'Access-Control-Allow-Headers': '*',
+									},
+								});
+							} catch (err: any) {
+								return new Response(`Error: ${err.message}`, { status: 500 });
+							}
+						}
 
-			// Serve image files
-			if (url.pathname.startsWith('/images/')) {
-				const key = decodeURIComponent(url.pathname.slice('/images/'.length));
-				if (!key) return new Response('Key required', { status: 400 });
-				const imagesBucket = env.PROD_IMAGES;
-				if (!imagesBucket) return new Response('Bucket not found', { status: 500 });
-				try {
-					const obj = await imagesBucket.get(key);
-					if (!obj) return new Response('Not found', { status: 404 });
-					return new Response(obj.body, {
-						headers: {
-							'Content-Type': getContentType(key),
-							'Cache-Control': 'public, max-age=31536000',
-							'Access-Control-Allow-Origin': '*',
-							'Access-Control-Allow-Methods': 'GET',
-							'Access-Control-Allow-Headers': '*',
-						},
-					});
-				} catch (err: any) {
-					return new Response(`Error: ${err.message}`, { status: 500 });
-				}
-			}
-
-			return new Response('Not found', { status: 404 });
-		}
+						return new Response('Not found', { status: 404 });
+					}
 
 		// ---------- POST /sync (Optimized) ----------
 		if (request.method === 'POST' && url.pathname === '/sync') {

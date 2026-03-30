@@ -164,7 +164,7 @@ export default function DownloadsScreen() {
                   }}
                 />
 
-                {isError && (
+                {/* {isError && (
                   <TouchableOpacity
                     style={styles.errorWrapper}
                     onPress={() => startDownload(sermon)}
@@ -183,7 +183,7 @@ export default function DownloadsScreen() {
                       Download failed. Tap to retry.
                     </ThemedText>
                   </TouchableOpacity>
-                )}
+                )} */}
               </View>
             );
           }}
