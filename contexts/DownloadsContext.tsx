@@ -10,6 +10,7 @@ import {
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 import React, {
   createContext,
   useCallback,
@@ -21,7 +22,6 @@ import React, {
 } from "react";
 import { InteractionManager } from "react-native";
 import { useSermons } from "./SermonsContext";
-import * as ImageManipulator from "expo-image-manipulator";
 
 type DownloadStatus =
   | "pending"
@@ -78,22 +78,47 @@ const downloadImage = async (sermon: Sermon) => {
 
     const result = await FileSystem.downloadAsync(sermon.imageUrl, fileUri);
 
-     const manipResult = await ImageManipulator.manipulateAsync(
+    const manipResult = await ImageManipulator.manipulateAsync(
       result.uri,
       [{ resize: { width: 400 } }], // Example: resize to width 400px
-      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
     );
 
-      if (manipResult.uri !== result.uri) {
+    if (manipResult.uri !== result.uri) {
       await FileSystem.deleteAsync(result.uri, { idempotent: true });
     }
 
     return manipResult.uri;
-
   } catch (e) {
     console.log("Image download failed:", e);
     return null;
   }
+};
+
+const resolveLocalImagePath = async (
+  sermonId: string,
+  storedPath?: string,
+): Promise<string | undefined> => {
+  if (storedPath) {
+    try {
+      const storedInfo = await FileSystem.getInfoAsync(storedPath);
+      if (storedInfo.exists) return storedPath;
+    } catch {
+      // fall through to conventional location check
+    }
+  }
+
+  const conventionalPath =
+    FileSystem.documentDirectory + `images/${sermonId}.jpg`;
+
+  try {
+    const conventionalInfo = await FileSystem.getInfoAsync(conventionalPath);
+    if (conventionalInfo.exists) return conventionalPath;
+  } catch {
+    // no-op
+  }
+
+  return undefined;
 };
 
 export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -152,6 +177,11 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           const info = await FileSystem.getInfoAsync(localPath);
           if (!info.exists) continue;
 
+          const resolvedLocalImagePath = await resolveLocalImagePath(
+            sermonId,
+            parsed.localImagePath,
+          );
+
           map.set(sermonId, {
             sermon:
               sermonsByIdRef.current.get(sermonId) ??
@@ -160,7 +190,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
             status: "completed",
             progress: 100,
             localPath,
-            localImagePath: parsed.localImagePath,
+            localImagePath: resolvedLocalImagePath,
           });
         }
       }
@@ -185,6 +215,10 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           if (!map.has(sermonId)) {
             const stored = await AsyncStorage.getItem(`@download_${sermonId}`);
             const parsedStored = stored ? JSON.parse(stored) : null;
+            const resolvedLocalImagePath = await resolveLocalImagePath(
+              sermonId,
+              parsedStored?.localImagePath,
+            );
 
             map.set(sermonId, {
               sermon:
@@ -194,7 +228,7 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
               status: "completed",
               progress: 100,
               localPath: uri,
-              localImagePath: parsedStored?.localImagePath,
+              localImagePath: resolvedLocalImagePath,
             });
           }
         }
@@ -251,6 +285,11 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return () => task.cancel();
   }, [loadDownloads]);
+
+  useEffect(() => {
+    if (sermons.length === 0) return;
+    void loadDownloads();
+  }, [sermons.length, loadDownloads]);
 
   /* ---------------- START DOWNLOAD ---------------- */
   const startDownload = useCallback(

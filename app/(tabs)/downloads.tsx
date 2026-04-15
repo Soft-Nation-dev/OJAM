@@ -1,12 +1,10 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
   BackHandler,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -120,7 +118,8 @@ export default function DownloadsScreen() {
             const sermon = {
               ...item.sermon,
               localPath: item.localPath,
-              imageUrl: item.localImagePath || item.sermon.imageUrl, // 👈 THIS is the magic
+              localImagePath: item.localImagePath,
+              imageUrl: item.sermon.imageUrl,
             };
 
             const progress = getProgress(sermon.id);
