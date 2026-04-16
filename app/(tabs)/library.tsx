@@ -25,7 +25,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 function LibraryScreenInner() {
   const colorScheme = useColorScheme();
   const { currentSermon, history } = useAudioPlayer();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { count: favoritesCount } = useFavorites();
   const {
     downloadedSermons,
@@ -55,13 +55,17 @@ function LibraryScreenInner() {
   }, [router]);
 
   const handleAuthPress = useCallback(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (user) {
-      signOut();
+      void signOut();
       return;
     }
 
     router.push("/auth" as any);
-  }, [router, signOut, user]);
+  }, [authLoading, router, signOut, user]);
 
   const handleOpenDownloads = useCallback(() => {
     router.push("/downloads");
@@ -174,21 +178,27 @@ function LibraryScreenInner() {
         />
         <View style={styles.profileInfo}>
           <ThemedText type="defaultSemiBold" style={styles.profileName}>
-            {user
-              ? user.user_metadata?.full_name || user.email
-              : "Guest Account"}
+            {authLoading
+              ? "Loading account..."
+              : user
+                ? user.user_metadata?.full_name || user.email
+                : "Guest Account"}
           </ThemedText>
           <ThemedText type="default" style={styles.profileId}>
-            ID: {user ? user.id.slice(0, 8) : "000000"}
+            ID: {authLoading ? "......" : user ? user.id.slice(0, 8) : "000000"}
           </ThemedText>
         </View>
         <TouchableOpacity
-          style={styles.loginButton}
+          style={[
+            styles.loginButton,
+            authLoading && styles.loginButtonDisabled,
+          ]}
           onPress={handleAuthPress}
+          disabled={authLoading}
           activeOpacity={0.8}
         >
           <ThemedText type="defaultSemiBold" style={styles.loginText}>
-            {user ? "Logout" : "Login"}
+            {authLoading ? "..." : user ? "Logout" : "Login"}
           </ThemedText>
         </TouchableOpacity>
       </View>
@@ -414,6 +424,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 999,
     backgroundColor: "rgba(0,0,0,0.08)",
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
   loginText: {
     fontSize: 12,
