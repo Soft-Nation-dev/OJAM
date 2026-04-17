@@ -10,13 +10,20 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Slider from "@react-native-community/slider";
 import { Image as ExpoImage } from "expo-image";
 import React from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PlayerScreen() {
   const {
     currentSermon,
     isPlaying,
+    isBuffering,
     position,
     duration,
     pause,
@@ -95,23 +102,25 @@ export default function PlayerScreen() {
       <ThemedView style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.artworkContainer}>
-            {currentSermon.imageUrl ? (
-              <ExpoImage
-                source={{ uri: currentSermon.imageUrl }}
-                style={styles.artwork}
-                contentFit="cover"
-                cachePolicy="disk"
-                recyclingKey={`player-artwork-${currentSermon.id}`}
-              />
-            ) : (
-              <View style={styles.artworkFallback}>
-                <IconSymbol
-                  name="music.note"
-                  size={80}
-                  color={themeColors.tint}
+            <View style={styles.artworkFrame}>
+              {currentSermon.imageUrl ? (
+                <ExpoImage
+                  source={{ uri: currentSermon.imageUrl }}
+                  style={styles.artwork}
+                  contentFit="cover"
+                  cachePolicy="disk"
+                  recyclingKey={`player-artwork-${currentSermon.id}`}
                 />
-              </View>
-            )}
+              ) : (
+                <View style={[styles.artwork, styles.artworkFallback]}>
+                  <IconSymbol
+                    name="music.note"
+                    size={80}
+                    color={themeColors.tint}
+                  />
+                </View>
+              )}
+            </View>
           </View>
 
           <View style={styles.infoContainer}>
@@ -238,6 +247,14 @@ export default function PlayerScreen() {
               <ThemedText>{formatTime(position)}</ThemedText>
               <ThemedText>{formatTime(duration)}</ThemedText>
             </View>
+            {isBuffering && (
+              <View style={styles.bufferingRow}>
+                <ActivityIndicator size="small" color={accent} />
+                <ThemedText style={styles.bufferingText}>
+                  Loading audio...
+                </ThemedText>
+              </View>
+            )}
           </View>
 
           <View style={styles.controls}>
@@ -254,11 +271,15 @@ export default function PlayerScreen() {
               style={styles.playButton}
               onPress={() => (isPlaying ? pause() : resume())}
             >
-              <MaterialIcons
-                name={isPlaying ? "pause" : "play-arrow"}
-                size={40}
-                color="#fff"
-              />
+              {isBuffering ? (
+                <ActivityIndicator size="large" color="#fff" />
+              ) : (
+                <MaterialIcons
+                  name={isPlaying ? "pause" : "play-arrow"}
+                  size={40}
+                  color="#fff"
+                />
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity onPress={playNext} disabled={!hasNext}>
@@ -359,22 +380,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 8,
   },
-  artwork: {
+  artworkFrame: {
     width: "100%",
     maxWidth: 380,
     aspectRatio: 1,
     borderRadius: 16,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
-  artworkFallback: {
+  artwork: {
     width: "100%",
-    maxWidth: 380,
-    aspectRatio: 1,
-    borderRadius: 16,
+    height: "100%",
+  },
+  artworkFallback: {
     backgroundColor: "#e0e0e0",
     alignItems: "center",
     justifyContent: "center",
@@ -479,6 +501,17 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     marginBottom: 20,
+  },
+  bufferingRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  bufferingText: {
+    fontSize: 12,
+    opacity: 0.75,
   },
   slider: {
     width: "100%",

@@ -19,6 +19,7 @@ const trackPlayerModule = getTrackPlayerModule();
 const TrackPlayer = trackPlayerModule?.default as any;
 const Event = trackPlayerModule?.Event as any;
 const RepeatMode = trackPlayerModule?.RepeatMode as any;
+const State = trackPlayerModule?.State as any;
 
 const AUDIO_REPEAT_MODE_KEY = "audio_repeat_mode";
 const AUDIO_SHUFFLE_MODE_KEY = "audio_shuffle_mode";
@@ -31,6 +32,7 @@ interface AudioPlayerContextType {
   queue: Sermon[];
   currentIndex: number;
   isPlaying: boolean;
+  isBuffering: boolean;
   position: number;
   duration: number;
   playbackRate: number;
@@ -124,6 +126,13 @@ const mapRepeatToTrackMode = (mode: "off" | "one" | "all") => {
   return RepeatMode.Off;
 };
 
+const isLoadingPlaybackState = (playbackState: any) => {
+  const state = playbackState?.state;
+  const buffering = State?.Buffering ?? "buffering";
+  const loading = State?.Loading ?? "loading";
+  return state === buffering || state === loading;
+};
+
 export function AudioPlayerProvider({
   children,
 }: {
@@ -135,6 +144,7 @@ export function AudioPlayerProvider({
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [progress, setProgress] = useState({ position: 0, duration: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [repeat, setRepeatState] = useState<"off" | "one" | "all">("off");
   const [shuffle, setShuffle] = useState(false);
@@ -267,6 +277,7 @@ export function AudioPlayerProvider({
         "[AudioPlayer] TrackPlayer unsupported in current runtime (likely Expo Go).",
       );
       setProgress((prev) => ({ ...prev, position: initialPosition }));
+      setIsBuffering(false);
       if (typeof options?.play === "boolean") {
         setIsPlaying(options.play);
       }
@@ -286,6 +297,7 @@ export function AudioPlayerProvider({
       console.warn("[AudioPlayer] No playable sermon URL found in queue.");
       await TrackPlayer.stop();
       setIsPlaying(false);
+      setIsBuffering(false);
       setProgress({ position: 0, duration: 0 });
       return;
     }
@@ -310,6 +322,7 @@ export function AudioPlayerProvider({
       await TrackPlayer.setRate(playbackRateRef.current);
 
       if (shouldPlay) {
+        setIsBuffering(true);
         // Give streaming URLs a moment to buffer before playing
         if (isStreaming) {
           await new Promise((resolve) => setTimeout(resolve, 300));
@@ -317,10 +330,12 @@ export function AudioPlayerProvider({
         await TrackPlayer.play();
       } else {
         await TrackPlayer.pause();
+        setIsBuffering(false);
       }
     } else {
       await TrackPlayer.stop();
       setIsPlaying(false);
+      setIsBuffering(false);
       setProgress({ position: 0, duration: 0 });
     }
   };
@@ -357,6 +372,10 @@ export function AudioPlayerProvider({
       await TrackPlayer.setRate(playbackRateRef.current);
       const ready = await TrackPlayer.getPlayWhenReady();
       if (isMounted) setIsPlaying(ready);
+      const playbackState = await TrackPlayer.getPlaybackState();
+      if (isMounted) {
+        setIsBuffering(isLoadingPlaybackState(playbackState));
+      }
       await syncProgress();
     };
 
@@ -405,6 +424,13 @@ export function AudioPlayerProvider({
       },
     );
 
+    const playbackStateSub = TrackPlayer.addEventListener(
+      Event.PlaybackState,
+      (event) => {
+        setIsBuffering(isLoadingPlaybackState(event));
+      },
+    );
+
     const activeTrackSub = TrackPlayer.addEventListener(
       Event.PlaybackActiveTrackChanged,
       (event) => {
@@ -417,6 +443,7 @@ export function AudioPlayerProvider({
         syncActiveFromIndex(-1);
         setProgress({ position: 0, duration: 0 });
         setIsPlaying(false);
+        setIsBuffering(false);
       },
     );
 
@@ -425,6 +452,7 @@ export function AudioPlayerProvider({
       async () => {
         if (repeatRef.current === "off") {
           setIsPlaying(false);
+          setIsBuffering(false);
         }
       },
     );
@@ -433,6 +461,7 @@ export function AudioPlayerProvider({
       Event.PlaybackError,
       (event) => {
         console.error("[AudioPlayer] Playback error", event);
+        setIsBuffering(false);
       },
     );
 
@@ -440,6 +469,7 @@ export function AudioPlayerProvider({
       isMounted = false;
       progressSub.remove();
       playWhenReadySub.remove();
+      playbackStateSub.remove();
       activeTrackSub.remove();
       queueEndedSub.remove();
       errorSub.remove();
@@ -521,12 +551,14 @@ export function AudioPlayerProvider({
   const pause = async () => {
     if (!isTrackPlayerSupported) {
       setIsPlaying(false);
+      setIsBuffering(false);
       return;
     }
 
     await initializeTrackPlayer();
     await TrackPlayer.pause();
     setIsPlaying(false);
+    setIsBuffering(false);
   };
 
   const resume = async () => {
@@ -544,12 +576,20 @@ export function AudioPlayerProvider({
     const nextPosition = Math.max(0, seconds);
     if (!isTrackPlayerSupported) {
       setProgress((prev) => ({ ...prev, position: nextPosition }));
+      setIsBuffering(false);
       return;
     }
 
     await initializeTrackPlayer();
+    setIsBuffering(true);
     await TrackPlayer.seekTo(nextPosition);
     setProgress((prev) => ({ ...prev, position: nextPosition }));
+    try {
+      const playbackState = await TrackPlayer.getPlaybackState();
+      setIsBuffering(isLoadingPlaybackState(playbackState));
+    } catch {
+      setIsBuffering(false);
+    }
   };
 
   const playNext = async () => {
@@ -733,6 +773,7 @@ export function AudioPlayerProvider({
       queue,
       currentIndex,
       isPlaying,
+      isBuffering,
       position: progress.position,
       duration: progress.duration,
       playbackRate,
@@ -759,6 +800,7 @@ export function AudioPlayerProvider({
       queue,
       currentIndex,
       isPlaying,
+      isBuffering,
       progress.position,
       progress.duration,
       playbackRate,
