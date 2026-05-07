@@ -11,7 +11,6 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNotifications } from "@/hooks/use-notifications";
 import { fetchPlaylistById } from "@/lib/playlists";
 import { Playlist, Sermon } from "@/types/sermon";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
 import {
@@ -27,7 +26,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PlaylistDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,13 +34,17 @@ export default function PlaylistDetail() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const { playFromList } = useAudioPlayer();
+  const { playFromList, currentSermon } = useAudioPlayer();
   const { userPlaylists, updatePlaylist, removePlaylist } = usePlaylists();
 
   const { addNotification } = useNotifications();
   const [sortOption, setSortOption] = useState<
     "recent" | "plays" | "title" | "series"
   >("series");
+
+  const MINI_PLAYER_HEIGHT = 72;
+  const MINI_PLAYER_GAP = 0;
+  const isMiniPlayerVisible = Boolean(currentSermon);
 
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [remotePlaylist, setRemotePlaylist] = useState<Playlist | null>(null);
@@ -70,6 +73,16 @@ export default function PlaylistDetail() {
 
   const currentPlaylist = isUserPlaylist ? playlist : remotePlaylist;
   const sermonCount = currentPlaylist?.sermons.length ?? 0;
+
+  const listPaddingBottom =
+    0 +
+    insets.bottom +
+    (isMiniPlayerVisible ? MINI_PLAYER_HEIGHT + MINI_PLAYER_GAP : 0);
+
+  const fabBottom =
+    0 +
+    insets.bottom +
+    (isMiniPlayerVisible ? MINI_PLAYER_HEIGHT + MINI_PLAYER_GAP : 0);
 
   const totalDuration = useMemo(() => {
     if (!currentPlaylist) return 0;
@@ -116,13 +129,6 @@ export default function PlaylistDetail() {
           return titleA.localeCompare(titleB);
       }
 
-      // If both have parts → sort numerically
-      if (partA !== null && partB !== null) {
-        return partA - partB;
-      }
-
-      // If only one has part → fallback to title (less aggressive)
-      return titleA.localeCompare(titleB);
     });
   }, [currentPlaylist, sortOption]);
 
@@ -279,7 +285,10 @@ export default function PlaylistDetail() {
           data={sortedSermons}
           keyExtractor={(item) => item.id}
           renderItem={renderSermonItem}
-          contentContainerStyle={styles.content} // 👈 space for mini player
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: listPaddingBottom },
+          ]}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews
           initialNumToRender={10}
@@ -400,10 +409,10 @@ export default function PlaylistDetail() {
 
         {/* Add messages FAB */}
         {isUserPlaylist && (
-          <TouchableOpacity   style={[
-              styles.fab,
-              { bottom: 100 + insets.bottom }, // ✅ now valid
-            ]} onPress={handleAddMessages}>
+          <TouchableOpacity
+            style={[styles.fab, { bottom: fabBottom }]}
+            onPress={handleAddMessages}
+          >
             <MaterialIcons name="add" size={32} color="#fff" />
           </TouchableOpacity>
         )}
@@ -417,16 +426,17 @@ export default function PlaylistDetail() {
         />
       </ThemedView>
       <View
+        pointerEvents="box-none"
         style={{
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: -insets.bottom - 13, // 👈 THIS is the magic
+          bottom: 0,
           zIndex: 20,
         }}
       >
-      <MiniPlayer />
-</View>
+        <MiniPlayer bottomOffset={0} />
+      </View>
     </SafeAreaView>
   );
 }

@@ -11,7 +11,11 @@ import { CircularSeekBar } from "./circular-seek-bar";
 import { QueueDisplay } from "./queue-display";
 import { ThemedText } from "./themed-text";
 
-export function MiniPlayer() {
+type MiniPlayerProps = {
+  bottomOffset?: number;
+};
+
+export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
   const {
     currentSermon,
     isPlaying,
@@ -45,7 +49,7 @@ export function MiniPlayer() {
             backgroundColor: Colors[colorScheme ?? "light"].background,
             borderTopColor:
               Colors[colorScheme ?? "light"].tabIconDefault + "30",
-            bottom: 60 + insets.bottom,
+            bottom: bottomOffset + insets.bottom,
           },
         ]}
         onPress={() => router.push("/player")}

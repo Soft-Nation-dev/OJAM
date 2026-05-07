@@ -1,6 +1,8 @@
 import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
+import { useAppUpdates } from "@/hooks/use-app-updates";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { getAppVersion, getBuildVersion } from "@/services/app-updates";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,6 +10,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function AboutScreen() {
   const colorScheme = useColorScheme() ?? "light";
   const theme = Colors[colorScheme];
+  const appVersion = getAppVersion();
+  const buildVersion = getBuildVersion();
+  const { otaAvailable, storeUpdateAvailable } = useAppUpdates({
+    autoCheck: true,
+  });
+  const updateAvailable = otaAvailable || storeUpdateAvailable;
 
   const cardBackground =
     colorScheme === "dark" ? Colors.dark.background : "#ffffff";
@@ -107,7 +115,13 @@ export default function AboutScreen() {
           </ThemedText>
         </View>
         <View style={styles.versionContainer}>
-          <ThemedText style={styles.versionText}>Version {"1.0.0"}</ThemedText>
+          <ThemedText style={styles.versionText}>
+            Version {appVersion}
+            {buildVersion ? ` (${buildVersion})` : ""}
+          </ThemedText>
+          {updateAvailable && (
+            <ThemedText style={styles.updateText}>Update available</ThemedText>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -164,5 +178,10 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 13,
     opacity: 0.5,
+  },
+  updateText: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 6,
   },
 });

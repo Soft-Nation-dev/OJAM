@@ -2,13 +2,15 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
 import React, { useCallback } from "react";
 import {
-    LayoutAnimation,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  InteractionManager,
+  LayoutAnimation,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import DraggableFlatList, {
-    RenderItemParams,
+  RenderItemParams,
 } from "react-native-draggable-flatlist";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -145,21 +147,44 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
     removeFromQueue,
     playFromList,
     currentSermon,
+    currentIndex,
     isPlaying,
     pause,
     resume,
     shuffle,
+    shuffleMode,
     repeat,
     toggleShuffle,
     setRepeat,
   } = useAudioPlayer();
 
-  const activeIndex = queue.findIndex((item) => item.id === currentSermon?.id);
+  const activeIndex = currentSermon ? currentIndex : -1;
+  const isFullShuffle = shuffle && shuffleMode === "full";
+  const isQuickShuffle = shuffle && shuffleMode === "quick";
 
   const queueRef = React.useRef(queue);
   React.useEffect(() => {
     queueRef.current = queue;
   }, [queue]);
+
+  const [queueBusy, setQueueBusy] = React.useState(false);
+
+  const runQueueAction = useCallback(
+    (action: () => Promise<void> | void) => {
+      if (queueBusy) return;
+      setQueueBusy(true);
+      InteractionManager.runAfterInteractions(() => {
+        Promise.resolve(action())
+          .catch((error) => {
+            console.error("[Queue] Action failed", error);
+          })
+          .finally(() => {
+            setQueueBusy(false);
+          });
+      });
+    },
+    [queueBusy],
+  );
 
   const handleReorder = (data: any[]) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -262,20 +287,38 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
         <ThemedText type="subtitle">Current Queue</ThemedText>
 
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={toggleShuffle}>
+          <TouchableOpacity
+            onPress={() => runQueueAction(() => toggleShuffle("full"))}
+            disabled={queueBusy}
+          >
             <MaterialIcons
               name="shuffle"
               size={22}
-              color={shuffle ? theme.tint : theme.tabIconDefault}
+              color={isFullShuffle ? theme.tint : theme.tabIconDefault}
             />
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => {
-              const next =
-                repeat === "off" ? "all" : repeat === "all" ? "one" : "off";
-              setRepeat(next);
-            }}
+            onPress={() => runQueueAction(() => toggleShuffle("quick"))}
+            disabled={queueBusy}
+            accessibilityLabel="Quick shuffle"
+          >
+            <MaterialIcons
+              name="flash-on"
+              size={22}
+              color={isQuickShuffle ? theme.tint : theme.tabIconDefault}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              runQueueAction(() => {
+                const next =
+                  repeat === "off" ? "all" : repeat === "all" ? "one" : "off";
+                return setRepeat(next);
+              })
+            }
+            disabled={queueBusy}
           >
             <View style={styles.repeatControl}>
               <MaterialIcons
@@ -303,6 +346,10 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
               color={theme.tint}
             />
           </TouchableOpacity>
+
+          {queueBusy && (
+            <ActivityIndicator size="small" color={theme.tabIconDefault} />
+          )}
         </View>
       </View>
 

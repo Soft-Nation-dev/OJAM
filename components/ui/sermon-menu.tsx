@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/theme";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { useToast } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useDownloads } from "@/hooks/use-downloads";
 import { useFavorites } from "@/hooks/use-favorites";
@@ -7,16 +8,17 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { Sermon } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import * as Haptics from "expo-haptics";
 import { Image as ExpoImage } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { ThemedText } from "../themed-text";
 
@@ -45,6 +47,7 @@ export default function SermonMenu({
   const router = useRouter();
   const navigation = useNavigation();
   const shouldReopenRef = useRef(false);
+  const { showToast } = useToast();
 
   const {
     isDownloaded,
@@ -56,7 +59,8 @@ export default function SermonMenu({
   } = useDownloads();
 
   const { isFavorited, toggleFavorite } = useFavorites();
-  const { addToQueue, addToQueueNext, removeFromQueue } = useAudioPlayer();
+  const { addToQueue, addToQueueNext, removeFromQueue, queue } =
+    useAudioPlayer();
 
   // Reopen modal instantly before paint when coming back
   React.useEffect(() => {
@@ -77,11 +81,12 @@ export default function SermonMenu({
   const previousDownloadStatusRef = useRef(progress?.status);
 
   const { addNotification } = useNotifications();
-  const showToast = (message: string, type: "success" | "error" | "info") => {
-    // Retain toast for non-download actions (optional)
-    if (Platform.OS === "android") {
-      // Optionally keep ToastAndroid for quick feedback
-    }
+
+  const triggerHaptic = () => {
+    if (Platform.OS === "web") return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
+      () => {},
+    );
   };
 
   React.useEffect(() => {
@@ -199,6 +204,8 @@ export default function SermonMenu({
       label: "Play next",
       icon: "skip-next",
       action: () => {
+        setVisible(false);
+        triggerHaptic();
         if (props.onPlayNext) {
           props.onPlayNext();
         } else {
@@ -211,6 +218,12 @@ export default function SermonMenu({
       label: "Add to queue",
       icon: "queue",
       action: () => {
+        setVisible(false);
+        triggerHaptic();
+        if (queue.some((item) => item.id === sermon.id)) {
+          showToast("Already in queue", "info");
+          return;
+        }
         if (props.onAddToQueue) {
           props.onAddToQueue();
         } else {
@@ -223,6 +236,12 @@ export default function SermonMenu({
       label: "Remove from queue",
       icon: "queue-play-next",
       action: () => {
+        setVisible(false);
+        triggerHaptic();
+        if (!queue.some((item) => item.id === sermon.id)) {
+          showToast("Not in queue", "info");
+          return;
+        }
         if (props.onRemoveFromQueue) {
           props.onRemoveFromQueue();
         } else {
@@ -287,13 +306,13 @@ export default function SermonMenu({
           ]}
         >
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setVisible(false)}>
+            {/* <TouchableOpacity onPress={() => setVisible(false)}>
               <MaterialIcons
                 name="close"
                 size={24}
                 color={Colors[colorScheme ?? "light"].text}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <ScrollView contentContainerStyle={styles.modalContent}>
@@ -341,6 +360,7 @@ export default function SermonMenu({
           </ScrollView>
         </View>
       </Modal>
+
     </View>
   );
 }
@@ -352,7 +372,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     padding: 16,
   },
-  modalContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  modalContent: { paddingHorizontal: 20, paddingBottom: 40, marginTop: 20 },
   menuTop: { flexDirection: "row", paddingBottom: 20 },
   menuImage: { width: 80, height: 80, borderRadius: 12, marginRight: 16 },
   placeholder: {

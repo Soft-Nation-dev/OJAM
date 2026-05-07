@@ -2,22 +2,28 @@ import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useAppUpdates } from "@/hooks/use-app-updates";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import {
+    applyOtaUpdate,
+    getAppVersion,
+    startStoreUpdate,
+} from "@/services/app-updates";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Switch,
-  ToastAndroid,
-  TouchableOpacity,
-  View,
+    Alert,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    ToastAndroid,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AudioQualityModal from "../components/AudioQualityModal";
@@ -129,6 +135,16 @@ export default function SettingsScreen() {
   };
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const appVersion = getAppVersion();
+
+  const {
+    checkNow: checkForUpdates,
+    checking: updatesChecking,
+    otaAvailable,
+    storeUpdateAvailable,
+    storeVersion,
+    lastCheckedAt,
+  } = useAppUpdates();
 
   const {
     settings,
@@ -163,6 +179,17 @@ export default function SettingsScreen() {
         ? "Large"
         : "Medium";
   const speedLabel = `${settings.playbackSpeed.toFixed(2)}x`;
+
+  const updateAvailable = storeUpdateAvailable || otaAvailable;
+  const updateSubtitle = updatesChecking
+    ? "Checking for updates..."
+    : updateAvailable
+      ? storeVersion
+        ? `Update available (${storeVersion})`
+        : "Update available"
+      : lastCheckedAt
+        ? "You're up to date"
+        : "Tap to check for updates";
 
   const PROTECTED_PATTERNS = [
     "ExponentAsset", // expo assets (fonts/images)
@@ -254,6 +281,42 @@ export default function SettingsScreen() {
         { cancelable: true },
       );
     });
+  };
+
+  const handleCheckUpdates = async () => {
+    const status = await checkForUpdates();
+
+    if (status.storeUpdateAvailable) {
+      Alert.alert(
+        "Update available",
+        "A new version is available on the Play Store.",
+        [
+          { text: "Later", style: "cancel" },
+          {
+            text: "Update",
+            onPress: () => {
+              void startStoreUpdate("flexible");
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    if (status.otaAvailable) {
+      Alert.alert("Update ready", "A new update is ready to install.", [
+        { text: "Later", style: "cancel" },
+        {
+          text: "Update",
+          onPress: () => {
+            void applyOtaUpdate();
+          },
+        },
+      ]);
+      return;
+    }
+
+    showToast("You're up to date", "success");
   };
 
   return (
@@ -491,8 +554,25 @@ export default function SettingsScreen() {
               icon="info"
               iconColor="#3b82f6"
               title="About Ojam"
-              subtitle="Version 1.0.0"
+              subtitle={`Version ${appVersion}`}
               onPress={() => router.push("/about")}
+            />
+            <SettingItem
+              icon="system-update-alt"
+              iconColor="#10b981"
+              title="Check for updates"
+              subtitle={updateSubtitle}
+              onPress={handleCheckUpdates}
+              showChevron={!updatesChecking}
+              rightElement={
+                updatesChecking ? (
+                  <MaterialIcons
+                    name="autorenew"
+                    size={22}
+                    color={Colors[colorScheme ?? "light"].tabIconDefault}
+                  />
+                ) : undefined
+              }
             />
             {/* <SettingItem
               icon="policy"

@@ -1,7 +1,7 @@
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useRef } from "react";
-import { Animated, Modal, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 interface ToastProps {
   visible: boolean;
@@ -15,7 +15,7 @@ export function Toast({
   visible,
   message,
   type = "success",
-  duration = 2000,
+  duration = 1600,
   onHide,
 }: ToastProps) {
   const colorScheme = useColorScheme();
@@ -79,28 +79,21 @@ export function Toast({
           : "#2063FA";
 
   return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="none"
-      onRequestClose={onHide}
-    >
-      <View style={styles.overlay} pointerEvents="box-none">
-        <Animated.View
-          style={[
-            styles.container,
-            {
-              backgroundColor,
-              transform: [{ translateY }],
-              opacity,
-            },
-          ]}
-        >
-          <MaterialIcons name={iconName} size={20} color="#FFFFFF" />
-          <Text style={styles.message}>{message}</Text>
-        </Animated.View>
-      </View>
-    </Modal>
+    <View style={styles.overlay} pointerEvents="none">
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            backgroundColor,
+            transform: [{ translateY }],
+            opacity,
+          },
+        ]}
+      >
+        <MaterialIcons name={iconName} size={20} color="#FFFFFF" />
+        <Text style={styles.message}>{message}</Text>
+      </Animated.View>
+    </View>
   );
 }
 
