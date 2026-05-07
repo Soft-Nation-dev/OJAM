@@ -360,7 +360,6 @@ export default function SermonMenu({
           </ScrollView>
         </View>
       </Modal>
-
     </View>
   );
 }

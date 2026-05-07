@@ -1,7 +1,7 @@
 import {
-    DarkTheme,
-    DefaultTheme,
-    ThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -9,8 +9,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import {
-    AudioPlayerProvider,
-    useAudioPlayer,
+  AudioPlayerProvider,
+  useAudioPlayer,
 } from "@/contexts/AudioPlayerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DownloadsProvider } from "@/contexts/DownloadsContext";
@@ -23,14 +23,14 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { runCacheMaintenance } from "@/lib/clear-cache";
 import {
-    applyOtaUpdate,
-    checkForUpdates,
-    markUpdatePromptShown,
-    shouldShowUpdatePrompt,
+  applyOtaUpdate,
+  checkForUpdates,
+  markUpdatePromptShown,
+  shouldShowUpdatePrompt,
 } from "@/services/app-updates";
 import {
-    initializeTrackPlayer,
-    isTrackPlayerSupported,
+  initializeTrackPlayer,
+  isTrackPlayerSupported,
 } from "@/services/track-player";
 import { useEffect } from "react";
 
@@ -74,21 +74,18 @@ export default function RootLayout() {
     void runCacheMaintenance();
   }, []);
 
- useEffect(() => {
-  const runUpdateCheck = async () => {
-    try {
-      const canPrompt = await shouldShowUpdatePrompt();
-      if (!canPrompt) return;
+  useEffect(() => {
+    const runUpdateCheck = async () => {
+      try {
+        const canPrompt = await shouldShowUpdatePrompt();
+        if (!canPrompt) return;
 
-      const status = await checkForUpdates();
-      if (!status.otaAvailable) return;
+        const status = await checkForUpdates();
+        if (!status.otaAvailable) return;
 
-      await markUpdatePromptShown();
+        await markUpdatePromptShown();
 
-      Alert.alert(
-        "Update available",
-        "A new version is ready to install.",
-        [
+        Alert.alert("Update available", "A new version is ready to install.", [
           { text: "Later", style: "cancel" },
           {
             text: "Update",
@@ -96,16 +93,15 @@ export default function RootLayout() {
               await applyOtaUpdate();
             },
           },
-        ]
-      );
-    } catch (error) {
-      console.warn("Update check failed", error);
-    }
-  };
+        ]);
+      } catch (error) {
+        console.warn("Update check failed", error);
+      }
+    };
 
-  void runUpdateCheck();
- }, []);
-  
+    void runUpdateCheck();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AudioPlayerProvider>
