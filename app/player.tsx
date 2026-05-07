@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 5,
     paddingBottom: 20,
   },
   hero: {
@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     marginBottom: 10,
+    // marginTop: 100,
   },
   pulseDot: {
     width: 8,
@@ -378,12 +379,12 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: 20,
-    paddingHorizontal: 8,
+    // paddingHorizontal: 8,
   },
   artworkFrame: {
     width: "100%",
     maxWidth: 380,
-    aspectRatio: 1,
+    // aspectRatio: 1,
     borderRadius: 16,
     overflow: "hidden",
     shadowColor: "#000",

@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingBottom: 24,
   },
   centeredSection: {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   detailsImage: {
-    width: "90%",
+    width: "98%",
     height: 400,
     borderRadius: 12,
     marginBottom: 20,
