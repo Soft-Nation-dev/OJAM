@@ -4,6 +4,11 @@ import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { Linking } from "react-native";
 
+type OtaUpdateStatus = {
+  available: boolean;
+  enabled: boolean;
+};
+
 export type UpdateStatus = {
   otaAvailable: boolean;
 };
@@ -24,8 +29,9 @@ export const getBuildVersion = () =>
   Constants.expoConfig?.android?.versionCode?.toString() ??
   "";
 
-const openPlayStore = async () => {
+export const openPlayStore = async () => {
   const pkg = getAndroidPackageName();
+
   if (!pkg) return false;
 
   const storeUrl = `https://play.google.com/store/apps/details?id=${pkg}`;
@@ -33,26 +39,43 @@ const openPlayStore = async () => {
   try {
     await Linking.openURL(storeUrl);
     return true;
-  } catch {
+  } catch (error) {
+    console.warn("[Updates] Failed to open Play Store", error);
     return false;
   }
 };
 
-export const checkForUpdates = async (): Promise<UpdateStatus> => {
+const checkForOtaUpdate = async (): Promise<OtaUpdateStatus> => {
   if (!Updates.isEnabled) {
-    return { otaAvailable: false };
+    return {
+      available: false,
+      enabled: false,
+    };
   }
 
   try {
     const result = await Updates.checkForUpdateAsync();
 
     return {
-      otaAvailable: Boolean(result.isAvailable),
+      available: Boolean(result.isAvailable),
+      enabled: true,
     };
   } catch (error) {
-    console.warn("[Updates] OTA check failed", error);
-    return { otaAvailable: false };
+    console.warn("[Updates] OTA update check failed", error);
+
+    return {
+      available: false,
+      enabled: true,
+    };
   }
+};
+
+export const checkForUpdates = async (): Promise<UpdateStatus> => {
+  const ota = await checkForOtaUpdate();
+
+  return {
+    otaAvailable: ota.available,
+  };
 };
 
 export const applyOtaUpdate = async () => {
@@ -72,10 +95,6 @@ export const applyOtaUpdate = async () => {
   return false;
 };
 
-export const startStoreUpdate = async () => {
-  return openPlayStore();
-};
-
 export const shouldShowUpdatePrompt = async () => {
   try {
     const last = await AsyncStorage.getItem(UPDATE_PROMPT_KEY);
@@ -83,6 +102,7 @@ export const shouldShowUpdatePrompt = async () => {
     if (!last) return true;
 
     const lastShown = Number(last);
+
     if (!Number.isFinite(lastShown)) return true;
 
     return Date.now() - lastShown >= UPDATE_PROMPT_COOLDOWN_MS;
@@ -93,8 +113,11 @@ export const shouldShowUpdatePrompt = async () => {
 
 export const markUpdatePromptShown = async () => {
   try {
-    await AsyncStorage.setItem(UPDATE_PROMPT_KEY, String(Date.now()));
+    await AsyncStorage.setItem(
+      UPDATE_PROMPT_KEY,
+      String(Date.now()),
+    );
   } catch {
-    // ignore
+    // Ignore failures
   }
 };
