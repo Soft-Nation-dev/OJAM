@@ -10,7 +10,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "perf:smoke": "powershell -ExecutionPolicy Bypass -File ./scripts/perf-smoke.ps1"
+    "perf:smoke": "powershell -ExecutionPolicy Bypass -File ./scripts/perf-smoke.ps1",
+    "postinstall": "node ./scripts/ensure-hermes-perms.cjs"
   },
   "dependencies": {
     "@expo/config-plugins": "^55.0.8",
