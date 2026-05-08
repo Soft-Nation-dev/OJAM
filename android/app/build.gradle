@@ -70,7 +70,10 @@ def hermesOsBin = osName.contains("win")
 def hermescFile = file("${projectRoot}/node_modules/react-native/sdks/hermesc/${hermesOsBin}/hermesc")
 
 tasks.matching { task ->
-    task.name == "bundleReleaseJsAndAssets" || task.name == "bundleDebugJsAndAssets"
+    task.name == "createBundleReleaseJsAndAssets" ||
+        task.name == "createBundleDebugJsAndAssets" ||
+        task.name == "bundleReleaseJsAndAssets" ||
+        task.name == "bundleDebugJsAndAssets"
 }.configureEach { task ->
     task.doFirst {
         if (hermescFile.exists()) {
