@@ -88,11 +88,19 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.softnation.ojam'
+
+    sourceSets {
+        main {
+            java.srcDirs += 'src/main/java'
+            kotlin.srcDirs += 'src/main/java'
+        }
+    }
+
     defaultConfig {
         applicationId 'com.softnation.ojam'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 16
         versionName "2.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
