@@ -48,3 +48,8 @@ sermon-sync/
 
 assets/videos/
 assets/audio/
+
+# Allow hermesc permission fix script
+!scripts/
+scripts/*
+!scripts/ensure-hermes-perms.cjs

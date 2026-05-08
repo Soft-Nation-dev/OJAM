@@ -56,3 +56,8 @@ android/.gradle/
 android/**/build/
 android/local.properties
 android/.idea/
+
+# Allow hermesc permission fix script
+!scripts/
+scripts/*
+!scripts/ensure-hermes-perms.cjs
