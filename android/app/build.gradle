@@ -11,7 +11,7 @@ def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 react {
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
     reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
-    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
+    hermesCommand = new File(["node", "--print", "require.resolve('hermes-compiler/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
 
     enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
@@ -63,28 +63,6 @@ react {
     autolinkLibrariesWithApp()
 }
 
-def osName = System.getProperty("os.name").toLowerCase()
-def hermesOsBin = osName.contains("win")
-    ? "win64-bin"
-    : (osName.contains("mac") ? "osx" : "linux64-bin")
-def hermescFile = file("${projectRoot}/node_modules/react-native/sdks/hermesc/${hermesOsBin}/hermesc")
-
-tasks.matching { task ->
-    task.name == "createBundleReleaseJsAndAssets" ||
-        task.name == "createBundleDebugJsAndAssets" ||
-        task.name == "bundleReleaseJsAndAssets" ||
-        task.name == "bundleDebugJsAndAssets"
-}.configureEach { task ->
-    task.doFirst {
-        if (hermescFile.exists()) {
-            hermescFile.setExecutable(true, false)
-            println("[hermesc] Ensured executable: ${hermescFile}")
-        } else {
-            println("[hermesc] Not found: ${hermescFile}")
-        }
-    }
-}
-
 /**
  * Set this to true in release builds to optimize the app using [R8](https://developer.android.com/topic/performance/app-optimization/enable-app-optimization).
  */
@@ -110,19 +88,11 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.softnation.ojam'
-
-    sourceSets {
-        main {
-            java.srcDirs += 'src/main/java'
-            kotlin.srcDirs += 'src/main/java'
-        }
-    }
-
     defaultConfig {
         applicationId 'com.softnation.ojam'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
+        versionCode 1
         versionName "2.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""

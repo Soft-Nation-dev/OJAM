@@ -11,6 +11,4 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
-# Preserve MainApplication and MainActivity
--keep class com.softnation.ojam.MainApplication { *; }
--keep class com.softnation.ojam.MainActivity { *; }
+# Add any project specific keep options here:
