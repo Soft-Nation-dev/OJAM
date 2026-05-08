@@ -13,9 +13,7 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/bc2a3e50-b8ab-4e88-8de0-66e6572fcdd0"
     },
-    "runtimeVersion": {
-        "policy": "appVersion"
-      },
+    "runtimeVersion":"1.0.0",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -85,6 +83,7 @@
       "reactCompiler": true
     },
     "extra": {
+      "updateConfigUrl": "https://sermon-sync.ojam.workers.dev/update-config",
       "router": {},
       "eas": {
         "projectId": "bc2a3e50-b8ab-4e88-8de0-66e6572fcdd0"

@@ -45,6 +45,22 @@ export default {
 
 		// ---------- GET Routes (Media) ----------
 		if (request.method === 'GET') {
+			if (url.pathname === '/update-config') {
+				const payload = {
+					minVersion: '2.0.0',
+					latestVersion: '2.0.0',
+					storeUrl: 'https://play.google.com/store/apps/details?id=com.softnation.ojam',
+				};
+
+				return new Response(JSON.stringify(payload), {
+					headers: {
+						'Content-Type': 'application/json',
+						'Access-Control-Allow-Origin': '*',
+						'Cache-Control': 'public, max-age=300',
+					},
+				});
+			}
+
 			// Serve audio files
 			if (url.pathname.startsWith('/audio/')) {
 				const key = decodeURIComponent(url.pathname.slice('/audio/'.length));

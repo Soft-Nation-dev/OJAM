@@ -176,18 +176,25 @@ const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
     config?.storeUrl ||
     (pkg ? `https://play.google.com/store/apps/details?id=${pkg}` : null);
 
+  const minVersion = config?.minVersion?.trim() || null;
   const latestVersion =
     config?.latestVersion ?? (pkg ? await fetchPlayStoreVersion(pkg) : null);
 
-  if (!latestVersion) {
+  const minVersionRequired =
+    minVersion && compareVersions(minVersion, currentVersion) > 0;
+
+  const isNewer =
+    latestVersion && compareVersions(latestVersion, currentVersion) > 0;
+
+  if (!minVersionRequired && !isNewer) {
     return { available: false, version: null, url: storeUrl };
   }
 
-  const isNewer = compareVersions(latestVersion, currentVersion) > 0;
+  const displayVersion = latestVersion || minVersion;
 
   return {
-    available: isNewer,
-    version: latestVersion,
+    available: true,
+    version: displayVersion,
     url: storeUrl,
   };
 };
