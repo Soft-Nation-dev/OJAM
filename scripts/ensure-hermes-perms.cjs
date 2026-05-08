@@ -9,6 +9,10 @@ if (platform !== "linux" && platform !== "darwin") {
 const candidates = [
   "node_modules/react-native/sdks/hermesc/linux64-bin/hermesc",
   "node_modules/react-native/sdks/hermesc/osx/hermesc",
+  "node_modules/react-native/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc",
+  "node_modules/react-native/node_modules/hermes-compiler/hermesc/osx/hermesc",
+  "node_modules/hermes-compiler/hermesc/linux64-bin/hermesc",
+  "node_modules/hermes-compiler/hermesc/osx/hermesc",
   "node_modules/react-native/ReactAndroid/hermesc/linux64-bin/hermesc",
   "node_modules/react-native/ReactAndroid/hermesc/osx/hermesc",
 ];

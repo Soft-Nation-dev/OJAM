@@ -10,6 +10,8 @@ const initialState: UpdateState = {
   checking: false,
   lastCheckedAt: null,
   otaAvailable: false,
+  storeUpdateAvailable: false,
+  storeVersion: null,
 };
 
 export const useAppUpdates = (options?: { autoCheck?: boolean }) => {

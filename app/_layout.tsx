@@ -1,7 +1,7 @@
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -9,8 +9,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import {
-  AudioPlayerProvider,
-  useAudioPlayer,
+    AudioPlayerProvider,
+    useAudioPlayer,
 } from "@/contexts/AudioPlayerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DownloadsProvider } from "@/contexts/DownloadsContext";
@@ -23,14 +23,15 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { runCacheMaintenance } from "@/lib/clear-cache";
 import {
-  applyOtaUpdate,
-  checkForUpdates,
-  markUpdatePromptShown,
-  shouldShowUpdatePrompt,
+    applyOtaUpdate,
+    checkForUpdates,
+    markUpdatePromptShown,
+    shouldShowUpdatePrompt,
+    startStoreUpdate,
 } from "@/services/app-updates";
 import {
-  initializeTrackPlayer,
-  isTrackPlayerSupported,
+    initializeTrackPlayer,
+    isTrackPlayerSupported,
 } from "@/services/track-player";
 import { useEffect } from "react";
 
@@ -63,33 +64,55 @@ export default function RootLayout() {
     void runCacheMaintenance();
   }, []);
 
-  useEffect(() => {
-    const runUpdateCheck = async () => {
-      try {
-        const canPrompt = await shouldShowUpdatePrompt();
-        if (!canPrompt) return;
+ useEffect(() => {
+  const runUpdateCheck = async () => {
+    try {
+      const canPrompt = await shouldShowUpdatePrompt();
+      if (!canPrompt) return;
 
-        const status = await checkForUpdates();
-        if (!status.otaAvailable) return;
+      const status = await checkForUpdates();
+      if (!status.storeUpdateAvailable && !status.otaAvailable) return;
 
-        await markUpdatePromptShown();
+      await markUpdatePromptShown();
 
-        Alert.alert("Update available", "A new version is ready to install.", [
+      if (status.storeUpdateAvailable) {
+        const message = status.storeVersion
+          ? `Version ${status.storeVersion} is available on the Play Store.`
+          : "A new version is available on the Play Store.";
+
+        Alert.alert("Update available", message, [
           { text: "Later", style: "cancel" },
           {
             text: "Update",
-            onPress: async () => {
-              await applyOtaUpdate();
+            onPress: () => {
+              void startStoreUpdate("flexible");
             },
           },
         ]);
-      } catch (error) {
-        console.warn("Update check failed", error);
-      }
-    };
 
+        return;
+      }
+
+      Alert.alert("Update ready", "A new update is ready to install.", [
+        { text: "Later", style: "cancel" },
+        {
+          text: "Update",
+          onPress: async () => {
+            await applyOtaUpdate();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.warn("Update check failed", error);
+    }
+  };
+
+  const timeout = setTimeout(() => {
     void runUpdateCheck();
-  }, []);
+  }, 10000);
+
+  return () => clearTimeout(timeout);
+}, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
