@@ -67,7 +67,7 @@ def osName = System.getProperty("os.name").toLowerCase()
 def hermesOsBin = osName.contains("win")
     ? "win64-bin"
     : (osName.contains("mac") ? "osx" : "linux64-bin")
-def hermescFile = new File(react.reactNativeDir, "sdks/hermesc/${hermesOsBin}/hermesc")
+def hermescFile = file("${projectRoot}/node_modules/react-native/sdks/hermesc/${hermesOsBin}/hermesc")
 
 tasks.matching { task ->
     task.name == "bundleReleaseJsAndAssets" || task.name == "bundleDebugJsAndAssets"
