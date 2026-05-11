@@ -1,24 +1,24 @@
 import {
-  cancelDownload as cancelSermonDownload,
-  deleteSermonFile,
-  downloadSermon,
+    cancelDownload as cancelSermonDownload,
+    deleteSermonFile,
+    downloadSermon,
 } from "@/lib/download-service";
 import {
-  removeDownload as removeUserDownload,
-  trackDownload,
+    removeDownload as removeUserDownload,
+    trackDownload,
 } from "@/lib/user-downloads";
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { InteractionManager } from "react-native";
 import { useSermons } from "./SermonsContext";
@@ -84,11 +84,17 @@ const downloadImage = async (sermon: Sermon) => {
       { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
     );
 
-    if (manipResult.uri !== result.uri) {
-      await FileSystem.deleteAsync(result.uri, { idempotent: true });
+    if (manipResult.uri !== fileUri) {
+      await FileSystem.deleteAsync(fileUri, { idempotent: true });
+
+      try {
+        await FileSystem.moveAsync({ from: manipResult.uri, to: fileUri });
+      } catch {
+        return manipResult.uri;
+      }
     }
 
-    return manipResult.uri;
+    return fileUri;
   } catch (e) {
     console.log("Image download failed:", e);
     return null;
@@ -119,6 +125,30 @@ const resolveLocalImagePath = async (
   }
 
   return undefined;
+};
+
+const backfillMissingImages = async (map: Map<string, DownloadItem>) => {
+  let updated = false;
+
+  for (const [sermonId, item] of map) {
+    if (item.localImagePath || !item.sermon.imageUrl) continue;
+
+    try {
+      const imageUri = await downloadImage(item.sermon);
+      if (!imageUri) continue;
+
+      map.set(sermonId, {
+        ...item,
+        localImagePath: imageUri,
+      });
+
+      updated = true;
+    } catch {
+      // Ignore failures (offline or network errors)
+    }
+  }
+
+  return updated;
 };
 
 export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -233,6 +263,8 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         }
       }
+
+      const didBackfill = await backfillMissingImages(map);
 
       setDownloads(map);
 

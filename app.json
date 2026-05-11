@@ -1,5 +1,5 @@
 {
-  "expo": {
+   "expo": {
     "icon": "./assets/images/icon.png",
     "name": "Ojam-dev",
     "slug": "ojam-dev",
@@ -13,7 +13,7 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/bc2a3e50-b8ab-4e88-8de0-66e6572fcdd0"
     },
-    "runtimeVersion":"1.0.0",
+    "runtimeVersion": "2.0.0",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

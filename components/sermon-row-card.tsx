@@ -3,8 +3,8 @@ import { useDownloadsContext } from "@/contexts/DownloadsContext";
 import { useFavorites } from "@/hooks/use-favorites";
 import { Sermon } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Image as ExpoImage } from "expo-image";
 import * as FileSystem from "expo-file-system/legacy";
+import { Image as ExpoImage } from "expo-image";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "./themed-text";
@@ -41,9 +41,7 @@ function SermonRowCardComponent({
       // 1. Try local if it actually exists
       if (sermon.localImagePath) {
         try {
-          const fileInfo = await FileSystem.getInfoAsync(
-            sermon.localImagePath
-          );
+          const fileInfo = await FileSystem.getInfoAsync(sermon.localImagePath);
 
           if (fileInfo.exists) {
             if (isMounted) {
@@ -126,7 +124,7 @@ function SermonRowCardComponent({
               source={coverSource}
               style={styles.circularImage}
               contentFit="cover"
-              cachePolicy="none" // ✅ prevent stale cache issues
+              cachePolicy="disk"
             />
           )}
 
