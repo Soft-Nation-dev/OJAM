@@ -26,7 +26,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 export default function PlaylistDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -128,7 +131,6 @@ export default function PlaylistDetail() {
           }
           return titleA.localeCompare(titleB);
       }
-
     });
   }, [currentPlaylist, sortOption]);
 
@@ -222,9 +224,17 @@ export default function PlaylistDetail() {
 
   if (loading) {
     return (
-      <ThemedView style={{ flex: 1 }}>
-        <ThemedText type="default">Loading...</ThemedText>
-      </ThemedView>
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: Colors[colorScheme ?? "light"].background,
+        }}
+        edges={["top", "bottom"]}
+      >
+        <ThemedView style={{ flex: 1 }}>
+          <ThemedText type="default">Loading...</ThemedText>
+        </ThemedView>
+      </SafeAreaView>
     );
   }
 
