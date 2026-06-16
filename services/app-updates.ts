@@ -3,6 +3,14 @@ import * as Application from "expo-application";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { Linking, Platform } from "react-native";
+import SpInAppUpdates, {
+  IAUUpdateKind,
+  StartUpdateOptions,
+} from "sp-react-native-in-app-updates";
+
+const inAppUpdates = new SpInAppUpdates(
+  false // isDebug
+);
 
 type OtaUpdateStatus = {
   available: boolean;
@@ -109,35 +117,6 @@ const fetchUpdateConfig = async (): Promise<UpdateConfigResponse | null> => {
   }
 };
 
-const parsePlayStoreVersion = (html: string) => {
-  const softwareMatch = html.match(/"softwareVersion"\s*:\s*"([^"]+)"/);
-  if (softwareMatch?.[1]) return softwareMatch[1].trim();
-
-  const currentMatch = html.match(
-    /Current Version<\/div>\s*<span[^>]*>\s*<div[^>]*>\s*<span[^>]*>([^<]+)<\/span>/i,
-  );
-  if (currentMatch?.[1]) return currentMatch[1].trim();
-
-  return null;
-};
-
-const fetchPlayStoreVersion = async (pkg: string) => {
-  if (!pkg) return null;
-
-  const url = `https://play.google.com/store/apps/details?id=${pkg}&hl=en&gl=US`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-
-    const html = await response.text();
-    return parsePlayStoreVersion(html);
-  } catch (error) {
-    console.warn("[Updates] Failed to fetch Play Store version", error);
-    return null;
-  }
-};
-
 const checkForOtaUpdate = async (): Promise<OtaUpdateStatus> => {
   if (!Updates.isEnabled) {
     return {
@@ -164,39 +143,61 @@ const checkForOtaUpdate = async (): Promise<OtaUpdateStatus> => {
 };
 
 const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
-  if (Platform.OS !== "android") {
+  if (Platform.OS === "web") {
     return { available: false, version: null, url: null };
   }
 
-  const pkg = getAndroidPackageName();
-  const currentVersion = getAppVersion();
-  const config = await fetchUpdateConfig();
+  try {
+    const pkg = getAndroidPackageName();
+    const storeUrl = pkg ? `https://play.google.com/store/apps/details?id=${pkg}` : null;
 
-  const storeUrl =
-    config?.storeUrl ||
-    (pkg ? `https://play.google.com/store/apps/details?id=${pkg}` : null);
+    // First check remote config for minimum forced version
+    const currentVersion = getAppVersion();
+    const config = await fetchUpdateConfig();
+    if (config) {
+      const minVersion = config.minVersion?.trim() || null;
+      if (minVersion && compareVersions(minVersion, currentVersion) > 0) {
+        return {
+          available: true,
+          version: minVersion,
+          url: config.storeUrl || storeUrl,
+        };
+      }
+    }
 
-  const minVersion = config?.minVersion?.trim() || null;
-  const latestVersion =
-    config?.latestVersion ?? (pkg ? await fetchPlayStoreVersion(pkg) : null);
+    // Now check native stores
+    const result = await inAppUpdates.checkNeedsUpdate();
+    if (result && result.shouldUpdate) {
+      return {
+        available: true,
+        version: result.storeVersion || null,
+        url: config?.storeUrl || storeUrl,
+      };
+    }
+  } catch (error) {
+    console.warn("[Updates] Native checkNeedsUpdate failed, trying fallback check", error);
 
-  const minVersionRequired =
-    minVersion && compareVersions(minVersion, currentVersion) > 0;
-
-  const isNewer =
-    latestVersion && compareVersions(latestVersion, currentVersion) > 0;
-
-  if (!minVersionRequired && !isNewer) {
-    return { available: false, version: null, url: storeUrl };
+    // Fallback if SpInAppUpdates fails (e.g. on dev clients without correct store credentials)
+    try {
+      const pkg = getAndroidPackageName();
+      const currentVersion = getAppVersion();
+      const config = await fetchUpdateConfig();
+      if (config) {
+        const latestVersion = config.latestVersion?.trim() || null;
+        if (latestVersion && compareVersions(latestVersion, currentVersion) > 0) {
+          return {
+            available: true,
+            version: latestVersion,
+            url: config.storeUrl || (pkg ? `https://play.google.com/store/apps/details?id=${pkg}` : null),
+          };
+        }
+      }
+    } catch (fallbackError) {
+      console.warn("[Updates] Fallback update check failed", fallbackError);
+    }
   }
 
-  const displayVersion = latestVersion || minVersion;
-
-  return {
-    available: true,
-    version: displayVersion,
-    url: storeUrl,
-  };
+  return { available: false, version: null, url: null };
 };
 
 export const checkForUpdates = async (): Promise<UpdateStatus> => {
@@ -215,8 +216,29 @@ export const checkForUpdates = async (): Promise<UpdateStatus> => {
 export const startStoreUpdate = async (
   mode: "flexible" | "immediate" = "flexible",
 ) => {
-  void mode;
-  return openPlayStore();
+  if (Platform.OS === "web") return false;
+
+  try {
+    const updateOptions = Platform.select({
+      android: {
+        updateType: mode === "immediate" ? IAUUpdateKind.IMMEDIATE : IAUUpdateKind.FLEXIBLE,
+      },
+      ios: {
+        title: "Update Available",
+        message: "A new version of the app is available. Please update now.",
+        buttonUpgradeText: "Update Now",
+        buttonCancelText: "Later",
+      },
+      default: {},
+    }) as any;
+
+    await inAppUpdates.startUpdate(updateOptions);
+    return true;
+  } catch (error) {
+    console.warn("[Updates] Native startStoreUpdate failed, redirecting to store URL", error);
+    // Graceful fallback to opening store URL
+    return openPlayStore();
+  }
 };
 
 export const applyOtaUpdate = async () => {

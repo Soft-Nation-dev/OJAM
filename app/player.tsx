@@ -39,6 +39,9 @@ export default function PlayerScreen() {
     currentIndex,
   } = useAudioPlayer();
 
+  const [isSliding, setIsSliding] = React.useState(false);
+  const [slidingValue, setSlidingValue] = React.useState(0);
+
   const colorScheme = useColorScheme();
   const { isFavorited, toggleFavorite } = useFavorites();
   const themeColors = Colors[colorScheme ?? "light"];
@@ -237,14 +240,26 @@ export default function PlayerScreen() {
             <Slider
               minimumValue={0}
               maximumValue={duration || 1}
-              value={position}
-              onSlidingComplete={seekTo}
+              value={isSliding ? slidingValue : position}
+              onSlidingStart={(val) => {
+                setIsSliding(true);
+                setSlidingValue(val);
+              }}
+              onValueChange={(val) => {
+                setSlidingValue(val);
+              }}
+              onSlidingComplete={async (val) => {
+                await seekTo(val);
+                setTimeout(() => {
+                  setIsSliding(false);
+                }, 500);
+              }}
               minimumTrackTintColor={accent}
               maximumTrackTintColor="#999"
               thumbTintColor={accent}
             />
             <View style={styles.timeRow}>
-              <ThemedText>{formatTime(position)}</ThemedText>
+              <ThemedText>{formatTime(isSliding ? slidingValue : position)}</ThemedText>
               <ThemedText>{formatTime(duration)}</ThemedText>
             </View>
             {isBuffering && (

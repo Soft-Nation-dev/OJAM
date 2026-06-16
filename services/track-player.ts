@@ -27,45 +27,73 @@ export function getTrackPlayerModule(): TrackPlayerModule | null {
   return cachedTrackPlayerModule;
 }
 
-export function initializeTrackPlayer() {
+export async function initializeTrackPlayer() {
   const trackPlayerModule = getTrackPlayerModule();
   if (!trackPlayerModule) {
-    return Promise.resolve();
+    return;
   }
 
   const TrackPlayer = trackPlayerModule.default;
-  const { AndroidAudioContentType, AppKilledPlaybackBehavior, Capability } =
-    trackPlayerModule;
+
+  if (setupPromise) {
+    try {
+      await TrackPlayer.getPlaybackState();
+    } catch (e) {
+      console.warn("[AudioPlayer] Native playback service is uninitialized or dead. Resetting setup promise.", e);
+      setupPromise = null;
+    }
+  }
 
   if (!setupPromise) {
-    setupPromise = (async () => {
-      await TrackPlayer.setupPlayer({
-        autoHandleInterruptions: true,
-        minBuffer: 15,
-        maxBuffer: 120,
-        playBuffer: 5,
-        maxCacheSize: 102400,
-        androidAudioContentType: AndroidAudioContentType.Speech,
-      });
+    const { AndroidAudioContentType, AppKilledPlaybackBehavior, Capability } =
+      trackPlayerModule;
 
-      await TrackPlayer.updateOptions({
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.SkipToNext,
-          Capability.SkipToPrevious,
-          Capability.SeekTo,
-          Capability.Stop,
-        ],
-        progressUpdateEventInterval: 2,
-        android: {
-          appKilledPlaybackBehavior:
-            AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-        },
-      });
-    })().catch((error) => {
-      throw error;
-    });
+    setupPromise = (async () => {
+      try {
+        await TrackPlayer.setupPlayer({
+          autoHandleInterruptions: true,
+          minBuffer: 15,
+          maxBuffer: 120,
+          playBuffer: 5,
+          maxCacheSize: 102400,
+          androidAudioContentType: AndroidAudioContentType.Speech,
+        });
+
+        await TrackPlayer.updateOptions({
+          capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.SkipToNext,
+            Capability.SkipToPrevious,
+            Capability.SeekTo,
+            Capability.Stop,
+          ],
+          notificationCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.SkipToNext,
+            Capability.SkipToPrevious,
+            Capability.SeekTo,
+            Capability.Stop,
+          ],
+          progressUpdateEventInterval: 2,
+          android: {
+            appKilledPlaybackBehavior:
+              AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+          },
+        });
+      } catch (error: any) {
+        if (
+          error?.message?.includes("already") ||
+          error?.code?.includes("already")
+        ) {
+          console.log("[AudioPlayer] TrackPlayer already initialized native-side.");
+        } else {
+          setupPromise = null;
+          throw error;
+        }
+      }
+    })();
   }
 
   return setupPromise;

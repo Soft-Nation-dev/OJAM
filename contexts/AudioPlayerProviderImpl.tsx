@@ -164,6 +164,7 @@ export function AudioPlayerProvider({
   const unshuffledQueueRef = useRef<Sermon[] | null>(null);
   const progressRef = useRef({ position: 0, duration: 0 });
   const lastProgressCommitTsRef = useRef(0);
+  const lastProgressSaveTsRef = useRef(0);
   const isPlayingRef = useRef(false);
   const isBufferingRef = useRef(false);
   const playbackRateRef = useRef(1);
@@ -346,7 +347,23 @@ export function AudioPlayerProvider({
       const activeTrack = nextQueue[activeIndex];
       const isStreaming = !activeTrack.localPath && activeTrack.audioUrl;
 
-      await TrackPlayer.skip(mappedActiveIndex, initialPosition);
+      let resumePosition = initialPosition;
+      if (initialPosition === 0) {
+        try {
+          const saved = await AsyncStorage.getItem(`@sermon_progress_${activeTrack.id}`);
+          if (saved) {
+            const { position: savedPos } = JSON.parse(saved);
+            if (savedPos > 5 && savedPos < (activeTrack.duration ?? 999999) - 10) {
+              resumePosition = savedPos;
+              console.log(`[AudioPlayer] Resuming sermon ${activeTrack.id} at position ${resumePosition}`);
+            }
+          }
+        } catch (e) {
+          console.warn("[AudioPlayer] Failed to load saved progress:", e);
+        }
+      }
+
+      await TrackPlayer.skip(mappedActiveIndex, resumePosition);
       await TrackPlayer.setRate(playbackRateRef.current);
 
       if (shouldPlay) {
@@ -466,6 +483,18 @@ export function AudioPlayerProvider({
           setIsBuffering(false);
         }
 
+        const currentSermon = currentSermonRef.current;
+        if (currentSermon && nextPosition > 5 && nextPosition < nextDuration - 10) {
+          const now = Date.now();
+          if (now - lastProgressSaveTsRef.current >= 5000) {
+            lastProgressSaveTsRef.current = now;
+            AsyncStorage.setItem(
+              `@sermon_progress_${currentSermon.id}`,
+              JSON.stringify({ position: nextPosition, timestamp: now })
+            ).catch(() => {});
+          }
+        }
+
         setProgress((prev) => {
           const positionDelta = Math.abs(prev.position - nextPosition);
           const durationDelta = Math.abs(prev.duration - nextDuration);
@@ -523,6 +552,10 @@ export function AudioPlayerProvider({
     const queueEndedSub = TrackPlayer.addEventListener(
       Event.PlaybackQueueEnded,
       async () => {
+        const current = currentSermonRef.current;
+        if (current) {
+          AsyncStorage.removeItem(`@sermon_progress_${current.id}`).catch(() => {});
+        }
         if (repeatRef.current === "off") {
           setIsPlaying(false);
           setIsBuffering(false);
@@ -534,6 +567,7 @@ export function AudioPlayerProvider({
       Event.PlaybackError,
       (event) => {
         console.error("[AudioPlayer] Playback error", event);
+        setIsPlaying(false);
         setIsBuffering(false);
       },
     );
@@ -632,6 +666,16 @@ export function AudioPlayerProvider({
     await TrackPlayer.pause();
     setIsPlaying(false);
     setIsBuffering(false);
+
+    const current = currentSermonRef.current;
+    const pos = progressRef.current.position;
+    const dur = progressRef.current.duration;
+    if (current && pos > 5 && pos < dur - 10) {
+      AsyncStorage.setItem(
+        `@sermon_progress_${current.id}`,
+        JSON.stringify({ position: pos, timestamp: Date.now() })
+      ).catch(() => {});
+    }
   };
 
   const resume = async () => {
