@@ -332,25 +332,43 @@ export function AudioPlayerProvider({
           const audio = new Audio(sourceUrl);
           webAudioRef.current = audio;
           audio.playbackRate = playbackRateRef.current;
+          // Preload metadata so Safari knows the duration before canplay
+          audio.preload = "metadata";
 
-          let resumePosition = initialPosition;
-          if (initialPosition === 0) {
-            try {
-              const saved = await AsyncStorage.getItem(`@sermon_progress_${activeTrack.id}`);
-              if (saved) {
-                const { position: savedPos } = JSON.parse(saved);
-                if (savedPos > 5 && savedPos < (activeTrack.duration ?? 999999) - 10) {
-                  resumePosition = savedPos;
-                  console.log(`[AudioPlayer] Web Audio Resuming at position ${resumePosition}`);
+          setProgress({ position: initialPosition, duration: activeTrack.duration || 0 });
+
+          // --- iOS Safari Fix ---
+          // Safari breaks the user-gesture chain after ANY await. We must call
+          // audio.play() synchronously here (within the gesture), then seek
+          // to the saved position inside the 'canplay' event once media is ready.
+          let didSeek = false;
+          const onCanPlay = () => {
+            if (didSeek) return;
+            didSeek = true;
+
+            // Load saved progress and seek without an await that would break gesture chain
+            AsyncStorage.getItem(`@sermon_progress_${activeTrack.id}`)
+              .then((saved) => {
+                let seekTo = initialPosition;
+                if (seekTo === 0 && saved) {
+                  try {
+                    const { position: savedPos } = JSON.parse(saved);
+                    if (savedPos > 5 && savedPos < (activeTrack.duration ?? 999999) - 10) {
+                      seekTo = savedPos;
+                      console.log(`[AudioPlayer] Web Audio Resuming at position ${seekTo}`);
+                    }
+                  } catch {}
                 }
-              }
-            } catch (e) {
-              console.warn("[AudioPlayer] Failed to load saved progress:", e);
-            }
-          }
+                if (seekTo > 0) {
+                  audio.currentTime = seekTo;
+                  setProgress((prev) => ({ ...prev, position: seekTo }));
+                }
+              })
+              .catch(() => {});
 
-          audio.currentTime = resumePosition;
-          setProgress({ position: resumePosition, duration: activeTrack.duration || 0 });
+            audio.removeEventListener("canplay", onCanPlay);
+          };
+          audio.addEventListener("canplay", onCanPlay);
 
           audio.addEventListener("timeupdate", () => {
             setProgress((prev) => {
@@ -404,6 +422,7 @@ export function AudioPlayerProvider({
             setIsBuffering(false);
           });
 
+          // Play immediately within the user-gesture — before any await
           if (shouldPlay) {
             setIsBuffering(true);
             audio.play().catch((err) => {

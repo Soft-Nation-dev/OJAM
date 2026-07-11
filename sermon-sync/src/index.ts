@@ -2,6 +2,22 @@ export default {
 	async fetch(request: Request, env: any) {
 		const url = new URL(request.url);
 
+		// ---------- CORS Preflight (OPTIONS) ----------
+		// iOS Safari sends a preflight OPTIONS request before audio range requests.
+		// Without handling it, audio streaming is completely blocked on iOS PWA.
+		if (request.method === 'OPTIONS') {
+			return new Response(null, {
+				status: 204,
+				headers: {
+					'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Methods': 'GET, OPTIONS',
+					'Access-Control-Allow-Headers': 'Range, Content-Type',
+					'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+					'Access-Control-Max-Age': '86400',
+				},
+			});
+		}
+
 		// ---------- Helper Functions ----------
 		const estimateDurationFromSize = (size?: number) => {
 			if (!size) return 0;
@@ -89,10 +105,16 @@ export default {
 						'Content-Type': getAudioType(key),
 						'Cache-Control': 'public, max-age=31536000',
 						'Access-Control-Allow-Origin': '*',
-						'Access-Control-Allow-Methods': 'GET',
-						'Access-Control-Allow-Headers': '*',
+						'Access-Control-Allow-Methods': 'GET, OPTIONS',
+						'Access-Control-Allow-Headers': 'Range, Content-Type',
+						'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
 						'Accept-Ranges': 'bytes',
 					});
+
+					// iOS Safari requires Content-Length to begin audio playback
+					if (obj.size) {
+						headers.set('Content-Length', String(obj.range ? (obj.range.end - obj.range.offset + 1) : obj.size));
+					}
 
 					// VERY IMPORTANT
 					if (obj.range) {
