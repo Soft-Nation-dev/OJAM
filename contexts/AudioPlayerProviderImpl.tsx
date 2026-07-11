@@ -211,6 +211,19 @@ export function AudioPlayerProvider({
     playbackRateRef.current = playbackRate;
   }, [playbackRate]);
 
+  const teardownWebAudio = () => {
+    if (!webAudioRef.current) return;
+
+    const audio = webAudioRef.current;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+    if (audio.parentNode) {
+      audio.parentNode.removeChild(audio);
+    }
+    webAudioRef.current = null;
+  };
+
   useEffect(() => {
     const loadRepeatMode = async () => {
       try {
@@ -254,9 +267,8 @@ export function AudioPlayerProvider({
 
   useEffect(() => {
     return () => {
-      if (Platform.OS === "web" && webAudioRef.current) {
-        webAudioRef.current.pause();
-        webAudioRef.current = null;
+      if (Platform.OS === "web") {
+        teardownWebAudio();
       }
     };
   }, []);
@@ -314,10 +326,7 @@ export function AudioPlayerProvider({
 
     if (!isTrackPlayerSupported) {
       if (Platform.OS === "web") {
-        if (webAudioRef.current) {
-          webAudioRef.current.pause();
-          webAudioRef.current = null;
-        }
+        teardownWebAudio();
 
         if (activeIndex >= 0 && nextQueue[activeIndex]) {
           const activeTrack = nextQueue[activeIndex];
@@ -329,14 +338,17 @@ export function AudioPlayerProvider({
             return;
           }
 
-          const audio = new Audio(sourceUrl);
+          const audio = document.createElement("audio");
+          audio.src = sourceUrl;
           webAudioRef.current = audio;
           audio.playbackRate = playbackRateRef.current;
           audio.crossOrigin = "anonymous";
           audio.setAttribute("playsinline", "true");
           // Preload metadata so Safari knows the duration before canplay
           audio.preload = "auto";
+          audio.hidden = true;
           audio.load();
+          document.body.appendChild(audio);
 
           setProgress({ position: initialPosition, duration: activeTrack.duration || 0 });
 
@@ -345,7 +357,7 @@ export function AudioPlayerProvider({
           // audio.play() synchronously here (within the gesture), then seek
           // to the saved position inside the 'canplay' event once media is ready.
           let didSeek = false;
-          const onCanPlay = () => {
+          const applyInitialSeek = () => {
             if (didSeek) return;
             didSeek = true;
 
@@ -369,9 +381,11 @@ export function AudioPlayerProvider({
               })
               .catch(() => {});
 
-            audio.removeEventListener("canplay", onCanPlay);
+            audio.removeEventListener("loadedmetadata", applyInitialSeek);
+            audio.removeEventListener("canplay", applyInitialSeek);
           };
-          audio.addEventListener("canplay", onCanPlay);
+          audio.addEventListener("loadedmetadata", applyInitialSeek);
+          audio.addEventListener("canplay", applyInitialSeek);
 
           audio.addEventListener("timeupdate", () => {
             setProgress((prev) => {
@@ -870,14 +884,44 @@ export function AudioPlayerProvider({
   };
 
   const playNext = async () => {
-    if (!isTrackPlayerSupported) return;
+    if (!isTrackPlayerSupported) {
+      if (Platform.OS !== "web") return;
+      const nextQueue = queueRef.current;
+      if (!nextQueue.length) return;
+
+      const nextIndex =
+        currentIndexRef.current >= 0
+          ? Math.min(currentIndexRef.current + 1, nextQueue.length - 1)
+          : 0;
+      if (nextIndex === currentIndexRef.current && nextQueue.length <= 1) return;
+      await setQueueAndPlayer(nextQueue, nextIndex, {
+        play: true,
+        position: 0,
+      });
+      return;
+    }
     await initializeTrackPlayer();
     await TrackPlayer.skipToNext();
     await TrackPlayer.play();
   };
 
   const playPrevious = async () => {
-    if (!isTrackPlayerSupported) return;
+    if (!isTrackPlayerSupported) {
+      if (Platform.OS !== "web") return;
+      const nextQueue = queueRef.current;
+      if (!nextQueue.length) return;
+
+      const nextIndex =
+        currentIndexRef.current > 0
+          ? currentIndexRef.current - 1
+          : 0;
+      if (nextIndex === currentIndexRef.current && nextQueue.length <= 1) return;
+      await setQueueAndPlayer(nextQueue, nextIndex, {
+        play: true,
+        position: 0,
+      });
+      return;
+    }
     await initializeTrackPlayer();
     await TrackPlayer.skipToPrevious();
     await TrackPlayer.play();

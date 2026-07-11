@@ -105,7 +105,7 @@ export default function PlayerScreen() {
       <ThemedView style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.content}
-          scrollEnabled={!isSliding}
+          scrollEnabled={false}
           nestedScrollEnabled
         >
           <View style={styles.artworkContainer}>
