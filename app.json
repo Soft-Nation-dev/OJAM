@@ -45,7 +45,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/icon.png",
+      "bundleUrl": "https://ojam.divinegraceunn.com.ng"
     },
     "plugins": [
       "./plugins/withExpoViewPropsFix/app.plugin.cjs",

@@ -192,7 +192,7 @@ export default function PlayerScreen() {
 
                 <TouchableOpacity
                   style={styles.metaToggle}
-                  onPress={toggleShuffle}
+                  onPress={() => toggleShuffle()}
                 >
                   <MaterialIcons
                     name="shuffle"

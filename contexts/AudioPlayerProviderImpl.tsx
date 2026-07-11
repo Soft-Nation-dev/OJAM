@@ -5,6 +5,7 @@ import {
 } from "@/services/track-player";
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 import React, {
     createContext,
     useCallback,
@@ -168,6 +169,7 @@ export function AudioPlayerProvider({
   const isPlayingRef = useRef(false);
   const isBufferingRef = useRef(false);
   const playbackRateRef = useRef(1);
+  const webAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -250,6 +252,15 @@ export function AudioPlayerProvider({
     );
   }, [shuffle, isShuffleHydrated]);
 
+  useEffect(() => {
+    return () => {
+      if (Platform.OS === "web" && webAudioRef.current) {
+        webAudioRef.current.pause();
+        webAudioRef.current = null;
+      }
+    };
+  }, []);
+
   const waitForIdle = async () => {
     while (busyRef.current) {
       await new Promise((resolve) => setTimeout(resolve, 25));
@@ -302,13 +313,119 @@ export function AudioPlayerProvider({
     syncActiveFromIndex(activeIndex);
 
     if (!isTrackPlayerSupported) {
-      console.warn(
-        "[AudioPlayer] TrackPlayer unsupported in current runtime (likely Expo Go).",
-      );
-      setProgress((prev) => ({ ...prev, position: initialPosition }));
-      setIsBuffering(false);
-      if (typeof options?.play === "boolean") {
-        setIsPlaying(options.play);
+      if (Platform.OS === "web") {
+        if (webAudioRef.current) {
+          webAudioRef.current.pause();
+          webAudioRef.current = null;
+        }
+
+        if (activeIndex >= 0 && nextQueue[activeIndex]) {
+          const activeTrack = nextQueue[activeIndex];
+          const sourceUrl = normalizeAudioUrl(activeTrack);
+          if (!sourceUrl) {
+            setIsPlaying(false);
+            setIsBuffering(false);
+            setProgress({ position: 0, duration: 0 });
+            return;
+          }
+
+          const audio = new Audio(sourceUrl);
+          webAudioRef.current = audio;
+          audio.playbackRate = playbackRateRef.current;
+
+          let resumePosition = initialPosition;
+          if (initialPosition === 0) {
+            try {
+              const saved = await AsyncStorage.getItem(`@sermon_progress_${activeTrack.id}`);
+              if (saved) {
+                const { position: savedPos } = JSON.parse(saved);
+                if (savedPos > 5 && savedPos < (activeTrack.duration ?? 999999) - 10) {
+                  resumePosition = savedPos;
+                  console.log(`[AudioPlayer] Web Audio Resuming at position ${resumePosition}`);
+                }
+              }
+            } catch (e) {
+              console.warn("[AudioPlayer] Failed to load saved progress:", e);
+            }
+          }
+
+          audio.currentTime = resumePosition;
+          setProgress({ position: resumePosition, duration: activeTrack.duration || 0 });
+
+          audio.addEventListener("timeupdate", () => {
+            setProgress((prev) => {
+              const now = Date.now();
+              if (audio.currentTime > 5 && audio.currentTime < audio.duration - 10) {
+                if (now - lastProgressSaveTsRef.current >= 5000) {
+                  lastProgressSaveTsRef.current = now;
+                  AsyncStorage.setItem(
+                    `@sermon_progress_${activeTrack.id}`,
+                    JSON.stringify({ position: audio.currentTime, timestamp: now })
+                  ).catch(() => {});
+                }
+              }
+              return {
+                ...prev,
+                position: audio.currentTime,
+              };
+            });
+          });
+
+          audio.addEventListener("durationchange", () => {
+            setProgress((prev) => ({
+              ...prev,
+              duration: audio.duration || 0,
+            }));
+          });
+
+          audio.addEventListener("waiting", () => {
+            setIsBuffering(true);
+          });
+
+          audio.addEventListener("playing", () => {
+            setIsBuffering(false);
+            setIsPlaying(true);
+          });
+
+          audio.addEventListener("pause", () => {
+            setIsPlaying(false);
+          });
+
+          audio.addEventListener("ended", () => {
+            setIsPlaying(false);
+            setIsBuffering(false);
+            AsyncStorage.removeItem(`@sermon_progress_${activeTrack.id}`).catch(() => {});
+            void playNext();
+          });
+
+          audio.addEventListener("error", (e) => {
+            console.error("[AudioPlayer] Web Audio Error", e);
+            setIsPlaying(false);
+            setIsBuffering(false);
+          });
+
+          if (shouldPlay) {
+            setIsBuffering(true);
+            audio.play().catch((err) => {
+              console.warn("[AudioPlayer] Autoplay blocked or failed", err);
+              setIsPlaying(false);
+              setIsBuffering(false);
+            });
+          }
+        } else {
+          setIsPlaying(false);
+          setIsBuffering(false);
+          setProgress({ position: 0, duration: 0 });
+        }
+      } else {
+        console.warn(
+          "[AudioPlayer] TrackPlayer unsupported in current runtime (likely Expo Go).",
+        );
+        setProgress((prev) => ({ ...prev, position: initialPosition }));
+        setIsBuffering(false);
+        if (typeof options?.play === "boolean") {
+          setIsPlaying(options.play);
+        }
       }
       return;
     }
@@ -657,8 +774,21 @@ export function AudioPlayerProvider({
 
   const pause = async () => {
     if (!isTrackPlayerSupported) {
+      if (Platform.OS === "web" && webAudioRef.current) {
+        webAudioRef.current.pause();
+      }
       setIsPlaying(false);
       setIsBuffering(false);
+
+      const current = currentSermonRef.current;
+      const pos = progressRef.current.position;
+      const dur = progressRef.current.duration;
+      if (current && pos > 5 && pos < dur - 10) {
+        AsyncStorage.setItem(
+          `@sermon_progress_${current.id}`,
+          JSON.stringify({ position: pos, timestamp: Date.now() })
+        ).catch(() => {});
+      }
       return;
     }
 
@@ -680,6 +810,11 @@ export function AudioPlayerProvider({
 
   const resume = async () => {
     if (!isTrackPlayerSupported) {
+      if (Platform.OS === "web" && webAudioRef.current) {
+        webAudioRef.current.play().catch((err) => {
+          console.warn("[AudioPlayer] Web Audio Resume failed", err);
+        });
+      }
       setIsPlaying(true);
       return;
     }
@@ -692,6 +827,9 @@ export function AudioPlayerProvider({
   const seekTo = async (seconds: number) => {
     const nextPosition = Math.max(0, seconds);
     if (!isTrackPlayerSupported) {
+      if (Platform.OS === "web" && webAudioRef.current) {
+        webAudioRef.current.currentTime = nextPosition;
+      }
       setProgress((prev) => ({ ...prev, position: nextPosition }));
       setIsBuffering(false);
       return;
@@ -727,6 +865,8 @@ export function AudioPlayerProvider({
     if (isTrackPlayerSupported) {
       await initializeTrackPlayer();
       await TrackPlayer.setRate(rate);
+    } else if (Platform.OS === "web" && webAudioRef.current) {
+      webAudioRef.current.playbackRate = rate;
     }
     setPlaybackRateState(rate);
   };
