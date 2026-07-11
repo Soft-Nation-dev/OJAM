@@ -2,6 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import { Platform } from "react-native";
 
+// Polyfill WebSocket for Node.js environments during static pre-rendering
+if (Platform.OS === "web" && typeof window === "undefined") {
+  if (typeof globalThis !== "undefined" && !globalThis.WebSocket) {
+    (globalThis as any).WebSocket = class DummyWebSocket {};
+  }
+}
+
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
