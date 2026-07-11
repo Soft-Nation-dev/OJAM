@@ -1,20 +1,20 @@
 import {
-    getTrackPlayerModule,
-    initializeTrackPlayer,
-    isTrackPlayerSupported,
+  getTrackPlayerModule,
+  initializeTrackPlayer,
+  isTrackPlayerSupported,
 } from "@/services/track-player";
 import { Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
+import { Platform } from "react-native";
 
 const trackPlayerModule = getTrackPlayerModule();
 const TrackPlayer = trackPlayerModule?.default as any;
@@ -331,7 +331,12 @@ export function AudioPlayerProvider({
         if (activeIndex >= 0 && nextQueue[activeIndex]) {
           const activeTrack = nextQueue[activeIndex];
           const sourceUrl = normalizeAudioUrl(activeTrack);
+
+          // Log URL for debugging
+          console.log("[AudioPlayer] Web: loading sourceUrl =", sourceUrl);
+
           if (!sourceUrl) {
+            console.warn("[AudioPlayer] Web: sourceUrl is empty for", activeTrack.id, activeTrack.title);
             setIsPlaying(false);
             setIsBuffering(false);
             setProgress({ position: 0, duration: 0 });
@@ -339,18 +344,19 @@ export function AudioPlayerProvider({
           }
 
           const audio = document.createElement("audio");
-          audio.src = sourceUrl;
           webAudioRef.current = audio;
           audio.playbackRate = playbackRateRef.current;
-          audio.crossOrigin = "anonymous";
           audio.setAttribute("playsinline", "true");
-          // Preload metadata so Safari knows the duration before canplay
-          audio.preload = "auto";
           audio.hidden = true;
-          audio.load();
-          document.body.appendChild(audio);
+          // NOTE: Do NOT set crossOrigin="anonymous" — it forces strict CORS mode
+          // which causes NotSupportedError if the server doesn't handle preflight
+          // correctly. Audio playback doesn't need canvas access so crossOrigin is
+          // unnecessary.
 
-          setProgress({ position: initialPosition, duration: activeTrack.duration || 0 });
+          setProgress({
+            position: initialPosition,
+            duration: activeTrack.duration || 0,
+          });
 
           // --- iOS Safari Fix ---
           // Safari breaks the user-gesture chain after ANY await. We must call
@@ -368,9 +374,14 @@ export function AudioPlayerProvider({
                 if (seekTo === 0 && saved) {
                   try {
                     const { position: savedPos } = JSON.parse(saved);
-                    if (savedPos > 5 && savedPos < (activeTrack.duration ?? 999999) - 10) {
+                    if (
+                      savedPos > 5 &&
+                      savedPos < (activeTrack.duration ?? 999999) - 10
+                    ) {
                       seekTo = savedPos;
-                      console.log(`[AudioPlayer] Web Audio Resuming at position ${seekTo}`);
+                      console.log(
+                        `[AudioPlayer] Web Audio Resuming at position ${seekTo}`,
+                      );
                     }
                   } catch {}
                 }
@@ -390,12 +401,18 @@ export function AudioPlayerProvider({
           audio.addEventListener("timeupdate", () => {
             setProgress((prev) => {
               const now = Date.now();
-              if (audio.currentTime > 5 && audio.currentTime < audio.duration - 10) {
+              if (
+                audio.currentTime > 5 &&
+                audio.currentTime < audio.duration - 10
+              ) {
                 if (now - lastProgressSaveTsRef.current >= 5000) {
                   lastProgressSaveTsRef.current = now;
                   AsyncStorage.setItem(
                     `@sermon_progress_${activeTrack.id}`,
-                    JSON.stringify({ position: audio.currentTime, timestamp: now })
+                    JSON.stringify({
+                      position: audio.currentTime,
+                      timestamp: now,
+                    }),
                   ).catch(() => {});
                 }
               }
@@ -429,25 +446,46 @@ export function AudioPlayerProvider({
           audio.addEventListener("ended", () => {
             setIsPlaying(false);
             setIsBuffering(false);
-            AsyncStorage.removeItem(`@sermon_progress_${activeTrack.id}`).catch(() => {});
+            AsyncStorage.removeItem(`@sermon_progress_${activeTrack.id}`).catch(
+              () => {},
+            );
             void playNext();
           });
 
-          audio.addEventListener("error", (e) => {
-            console.error("[AudioPlayer] Web Audio Error", e);
+          audio.addEventListener("error", () => {
+            const err = audio.error;
+            const codes: Record<number, string> = {
+              1: "MEDIA_ERR_ABORTED",
+              2: "MEDIA_ERR_NETWORK",
+              3: "MEDIA_ERR_DECODE",
+              4: "MEDIA_ERR_SRC_NOT_SUPPORTED",
+            };
+            console.error(
+              "[AudioPlayer] Web Audio Error",
+              codes[err?.code ?? 0] ?? "UNKNOWN",
+              err?.message ?? "",
+              "| URL:", sourceUrl,
+            );
             setIsPlaying(false);
             setIsBuffering(false);
           });
+
+          // Set src and load AFTER listeners are attached so no events are missed
+          audio.preload = "metadata";
+          audio.src = sourceUrl;
+          document.body.appendChild(audio);
+          audio.load();
 
           // Play immediately within the user-gesture — before any await
           if (shouldPlay) {
             setIsBuffering(true);
             audio.play().catch((err) => {
-              console.warn("[AudioPlayer] Autoplay blocked or failed", err);
+              console.warn("[AudioPlayer] Autoplay blocked or failed", err.name, err.message, "| URL:", sourceUrl);
               setIsPlaying(false);
               setIsBuffering(false);
             });
           }
+
         } else {
           setIsPlaying(false);
           setIsBuffering(false);
@@ -503,12 +541,19 @@ export function AudioPlayerProvider({
       let resumePosition = initialPosition;
       if (initialPosition === 0) {
         try {
-          const saved = await AsyncStorage.getItem(`@sermon_progress_${activeTrack.id}`);
+          const saved = await AsyncStorage.getItem(
+            `@sermon_progress_${activeTrack.id}`,
+          );
           if (saved) {
             const { position: savedPos } = JSON.parse(saved);
-            if (savedPos > 5 && savedPos < (activeTrack.duration ?? 999999) - 10) {
+            if (
+              savedPos > 5 &&
+              savedPos < (activeTrack.duration ?? 999999) - 10
+            ) {
               resumePosition = savedPos;
-              console.log(`[AudioPlayer] Resuming sermon ${activeTrack.id} at position ${resumePosition}`);
+              console.log(
+                `[AudioPlayer] Resuming sermon ${activeTrack.id} at position ${resumePosition}`,
+              );
             }
           }
         } catch (e) {
@@ -637,13 +682,17 @@ export function AudioPlayerProvider({
         }
 
         const currentSermon = currentSermonRef.current;
-        if (currentSermon && nextPosition > 5 && nextPosition < nextDuration - 10) {
+        if (
+          currentSermon &&
+          nextPosition > 5 &&
+          nextPosition < nextDuration - 10
+        ) {
           const now = Date.now();
           if (now - lastProgressSaveTsRef.current >= 5000) {
             lastProgressSaveTsRef.current = now;
             AsyncStorage.setItem(
               `@sermon_progress_${currentSermon.id}`,
-              JSON.stringify({ position: nextPosition, timestamp: now })
+              JSON.stringify({ position: nextPosition, timestamp: now }),
             ).catch(() => {});
           }
         }
@@ -707,7 +756,9 @@ export function AudioPlayerProvider({
       async () => {
         const current = currentSermonRef.current;
         if (current) {
-          AsyncStorage.removeItem(`@sermon_progress_${current.id}`).catch(() => {});
+          AsyncStorage.removeItem(`@sermon_progress_${current.id}`).catch(
+            () => {},
+          );
         }
         if (repeatRef.current === "off") {
           setIsPlaying(false);
@@ -800,7 +851,10 @@ export function AudioPlayerProvider({
         nextQueue = [startSermon, ...shuffleArray(rest)];
         startIndex = 0;
       }
-      void setQueueAndPlayer(nextQueue, startIndex, { play: true, position: 0 });
+      void setQueueAndPlayer(nextQueue, startIndex, {
+        play: true,
+        position: 0,
+      });
       return;
     }
     if (busyRef.current) {
@@ -848,7 +902,7 @@ export function AudioPlayerProvider({
       if (current && pos > 5 && pos < dur - 10) {
         AsyncStorage.setItem(
           `@sermon_progress_${current.id}`,
-          JSON.stringify({ position: pos, timestamp: Date.now() })
+          JSON.stringify({ position: pos, timestamp: Date.now() }),
         ).catch(() => {});
       }
       return;
@@ -865,7 +919,7 @@ export function AudioPlayerProvider({
     if (current && pos > 5 && pos < dur - 10) {
       AsyncStorage.setItem(
         `@sermon_progress_${current.id}`,
-        JSON.stringify({ position: pos, timestamp: Date.now() })
+        JSON.stringify({ position: pos, timestamp: Date.now() }),
       ).catch(() => {});
     }
   };
