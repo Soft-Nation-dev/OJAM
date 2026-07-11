@@ -332,8 +332,11 @@ export function AudioPlayerProvider({
           const audio = new Audio(sourceUrl);
           webAudioRef.current = audio;
           audio.playbackRate = playbackRateRef.current;
+          audio.crossOrigin = "anonymous";
+          audio.setAttribute("playsinline", "true");
           // Preload metadata so Safari knows the duration before canplay
-          audio.preload = "metadata";
+          audio.preload = "auto";
+          audio.load();
 
           setProgress({ position: initialPosition, duration: activeTrack.duration || 0 });
 

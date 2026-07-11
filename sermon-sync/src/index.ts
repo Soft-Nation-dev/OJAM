@@ -10,7 +10,7 @@ export default {
 				status: 204,
 				headers: {
 					'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Methods': 'GET, OPTIONS',
+					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
 					'Access-Control-Allow-Headers': 'Range, Content-Type',
 					'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
 					'Access-Control-Max-Age': '86400',
@@ -59,8 +59,39 @@ export default {
 				return 'audio/mpeg';
 			};
 
+		const buildAudioResponseInit = (obj: any, key: string) => {
+			const headers = new Headers({
+				'Content-Type': getAudioType(key),
+				'Cache-Control': 'public, max-age=31536000',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+				'Access-Control-Allow-Headers': 'Range, Content-Type',
+				'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+				'Accept-Ranges': 'bytes',
+			});
+
+			if (obj.size) {
+				headers.set(
+					'Content-Length',
+					String(obj.range ? obj.range.end - obj.range.offset + 1 : obj.size),
+				);
+			}
+
+			if (obj.range) {
+				headers.set(
+					'Content-Range',
+					`bytes ${obj.range.offset}-${obj.range.end}/${obj.size}`,
+				);
+			}
+
+			return {
+				status: obj.range ? 206 : 200,
+				headers,
+			};
+		};
+
 		// ---------- GET Routes (Media) ----------
-		if (request.method === 'GET') {
+		if (request.method === 'GET' || request.method === 'HEAD') {
 			if (url.pathname === '/update-config') {
 				const payload = {
 					minVersion: '2.0.0',
@@ -100,39 +131,13 @@ export default {
 					);	
 
 					if (!obj) return new Response('Not found', { status: 404 });
+					const init = buildAudioResponseInit(obj, key);
 
-					const headers = new Headers({
-						'Content-Type': getAudioType(key),
-						'Cache-Control': 'public, max-age=31536000',
-						'Access-Control-Allow-Origin': '*',
-						'Access-Control-Allow-Methods': 'GET, OPTIONS',
-						'Access-Control-Allow-Headers': 'Range, Content-Type',
-						'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
-						'Accept-Ranges': 'bytes',
-					});
-
-					// iOS Safari requires Content-Length to begin audio playback
-					if (obj.size) {
-						headers.set('Content-Length', String(obj.range ? (obj.range.end - obj.range.offset + 1) : obj.size));
+					if (request.method === 'HEAD') {
+						return new Response(null, init);
 					}
 
-					// VERY IMPORTANT
-					if (obj.range) {
-						headers.set(
-							'Content-Range',
-							`bytes ${obj.range.offset}-${obj.range.end}/${obj.size}`
-						);
-
-						return new Response(obj.body, {
-							status: 206,
-							headers,
-						});
-					}
-
-					return new Response(obj.body, {
-						status: 200,
-						headers,
-					});
+					return new Response(obj.body, init);
 				} catch (err: any) {
 					return new Response(`Error: ${err.message}`, { status: 500 });
 				}

@@ -103,7 +103,11 @@ export default function PlayerScreen() {
       style={[styles.safeArea, { backgroundColor: themeColors.background }]}
     >
       <ThemedView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          scrollEnabled={!isSliding}
+          nestedScrollEnabled
+        >
           <View style={styles.artworkContainer}>
             <View style={styles.artworkFrame}>
               {currentSermon.imageUrl ? (

@@ -242,8 +242,14 @@ export default function SermonDetailsScreen() {
           <TouchableOpacity
             style={styles.playButton}
             onPress={() => {
-              playSermon(sermon);
-              router.push("/player");
+              void playSermon(sermon)
+                .then(() => {
+                  router.push("/player");
+                })
+                .catch((error) => {
+                  console.error("[SermonDetail] Failed to start playback", error);
+                  router.push("/player");
+                });
             }}
           >
             <MaterialIcons name="play-arrow" size={22} color="#FFFFFF" />

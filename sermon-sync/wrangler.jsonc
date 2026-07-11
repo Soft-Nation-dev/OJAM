@@ -3,6 +3,7 @@
   "name": "sermon-sync",
   "main": "src/index.ts",
   "compatibility_date": "2024-11-01",
+  "account_id": "2566c6e2a3e93ce72e192ed984bde7f0",
   "observability": {
     "enabled": true
   },
