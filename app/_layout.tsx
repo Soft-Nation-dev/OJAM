@@ -36,6 +36,7 @@ import {
 import { useEffect } from "react";
 
 import { Alert } from "react-native";
+import IOSInstallBanner from "@/components/ios-install-banner";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -184,6 +185,7 @@ export default function RootLayout() {
                           </Stack>
 
                           <StatusBar style="auto" />
+                          <IOSInstallBanner />
                         </ThemeProvider>
                       </PlaylistsProvider>
                     </DownloadsProvider>
