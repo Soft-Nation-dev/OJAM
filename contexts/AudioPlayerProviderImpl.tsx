@@ -761,10 +761,19 @@ export function AudioPlayerProvider({
       nextIndex = 0;
     }
 
+    if (!isTrackPlayerSupported) {
+      void setQueueAndPlayer(nextQueue, nextIndex, { play: true, position: 0 });
+      return;
+    }
+
     await setQueueAndPlayer(nextQueue, nextIndex, { play: true, position: 0 });
   };
 
   const playSermon = async (sermon: Sermon) => {
+    if (!isTrackPlayerSupported) {
+      void loadAndPlaySermon(sermon);
+      return;
+    }
     if (busyRef.current) {
       await waitForIdle();
     }
@@ -777,6 +786,23 @@ export function AudioPlayerProvider({
   };
 
   const playFromList = async (sermons: Sermon[], startId?: string) => {
+    if (!isTrackPlayerSupported) {
+      if (!sermons.length) return;
+      let nextQueue = [...sermons];
+      let startIndex = 0;
+      if (startId) {
+        const idx = nextQueue.findIndex((s) => s.id === startId);
+        if (idx >= 0) startIndex = idx;
+      }
+      if (shuffleRef.current) {
+        const startSermon = nextQueue[startIndex];
+        const rest = nextQueue.filter((s) => s.id !== startSermon.id);
+        nextQueue = [startSermon, ...shuffleArray(rest)];
+        startIndex = 0;
+      }
+      void setQueueAndPlayer(nextQueue, startIndex, { play: true, position: 0 });
+      return;
+    }
     if (busyRef.current) {
       await waitForIdle();
     }
@@ -885,19 +911,14 @@ export function AudioPlayerProvider({
 
   const playNext = async () => {
     if (!isTrackPlayerSupported) {
-      if (Platform.OS !== "web") return;
-      const nextQueue = queueRef.current;
-      if (!nextQueue.length) return;
-
-      const nextIndex =
-        currentIndexRef.current >= 0
-          ? Math.min(currentIndexRef.current + 1, nextQueue.length - 1)
-          : 0;
-      if (nextIndex === currentIndexRef.current && nextQueue.length <= 1) return;
-      await setQueueAndPlayer(nextQueue, nextIndex, {
-        play: true,
-        position: 0,
-      });
+      if (Platform.OS === "web") {
+        const nextQueue = queueRef.current;
+        if (!nextQueue.length) return;
+        const nextIndex = currentIndexRef.current + 1;
+        if (nextIndex < nextQueue.length) {
+          void setQueueAndPlayer(nextQueue, nextIndex, { play: true });
+        }
+      }
       return;
     }
     await initializeTrackPlayer();
@@ -907,19 +928,12 @@ export function AudioPlayerProvider({
 
   const playPrevious = async () => {
     if (!isTrackPlayerSupported) {
-      if (Platform.OS !== "web") return;
-      const nextQueue = queueRef.current;
-      if (!nextQueue.length) return;
-
-      const nextIndex =
-        currentIndexRef.current > 0
-          ? currentIndexRef.current - 1
-          : 0;
-      if (nextIndex === currentIndexRef.current && nextQueue.length <= 1) return;
-      await setQueueAndPlayer(nextQueue, nextIndex, {
-        play: true,
-        position: 0,
-      });
+      if (Platform.OS === "web") {
+        const prevIndex = currentIndexRef.current - 1;
+        if (prevIndex >= 0) {
+          void setQueueAndPlayer(queueRef.current, prevIndex, { play: true });
+        }
+      }
       return;
     }
     await initializeTrackPlayer();

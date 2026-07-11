@@ -115,7 +115,7 @@ export default function PlayerScreen() {
                   source={{ uri: currentSermon.imageUrl }}
                   style={styles.artwork}
                   contentFit="cover"
-                  cachePolicy="disk"
+                  cachePolicy={typeof document !== "undefined" ? "none" : "disk"}
                   recyclingKey={`player-artwork-${currentSermon.id}`}
                 />
               ) : (
@@ -415,6 +415,7 @@ const styles = StyleSheet.create({
   artwork: {
     width: "100%",
     height: "100%",
+    borderRadius: 16,
   },
   artworkFallback: {
     backgroundColor: "#e0e0e0",

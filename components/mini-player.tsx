@@ -72,7 +72,7 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
               source={{ uri: currentSermon.imageUrl }}
               style={styles.image}
               contentFit="cover"
-              cachePolicy="disk"
+              cachePolicy={typeof document !== "undefined" ? "none" : "disk"}
               recyclingKey={`mini-player-artwork-${currentSermon.id}`}
             />
           ) : (

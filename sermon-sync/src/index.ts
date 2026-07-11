@@ -142,31 +142,40 @@ export default {
 					return new Response(`Error: ${err.message}`, { status: 500 });
 				}
 			}
-						// Serve image files
-						if (url.pathname.startsWith('/images/')) {
-							const key = decodeURIComponent(url.pathname.slice('/images/'.length));
-							if (!key) return new Response('Key required', { status: 400 });
-							const imagesBucket = env.PROD_IMAGES;
-							if (!imagesBucket) return new Response('Bucket not found', { status: 500 });
-							try {
-								const obj = await imagesBucket.get(key);
-								if (!obj) return new Response('Not found', { status: 404 });
-								return new Response(obj.body, {
-									headers: {
-										'Content-Type': getContentType(key),
-										'Cache-Control': 'public, max-age=31536000',
-										'Access-Control-Allow-Origin': '*',
-										'Access-Control-Allow-Methods': 'GET',
-										'Access-Control-Allow-Headers': '*',
-									},
-								});
-							} catch (err: any) {
-								return new Response(`Error: ${err.message}`, { status: 500 });
-							}
-						}
 
-						return new Response('Not found', { status: 404 });
+			
+			// Serve image files
+			if (url.pathname.startsWith('/images/')) {
+				const key = decodeURIComponent(url.pathname.slice('/images/'.length));
+				if (!key) return new Response('Key required', { status: 400 });
+				const imagesBucket = env.PROD_IMAGES;
+				if (!imagesBucket) return new Response('Bucket not found', { status: 500 });
+				try {
+					const obj = await imagesBucket.get(key);
+					if (!obj) return new Response('Not found', { status: 404 });
+
+					const imgHeaders: Record<string, string> = {
+						'Content-Type': getContentType(key),
+						'Cache-Control': 'public, max-age=31536000',
+						'Access-Control-Allow-Origin': '*',
+						'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+						'Access-Control-Allow-Headers': 'Content-Type',
+						'Access-Control-Expose-Headers': 'Content-Length',
+					};
+					if (obj.size) imgHeaders['Content-Length'] = String(obj.size);
+
+					if (request.method === 'HEAD') {
+						return new Response(null, { headers: imgHeaders });
 					}
+
+					return new Response(obj.body, { headers: imgHeaders });
+				} catch (err: any) {
+					return new Response(`Error: ${err.message}`, { status: 500 });
+				}
+			}
+
+			return new Response('Not found', { status: 404 });
+		}
 
 		// ---------- POST /sync (Optimized) ----------
 		if (request.method === 'POST' && url.pathname === '/sync') {
