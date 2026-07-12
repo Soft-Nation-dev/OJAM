@@ -247,7 +247,10 @@ export default function SermonDetailsScreen() {
                   router.push("/player");
                 })
                 .catch((error) => {
-                  console.error("[SermonDetail] Failed to start playback", error);
+                  console.error(
+                    "[SermonDetail] Failed to start playback",
+                    error,
+                  );
                   router.push("/player");
                 });
             }}

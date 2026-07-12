@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
+import {
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 const DISMISS_KEY = "@pwa_ios_install_dismissed";
 
 export default function IOSInstallBanner() {
+  const [isClient, setIsClient] = useState(false);
   const [show, setShow] = useState(false);
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient || Platform.OS !== "web") return;
 
     const checkStatus = async () => {
       try {
         // Detect iOS
         const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
         // Safari check (excluding Chrome/Firefox/etc. on iOS)
-        const isSafari = /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|OPiOS|mercury/i.test(navigator.userAgent);
+        const isSafari =
+          /Safari/.test(navigator.userAgent) &&
+          !/CriOS|FxiOS|OPiOS|mercury/i.test(navigator.userAgent);
         // Standalone check (PWA running as installed app)
         const isStandalone = (window.navigator as any).standalone === true;
         // Check if user previously dismissed it
@@ -36,7 +49,7 @@ export default function IOSInstallBanner() {
     };
 
     void checkStatus();
-  }, []);
+  }, [isClient]);
 
   const handleDismiss = async () => {
     setAnimate(false);
@@ -48,36 +61,37 @@ export default function IOSInstallBanner() {
     }, 400);
   };
 
-  if (!show) return null;
+  if (!isClient || !show) return null;
 
   return (
     <View style={[styles.wrapper, animate ? styles.wrapperVisible : null]}>
       {/* Glow top border */}
       <View style={styles.glow} />
-      
+
       {/* Close button */}
-      <TouchableOpacity onPress={handleDismiss} style={styles.closeButton} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={handleDismiss}
+        style={styles.closeButton}
+        activeOpacity={0.7}
+      >
         <Text style={styles.closeText}>×</Text>
       </TouchableOpacity>
 
       <View style={styles.container}>
         <Text style={styles.title}>Install Ojam</Text>
-        <Text style={styles.body}>
-          To install this app on your iPhone:
-        </Text>
+        <Text style={styles.body}>To install this app on your iPhone:</Text>
         <View style={styles.stepContainer}>
-          <Text style={styles.stepText}>
-            1. Tap the Share button below
-          </Text>
+          <Text style={styles.stepText}>1. Tap the Share button below</Text>
           <View style={styles.iconContainer}>
             <ShareIcon />
           </View>
         </View>
         <Text style={styles.stepText}>
-          2. Scroll down and select <Text style={styles.boldText}>'Add to Home Screen'</Text>.
+          2. Scroll down and select{" "}
+          <Text style={styles.boldText}>'Add to Home Screen'</Text>.
         </Text>
       </View>
-      
+
       {/* Pointer triangle pointing downwards to Safari Share Icon */}
       <View style={styles.triangle} />
     </View>
@@ -86,7 +100,16 @@ export default function IOSInstallBanner() {
 
 function ShareIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f80ed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#2f80ed"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
       <polyline points="16 6 12 2 8 6" />
       <line x1="12" y1="2" x2="12" y2="15" />
@@ -115,7 +138,8 @@ const styles = StyleSheet.create({
       web: {
         transform: [{ translateY: 50 }, { scale: 0.95 }],
         opacity: 0,
-        transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out",
+        transition:
+          "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out",
         maxWidth: 380,
         alignSelf: "center",
         backdropFilter: "blur(20px)",

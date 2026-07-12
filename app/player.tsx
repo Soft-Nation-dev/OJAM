@@ -115,7 +115,9 @@ export default function PlayerScreen() {
                   source={{ uri: currentSermon.imageUrl }}
                   style={styles.artwork}
                   contentFit="cover"
-                  cachePolicy={typeof document !== "undefined" ? "none" : "disk"}
+                  cachePolicy={
+                    typeof document !== "undefined" ? "none" : "disk"
+                  }
                   recyclingKey={`player-artwork-${currentSermon.id}`}
                 />
               ) : (
@@ -263,7 +265,9 @@ export default function PlayerScreen() {
               thumbTintColor={accent}
             />
             <View style={styles.timeRow}>
-              <ThemedText>{formatTime(isSliding ? slidingValue : position)}</ThemedText>
+              <ThemedText>
+                {formatTime(isSliding ? slidingValue : position)}
+              </ThemedText>
               <ThemedText>{formatTime(duration)}</ThemedText>
             </View>
             {isBuffering && (

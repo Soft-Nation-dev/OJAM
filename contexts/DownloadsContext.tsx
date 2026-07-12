@@ -182,6 +182,12 @@ export const DownloadsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   /* ---------------- LOAD ---------------- */
   const loadDownloads = useCallback(async () => {
+    if (Platform.OS === "web") {
+      setDownloads(new Map());
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     try {

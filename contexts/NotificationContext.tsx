@@ -1,13 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import React, {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+    createContext,
+    ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
 } from "react";
 import { Platform } from "react-native";
 import uuid from "react-native-uuid";
@@ -182,6 +182,8 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, [notifications]);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
+
     const toNotificationType = (value: unknown): NotificationType["type"] => {
       if (
         value === "new_sermon" ||
@@ -264,7 +266,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       const localNotificationId = uuid.v4() as string;
       appendNotification(notification, localNotificationId);
 
-      if (!mirrorToSystem) {
+      if (!mirrorToSystem || Platform.OS === "web") {
         return;
       }
 
