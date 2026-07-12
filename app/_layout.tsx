@@ -5,8 +5,8 @@ import {
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import {
@@ -36,8 +36,8 @@ import {
 } from "@/services/track-player";
 import { useEffect, useState } from "react";
 
-import { Alert } from "react-native";
 import IOSInstallBanner from "@/components/ios-install-banner";
+import { Alert } from "react-native";
 
 export const unstable_settings = {
   anchor: "(tabs)",
