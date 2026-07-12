@@ -34,11 +34,10 @@ import {
     initializeTrackPlayer,
     isTrackPlayerSupported,
 } from "@/services/track-player";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Alert } from "react-native";
 import IOSInstallBanner from "@/components/ios-install-banner";
-import { useEffect, useState } from "react";
 
 export const unstable_settings = {
   anchor: "(tabs)",
