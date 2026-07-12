@@ -6,6 +6,7 @@ import {
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Platform } from "react-native";
 import "react-native-reanimated";
 
 import {
@@ -37,6 +38,7 @@ import { useEffect } from "react";
 
 import { Alert } from "react-native";
 import IOSInstallBanner from "@/components/ios-install-banner";
+import { useEffect, useState } from "react";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -55,7 +57,7 @@ function PlaybackSettingsSync() {
   return null;
 }
 
-export default function RootLayout() {
+function LayoutShell() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
@@ -65,55 +67,55 @@ export default function RootLayout() {
     void runCacheMaintenance();
   }, []);
 
- useEffect(() => {
-  const runUpdateCheck = async () => {
-    try {
-      const canPrompt = await shouldShowUpdatePrompt();
-      if (!canPrompt) return;
+  useEffect(() => {
+    const runUpdateCheck = async () => {
+      try {
+        const canPrompt = await shouldShowUpdatePrompt();
+        if (!canPrompt) return;
 
-      const status = await checkForUpdates();
-      if (!status.storeUpdateAvailable && !status.otaAvailable) return;
+        const status = await checkForUpdates();
+        if (!status.storeUpdateAvailable && !status.otaAvailable) return;
 
-      await markUpdatePromptShown();
+        await markUpdatePromptShown();
 
-      if (status.storeUpdateAvailable) {
-        const message = status.storeVersion
-          ? `Version ${status.storeVersion} is available on the Play Store.`
-          : "A new version is available on the Play Store.";
+        if (status.storeUpdateAvailable) {
+          const message = status.storeVersion
+            ? `Version ${status.storeVersion} is available on the Play Store.`
+            : "A new version is available on the Play Store.";
 
-        Alert.alert("Update available", message, [
+          Alert.alert("Update available", message, [
+            { text: "Later", style: "cancel" },
+            {
+              text: "Update",
+              onPress: () => {
+                void startStoreUpdate("flexible");
+              },
+            },
+          ]);
+
+          return;
+        }
+
+        Alert.alert("Update ready", "A new update is ready to install.", [
           { text: "Later", style: "cancel" },
           {
             text: "Update",
-            onPress: () => {
-              void startStoreUpdate("flexible");
+            onPress: async () => {
+              await applyOtaUpdate();
             },
           },
         ]);
-
-        return;
+      } catch (error) {
+        console.warn("Update check failed", error);
       }
+    };
 
-      Alert.alert("Update ready", "A new update is ready to install.", [
-        { text: "Later", style: "cancel" },
-        {
-          text: "Update",
-          onPress: async () => {
-            await applyOtaUpdate();
-          },
-        },
-      ]);
-    } catch (error) {
-      console.warn("Update check failed", error);
-    }
-  };
+    const timeout = setTimeout(() => {
+      void runUpdateCheck();
+    }, 10000);
 
-  const timeout = setTimeout(() => {
-    void runUpdateCheck();
-  }, 10000);
-
-  return () => clearTimeout(timeout);
-}, []);
+    return () => clearTimeout(timeout);
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -198,4 +200,26 @@ export default function RootLayout() {
       </AudioPlayerProvider>
     </GestureHandlerRootView>
   );
+}
+
+function WebLayout() {
+  return <LayoutShell />;
+}
+
+function MobileStack() {
+  return <LayoutShell />;
+}
+
+export default function RootLayout() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
+  return Platform.OS === "web" ? <WebLayout /> : <MobileStack />;
 }

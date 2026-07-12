@@ -23,9 +23,12 @@ function TabLayoutInner() {
   const MINI_PLAYER_HEIGHT = 72; // height of your mini player
 
   const tabBarPaddingBottom = 10 + insets.bottom;
+  const contentBottomPadding = currentSermon
+    ? MINI_PLAYER_HEIGHT + 24 + insets.bottom
+    : 24 + insets.bottom;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: contentBottomPadding }]}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
