@@ -39,55 +39,13 @@ export default {
 			return 'image/jpeg'; // default
 		};
 
-		const listAllObjects = async (bucket: any) => {
-			let cursor;
-			const objects: { key: string; size?: number }[] = [];
-			do {
-				const res = await bucket.list({ cursor, limit: 1000 });
-				objects.push(...(res.objects || []));
-				cursor = res.truncated ? res.cursor : undefined;
-			} while (cursor);
-			return objects;
-		};
-
 		const getAudioType = (key: string) => {
-				const lower = key.toLowerCase();
-				if (lower.endsWith('.m4a')) return 'audio/mp4';
-				if (lower.endsWith('.wav')) return 'audio/wav';
-				if (lower.endsWith('.aac')) return 'audio/aac';
-				if (lower.endsWith('.ogg')) return 'audio/ogg';
-				return 'audio/mpeg';
-			};
-
-		const buildAudioResponseInit = (obj: any, key: string) => {
-			const headers = new Headers({
-				'Content-Type': getAudioType(key),
-				'Cache-Control': 'public, max-age=31536000',
-				'Access-Control-Allow-Origin': '*',
-				'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-				'Access-Control-Allow-Headers': 'Range, Content-Type',
-				'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
-				'Accept-Ranges': 'bytes',
-			});
-
-			if (obj.size) {
-				headers.set(
-					'Content-Length',
-					String(obj.range ? obj.range.end - obj.range.offset + 1 : obj.size),
-				);
-			}
-
-			if (obj.range) {
-				headers.set(
-					'Content-Range',
-					`bytes ${obj.range.offset}-${obj.range.end}/${obj.size}`,
-				);
-			}
-
-			return {
-				status: obj.range ? 206 : 200,
-				headers,
-			};
+			const lower = key.toLowerCase();
+			if (lower.endsWith('.m4a')) return 'audio/mp4';
+			if (lower.endsWith('.wav')) return 'audio/wav';
+			if (lower.endsWith('.aac')) return 'audio/aac';
+			if (lower.endsWith('.ogg')) return 'audio/ogg';
+			return 'audio/mpeg';
 		};
 
 		// ---------- GET Routes (Media) ----------
@@ -108,42 +66,66 @@ export default {
 				});
 			}
 
-			// Serve audio files
+			// NATIVE CLOUDFLARE R2 AUDIO STREAMING ENGINE
 			if (url.pathname.startsWith('/audio/')) {
-				const key = decodeURIComponent(url.pathname.slice('/audio/'.length));
-				if (!key) return new Response('Key required', { status: 400 });
-
 				const sermonsBucket = env.PROD_SERMONS;
-				if (!sermonsBucket) {
-					return new Response('Bucket not found', { status: 500 });
-				}
+				if (!sermonsBucket) return new Response('R2 Bucket PROD_SERMONS binding not found', { status: 500 });
 
 				try {
-					const range = request.headers.get('range');
+					// 1. Strip out '/audio/' prefix and decode spaces cleanly
+					// e.g., '/audio/friday/14-03-2025.mp3' -> 'friday/14-03-2025.mp3'
+					const key = decodeURIComponent(url.pathname.slice('/audio/'.length));
+					if (!key) return new Response('Audio object key required', { status: 400 });
 
-					const obj = await sermonsBucket.get(
-						key,
-						range
-							? {
-									range: request.headers,
-							}
-							: undefined
-					);	
-
-					if (!obj) return new Response('Not found', { status: 404 });
-					const init = buildAudioResponseInit(obj, key);
-
-					if (request.method === 'HEAD') {
-						return new Response(null, init);
+					// 2. Parse incoming HTTP Range requests from Chrome / Safari
+					const rangeHeader = request.headers.get('Range');
+					let r2Options: any = {};
+					
+					if (rangeHeader) {
+						const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
+						if (rangeMatch) {
+							r2Options.range = {
+								offset: parseInt(rangeMatch[1], 10),
+								length: rangeMatch[2] ? (parseInt(rangeMatch[2], 10) - parseInt(rangeMatch[1], 10) + 1) : undefined
+							};
+						}
 					}
 
-					return new Response(obj.body, init);
+					// 3. Fetch object directly from internal R2 storage memory
+					const obj = await sermonsBucket.get(key, r2Options);
+					if (!obj) return new Response('Sermon file not found in R2 storage', { status: 404 });
+
+					// 4. Construct response headers dynamically based on full vs partial delivery
+					const audioHeaders = new Headers();
+					audioHeaders.set('Content-Type', getAudioType(key));
+					audioHeaders.set('Accept-Ranges', 'bytes');
+					audioHeaders.set('Access-Control-Allow-Origin', '*');
+					audioHeaders.set('Cache-Control', 'public, max-age=31536000');
+
+					if (obj.size) {
+						audioHeaders.set('Content-Length', String(obj.size));
+					}
+
+					// Handle partial stream responses (HTTP 206) for timeline seeking
+					let responseStatus = 200;
+					if (rangeHeader && obj.range) {
+						responseStatus = 206;
+						// Format example: bytes 0-1023/2048576
+						const totalSize = (obj as any).size || '*'; 
+						audioHeaders.set('Content-Range', `bytes ${obj.range.offset}-${obj.range.offset + obj.range.length - 1}/${totalSize}`);
+					}
+
+					if (request.method === 'HEAD') {
+						return new Response(null, { status: responseStatus, headers: audioHeaders });
+					}
+
+					return new Response(obj.body, { status: responseStatus, headers: audioHeaders });
+
 				} catch (err: any) {
-					return new Response(`Error: ${err.message}`, { status: 500 });
+					return new Response(`R2 Stream Error: ${err.message}`, { status: 500 });
 				}
 			}
 
-			
 			// Serve image files
 			if (url.pathname.startsWith('/images/')) {
 				const key = decodeURIComponent(url.pathname.slice('/images/'.length));
@@ -192,18 +174,6 @@ export default {
 
 			try {
 				console.log("🚀 Starting optimized sync...");
-
-				// ----------------- Helpers -----------------
-				const estimateDurationFromSize = (size?: number) => {
-					if (!size || size <= 0) return 0;
-					const estimatedBitrate = 128000; // bits per second
-					return Math.round((size * 8) / estimatedBitrate);
-				};
-
-				const isAudioKey = (obj: any) => /\.(mp3|m4a|wav|aac|ogg)$/i.test(obj.key);
-				const isImageKey = (obj: any) => /\.(jpg|jpeg|png|webp)$/i.test(obj.key);
-				const getTitle = (key: string) =>
-					key.split('/').pop()?.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') || 'Untitled';
 
 				const listAllObjects = async (bucket: any) => {
 					let cursor;

@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -20,15 +20,11 @@ function TabLayoutInner() {
   const insets = useSafeAreaInsets();
 
   const TAB_BAR_HEIGHT = 60; // fixed tab bar height
-  const MINI_PLAYER_HEIGHT = 72; // height of your mini player
 
   const tabBarPaddingBottom = 10 + insets.bottom;
-  const contentBottomPadding = currentSermon
-    ? MINI_PLAYER_HEIGHT + 24 + insets.bottom
-    : 24 + insets.bottom;
 
   return (
-    <View style={[styles.container, { paddingBottom: contentBottomPadding }]}>
+    <View style={styles.container}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
@@ -88,19 +84,7 @@ function TabLayoutInner() {
       </Tabs>
 
       {currentSermon && (
-        <View
-          pointerEvents="box-none"
-          style={[
-            styles.miniPlayerContainer,
-            {
-              bottom: 0,
-              height: MINI_PLAYER_HEIGHT,
-              zIndex: 10,
-            },
-          ]}
-        >
-          <MiniPlayer />
-        </View>
+        <MiniPlayer bottomOffset={TAB_BAR_HEIGHT} />
       )}
     </View>
   );
@@ -109,6 +93,12 @@ function TabLayoutInner() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        height: "100vh",
+        overflow: "hidden",
+      },
+    }),
   },
   miniPlayerContainer: {
     position: "absolute",

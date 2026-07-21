@@ -23,7 +23,7 @@ export default function AboutScreen() {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.background }]}
-      edges={["top"]}
+      edges={["top", "bottom"]}
     >
       <ScrollView
         contentContainerStyle={styles.content}
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 18,
+    paddingBottom: 40,
     alignItems: "center",
   },
   card: {

@@ -12,6 +12,7 @@ import { Image as ExpoImage } from "expo-image";
 import React from "react";
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -43,6 +44,34 @@ export default function PlayerScreen() {
   const [slidingValue, setSlidingValue] = React.useState(0);
 
   const colorScheme = useColorScheme();
+  const [resolvedImageUri, setResolvedImageUri] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const resolveImage = async () => {
+      if (Platform.OS !== "web" && currentSermon?.localImagePath) {
+        try {
+          const FileSystem = require("expo-file-system");
+          const fileInfo = await FileSystem.getInfoAsync(currentSermon.localImagePath);
+          if (fileInfo.exists) {
+            if (isMounted) {
+              setResolvedImageUri(currentSermon.localImagePath);
+            }
+            return;
+          }
+        } catch (e) {
+          console.log("Player local image check failed:", e);
+        }
+      }
+      if (isMounted) {
+        setResolvedImageUri(currentSermon?.imageUrl || null);
+      }
+    };
+    void resolveImage();
+    return () => {
+      isMounted = false;
+    };
+  }, [currentSermon?.localImagePath, currentSermon?.imageUrl]);
   const { isFavorited, toggleFavorite } = useFavorites();
   const themeColors = Colors[colorScheme ?? "light"];
   const accent = colorScheme === "dark" ? "#FF9F68" : "#FF6B4A";
@@ -110,9 +139,9 @@ export default function PlayerScreen() {
         >
           <View style={styles.artworkContainer}>
             <View style={styles.artworkFrame}>
-              {currentSermon.imageUrl ? (
+              {resolvedImageUri ? (
                 <ExpoImage
-                  source={{ uri: currentSermon.imageUrl }}
+                  source={{ uri: resolvedImageUri }}
                   style={styles.artwork}
                   contentFit="cover"
                   cachePolicy={
@@ -407,7 +436,7 @@ const styles = StyleSheet.create({
   artworkFrame: {
     width: "100%",
     maxWidth: 380,
-    // aspectRatio: 1,
+    aspectRatio: 1,
     borderRadius: 16,
     overflow: "hidden",
     shadowColor: "#000",
