@@ -3,7 +3,7 @@
     "icon": "./assets/images/icon.png",
     "name": "Ojam-dev",
     "slug": "ojam-dev",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "orientation": "portrait",
     "scheme": "ojam",
     "userInterfaceStyle": "automatic",
@@ -13,7 +13,7 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/bc2a3e50-b8ab-4e88-8de0-66e6572fcdd0"
     },
-    "runtimeVersion": "2.0.0",
+    "runtimeVersion": "3.0.0",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

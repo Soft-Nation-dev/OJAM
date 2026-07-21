@@ -57,7 +57,7 @@ export default {
 				// minVersion    → triggers a FORCED update prompt if the user's installed
 				//                  version is below this value.
 				// Keep latestVersion = minVersion = your current Play Store version.
-				const PLAY_STORE_VERSION = '2.1.0';
+				const PLAY_STORE_VERSION = '2.2.0';
 
 				const payload = {
 					minVersion: PLAY_STORE_VERSION,
