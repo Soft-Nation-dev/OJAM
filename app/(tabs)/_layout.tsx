@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -18,10 +18,15 @@ function TabLayoutInner() {
   const colorScheme = useColorScheme();
   const { currentSermon } = useAudioPlayer();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
-  const TAB_BAR_HEIGHT = 60; // fixed tab bar height
+  // On narrow screens (like mobile web/portrait phones), labels stack below icons,
+  // requiring more vertical height (68px). On wider screens, they sit side-by-side (60px).
+  const isNarrow = width < 768;
+  const TAB_BAR_HEIGHT = isNarrow ? 68 : 60;
 
-  const tabBarPaddingBottom = 10 + insets.bottom;
+  const tabBarPaddingBottom = isNarrow ? 6 + insets.bottom : 10 + insets.bottom;
+  const tabBarPaddingTop = isNarrow ? 6 : 8;
 
   return (
     <View style={styles.container}>
@@ -34,8 +39,8 @@ function TabLayoutInner() {
           tabBarButton: HapticTab,
           tabBarStyle: {
             paddingBottom: tabBarPaddingBottom,
-            paddingTop: 8,
-            height: TAB_BAR_HEIGHT + insets.bottom, // fixed height
+            paddingTop: tabBarPaddingTop,
+            height: TAB_BAR_HEIGHT + insets.bottom, // responsive height
             backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#ffffff",
             borderTopWidth: 0,
             elevation: 20,
