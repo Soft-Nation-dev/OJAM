@@ -51,9 +51,17 @@ export default {
 		// ---------- GET Routes (Media) ----------
 		if (request.method === 'GET' || request.method === 'HEAD') {
 			if (url.pathname === '/update-config') {
+				// ⚠️  UPDATE THIS whenever you publish a new version to the Play Store.
+				// latestVersion → triggers the "update available" prompt if the user's
+				//                  installed version is lower.
+				// minVersion    → triggers a FORCED update prompt if the user's installed
+				//                  version is below this value.
+				// Keep latestVersion = minVersion = your current Play Store version.
+				const PLAY_STORE_VERSION = '2.1.0';
+
 				const payload = {
-					minVersion: '2.0.0',
-					latestVersion: '2.0.0',
+					minVersion: PLAY_STORE_VERSION,
+					latestVersion: PLAY_STORE_VERSION,
 					storeUrl: 'https://play.google.com/store/apps/details?id=com.softnation.ojam',
 				};
 

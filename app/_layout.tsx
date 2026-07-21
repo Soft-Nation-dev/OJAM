@@ -67,6 +67,9 @@ function LayoutShell() {
   }, []);
 
   useEffect(() => {
+    // Only run update checks on native (Android/iOS) — not on web PWA
+    if (Platform.OS === "web") return;
+
     const runUpdateCheck = async () => {
       try {
         const canPrompt = await shouldShowUpdatePrompt();
@@ -78,19 +81,28 @@ function LayoutShell() {
         await markUpdatePromptShown();
 
         if (status.storeUpdateAvailable) {
-          const message = status.storeVersion
-            ? `Version ${status.storeVersion} is available on the Play Store.`
-            : "A new version is available on the Play Store.";
+          // On Android: use native in-app update sheet (no Alert dialog needed)
+          // On iOS: falls back to Alert + App Store redirect inside startStoreUpdate
+          const launched = await startStoreUpdate(
+            Platform.OS === "android" ? "immediate" : "flexible",
+          );
 
-          Alert.alert("Update available", message, [
-            { text: "Later", style: "cancel" },
-            {
-              text: "Update",
-              onPress: () => {
-                void startStoreUpdate("flexible");
+          // If native sheet failed to launch, fall back to Alert
+          if (!launched) {
+            const message = status.storeVersion
+              ? `Version ${status.storeVersion} is available on the Play Store.`
+              : "A new version is available on the Play Store.";
+
+            Alert.alert("Update available", message, [
+              { text: "Later", style: "cancel" },
+              {
+                text: "Update",
+                onPress: () => {
+                  void startStoreUpdate("flexible");
+                },
               },
-            },
-          ]);
+            ]);
+          }
 
           return;
         }
@@ -109,9 +121,10 @@ function LayoutShell() {
       }
     };
 
+    // Reduced from 10s → 3s so it fires quickly after cold start
     const timeout = setTimeout(() => {
       void runUpdateCheck();
-    }, 10000);
+    }, 3000);
 
     return () => clearTimeout(timeout);
   }, []);
