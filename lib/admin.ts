@@ -55,6 +55,18 @@ function throwIfError(error: SupabaseLikeError | null) {
   if (error) throw error;
 }
 
+function requireDeletedRow(
+  row: { id: string } | null,
+  contentType: string,
+) {
+  if (!row) {
+    throw new Error(
+      `${contentType} was not deleted. Refresh the page and confirm your administrator access.`,
+    );
+  }
+  return row;
+}
+
 export function getAdminErrorMessage(error: unknown) {
   const candidate = error as SupabaseLikeError | undefined;
   if (
@@ -133,11 +145,20 @@ export async function adminUpdatePlaylist(
 }
 
 export async function adminDeletePlaylist(playlistId: string) {
-  const { error } = await supabase
+  const { error: itemsError } = await supabase
+    .from("playlist_items")
+    .delete()
+    .eq("playlist_id", playlistId);
+  throwIfError(itemsError);
+
+  const { data, error } = await supabase
     .from("playlists")
     .delete()
-    .eq("id", playlistId);
+    .eq("id", playlistId)
+    .select("id")
+    .maybeSingle();
   throwIfError(error);
+  requireDeletedRow(data, "Playlist");
   invalidatePlaylistsCache();
 }
 
@@ -170,8 +191,20 @@ export async function adminUpdateSermon(
 }
 
 export async function adminDeleteSermon(sermonId: string) {
-  const { error } = await supabase.from("sermons").delete().eq("id", sermonId);
+  const { error: itemsError } = await supabase
+    .from("playlist_items")
+    .delete()
+    .eq("sermon_id", sermonId);
+  throwIfError(itemsError);
+
+  const { data, error } = await supabase
+    .from("sermons")
+    .delete()
+    .eq("id", sermonId)
+    .select("id")
+    .maybeSingle();
   throwIfError(error);
+  requireDeletedRow(data, "Sermon");
   invalidateSermonsCache();
   invalidatePlaylistsCache();
 }
@@ -218,10 +251,13 @@ export async function adminUpdatePlaylistItem(
 }
 
 export async function adminDeletePlaylistItem(itemId: string) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("playlist_items")
     .delete()
-    .eq("id", itemId);
+    .eq("id", itemId)
+    .select("id")
+    .maybeSingle();
   throwIfError(error);
+  requireDeletedRow(data, "Playlist item");
   invalidatePlaylistsCache();
 }

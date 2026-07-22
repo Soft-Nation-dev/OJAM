@@ -31,7 +31,7 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -41,6 +41,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Section = "sermons" | "playlists";
+
+type DeleteTarget =
+  | { kind: "sermon"; id: string; label: string }
+  | { kind: "playlist"; id: string; label: string };
 
 type SermonDraft = {
   id?: string;
@@ -97,6 +101,7 @@ export default function AdminScreen() {
   >([]);
   const [search, setSearch] = useState("");
   const [playlistSearch, setPlaylistSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
   const loadContent = useCallback(async () => {
     if (!isAdmin) return;
@@ -321,41 +326,27 @@ export default function AdminScreen() {
   };
 
   const confirmDeleteSermon = (sermon: AdminSermon) => {
-    Alert.alert(
-      "Delete sermon?",
-      `“${sermon.title}” will also be removed from published playlists.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () =>
-            void runMutation(async () => {
-              await adminDeleteSermon(sermon.id);
-              showToast("Sermon deleted.");
-            }),
-        },
-      ],
-    );
+    setDeleteTarget({ kind: "sermon", id: sermon.id, label: sermon.title });
   };
 
   const confirmDeletePlaylist = (playlist: AdminPlaylist) => {
-    Alert.alert(
-      "Delete playlist?",
-      `“${playlist.name}” and its playlist items will be deleted.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () =>
-            void runMutation(async () => {
-              await adminDeletePlaylist(playlist.id);
-              showToast("Playlist deleted.");
-            }),
-        },
-      ],
-    );
+    setDeleteTarget({ kind: "playlist", id: playlist.id, label: playlist.name });
+  };
+
+  const deleteSelectedContent = async () => {
+    if (!deleteTarget || saving) return;
+    const target = deleteTarget;
+
+    await runMutation(async () => {
+      if (target.kind === "sermon") {
+        await adminDeleteSermon(target.id);
+        showToast("Sermon deleted.");
+      } else {
+        await adminDeletePlaylist(target.id);
+        showToast("Playlist deleted.");
+      }
+      setDeleteTarget(null);
+    });
   };
 
   if (adminLoading) {
@@ -643,6 +634,54 @@ export default function AdminScreen() {
           </>
         )}
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={Boolean(deleteTarget)}
+        onRequestClose={() => !saving && setDeleteTarget(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View
+            style={[
+              styles.deleteModal,
+              { backgroundColor: theme.background, borderColor: theme.border },
+            ]}
+          >
+            <View style={styles.deleteIcon}>
+              <MaterialIcons name="delete-outline" size={30} color="#dc2626" />
+            </View>
+            <ThemedText type="subtitle">
+              Delete {deleteTarget?.kind === "sermon" ? "sermon" : "playlist"}?
+            </ThemedText>
+            <ThemedText style={styles.deleteMessage}>
+              “{deleteTarget?.label}”{deleteTarget?.kind === "sermon"
+                ? " will also be removed from published playlists."
+                : " and its playlist items will be deleted."}
+            </ThemedText>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                disabled={saving}
+                onPress={() => setDeleteTarget(null)}
+                style={styles.secondaryButton}
+              >
+                <ThemedText>Cancel</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={saving}
+                onPress={() => void deleteSelectedContent()}
+                style={[styles.deleteButton, saving && styles.disabled]}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <ThemedText style={styles.lightButtonText}>Delete</ThemedText>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -750,4 +789,10 @@ const styles = StyleSheet.create({
   orderButton: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   itemPickerRow: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 11, flexDirection: "row", alignItems: "center", gap: 12 },
   toggleButton: { minWidth: 72, borderRadius: 8, alignItems: "center", paddingHorizontal: 10, paddingVertical: 8 },
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", padding: 24 },
+  deleteModal: { width: "100%", maxWidth: 440, borderWidth: 1, borderRadius: 16, padding: 20, alignItems: "center", gap: 12 },
+  deleteIcon: { width: 54, height: 54, borderRadius: 27, backgroundColor: "rgba(220,38,38,0.12)", alignItems: "center", justifyContent: "center" },
+  deleteMessage: { textAlign: "center", opacity: 0.75, lineHeight: 21 },
+  modalActions: { width: "100%", flexDirection: "row", justifyContent: "flex-end", alignItems: "center", gap: 8, marginTop: 6 },
+  deleteButton: { minWidth: 96, backgroundColor: "#dc2626", borderRadius: 10, paddingHorizontal: 18, paddingVertical: 12, alignItems: "center" },
 });
