@@ -3,6 +3,7 @@ import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useAppUpdates } from "@/hooks/use-app-updates";
+import { useAdmin } from "@/hooks/use-admin";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
     applyOtaUpdate,
@@ -12,7 +13,7 @@ import {
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
-import { useFocusEffect, useRouter } from "expo-router";
+import { type Href, useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
     Alert,
@@ -156,6 +157,7 @@ export default function SettingsScreen() {
     setEmailNotifications,
   } = useSettings();
   const { deleteAccount, user } = useAuth();
+  const { isAdmin } = useAdmin();
 
   // Modal state
   const [modal, setModal] = React.useState<
@@ -387,6 +389,15 @@ export default function SettingsScreen() {
             ACCOUNT
           </ThemedText>
           <View style={styles.sectionContent}>
+            {isAdmin && (
+              <SettingItem
+                icon="admin-panel-settings"
+                iconColor="#0a7ea4"
+                title="Content Admin"
+                subtitle="Manage published sermons and playlists"
+                onPress={() => router.push("/admin" as Href)}
+              />
+            )}
             {/* <SettingItem
               icon="wifi"
               iconColor="#3b82f6"

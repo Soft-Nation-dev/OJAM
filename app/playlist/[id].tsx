@@ -9,16 +9,16 @@ import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { usePlaylists } from "@/contexts/PlaylistsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNotifications } from "@/hooks/use-notifications";
-import { fetchPlaylistById } from "@/lib/playlists";
+import { usePlaylistItemsWithSermons } from "@/hooks/use-playlist-items-with-sermons";
+import { usePlaylist } from "@/hooks/use-playlist";
 import { Playlist, Sermon } from "@/types/sermon";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image as ExpoImage } from "expo-image";
 import {
-  useGlobalSearchParams,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -32,8 +32,7 @@ import {
 } from "react-native-safe-area-context";
 
 export default function PlaylistDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const globalParams = useGlobalSearchParams();
+  const { id, user } = useLocalSearchParams<{ id: string; user?: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
@@ -50,31 +49,35 @@ export default function PlaylistDetail() {
   const isMiniPlayerVisible = Boolean(currentSermon);
 
   const [showSelectModal, setShowSelectModal] = useState(false);
-  const [remotePlaylist, setRemotePlaylist] = useState<Playlist | null>(null);
-  const [loading, setLoading] = useState(true);
-
   const playlistId = Array.isArray(id) ? id[0] : id;
-  const isUserPlaylist = globalParams.user === "1";
+  const isUserPlaylist = user === "1";
+  const remotePlaylistId = isUserPlaylist ? null : playlistId;
+  const {
+    playlist: remotePlaylistMetadata,
+    loading: playlistLoading,
+    error: playlistError,
+  } = usePlaylist(remotePlaylistId);
+  const {
+    items: remotePlaylistItems,
+    loading: itemsLoading,
+    error: itemsError,
+  } = usePlaylistItemsWithSermons(remotePlaylistId);
 
   const playlist = isUserPlaylist
     ? userPlaylists.find((p) => p.id === playlistId) || null
     : null;
 
-  useEffect(() => {
-    const loadPlaylist = async () => {
-      if (!isUserPlaylist) {
-        setLoading(true);
-        const found = await fetchPlaylistById(playlistId);
-        setRemotePlaylist(found);
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
+  const remotePlaylist = useMemo<Playlist | null>(() => {
+    if (!remotePlaylistMetadata) return null;
+    return {
+      ...remotePlaylistMetadata,
+      sermons: remotePlaylistItems.map((item) => item.sermon),
     };
-    loadPlaylist();
-  }, [playlistId, isUserPlaylist, userPlaylists]);
+  }, [remotePlaylistItems, remotePlaylistMetadata]);
 
   const currentPlaylist = isUserPlaylist ? playlist : remotePlaylist;
+  const loading = !isUserPlaylist && (playlistLoading || itemsLoading);
+  const loadError = playlistError || itemsError;
   const sermonCount = currentPlaylist?.sermons.length ?? 0;
 
   const listPaddingBottom =
@@ -98,20 +101,11 @@ export default function PlaylistDetail() {
   // Always sort sermons by title for display
   const sortedSermons = useMemo(() => {
     if (!currentPlaylist) return [] as Sermon[];
-
-    const getPartNumber = (title: string) => {
-      if (!title) return null;
-
-      const match = title.match(/(pt|part)[\s.-]*(\d+)/i);
-      return match ? parseInt(match[2], 10) : null;
-    };
+    if (sortOption === "series") return currentPlaylist.sermons;
 
     return [...currentPlaylist.sermons].sort((a, b) => {
       const titleA = a.title || "";
       const titleB = b.title || "";
-
-      const partA = getPartNumber(titleA);
-      const partB = getPartNumber(titleB);
 
       switch (sortOption) {
         case "title":
@@ -125,11 +119,6 @@ export default function PlaylistDetail() {
             new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
           );
 
-        case "series":
-          if (partA !== null && partB !== null) {
-            return partA - partB;
-          }
-          return titleA.localeCompare(titleB);
       }
     });
   }, [currentPlaylist, sortOption]);
@@ -143,15 +132,14 @@ export default function PlaylistDetail() {
   const handleAddMessages = () => setShowSelectModal(true);
 
   const handleSelectMessages = (sermons: Sermon[]) => {
-    if (!currentPlaylist) return;
+    if (!isUserPlaylist || !currentPlaylist) return;
     const existingIds = new Set(currentPlaylist.sermons.map((s) => s.id));
     const newSermons = sermons.filter((s) => !existingIds.has(s.id));
     const updated = {
       ...currentPlaylist,
       sermons: [...currentPlaylist.sermons, ...newSermons],
     };
-    if (isUserPlaylist) updatePlaylist(updated);
-    else setRemotePlaylist(updated);
+    updatePlaylist(updated);
     setShowSelectModal(false);
   };
 
@@ -183,7 +171,7 @@ export default function PlaylistDetail() {
   };
 
   const handleRemoveSermon = (sermonId: string) => {
-    if (!currentPlaylist) return;
+    if (!isUserPlaylist || !currentPlaylist) return;
 
     Alert.alert(
       "Remove Message",
@@ -198,11 +186,7 @@ export default function PlaylistDetail() {
               ...currentPlaylist,
               sermons: currentPlaylist.sermons.filter((s) => s.id !== sermonId),
             };
-            if (isUserPlaylist) {
-              updatePlaylist(updated);
-            } else {
-              setRemotePlaylist(updated);
-            }
+            updatePlaylist(updated);
           },
         },
       ],
@@ -218,7 +202,7 @@ export default function PlaylistDetail() {
         router.push("/player");
       }}
       onRemoveFromPlaylist={() => handleRemoveSermon(sermon.id)}
-      showRemoveFromPlaylist={true}
+      showRemoveFromPlaylist={isUserPlaylist}
     />
   );
 
@@ -243,7 +227,9 @@ export default function PlaylistDetail() {
       <ThemedView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
-        <ThemedText type="default">Series not found.</ThemedText>
+          <ThemedText type="default">
+            {loadError ? "Unable to load this series." : "Series not found."}
+          </ThemedText>
         <TouchableOpacity
           onPress={() => router.back()}
           style={{ marginTop: 12 }}

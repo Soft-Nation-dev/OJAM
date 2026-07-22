@@ -196,6 +196,10 @@ function LayoutShell() {
                                 headerShown: false,
                               }}
                             />
+                            <Stack.Screen
+                              name="admin"
+                              options={{ headerShown: false }}
+                            />
                           </Stack>
 
                           <StatusBar style="auto" />

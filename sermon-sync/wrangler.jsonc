@@ -12,8 +12,7 @@
     { "bucket_name": "sermon-images", "binding": "PROD_IMAGES", "remote": true }
   ],
   "vars": {
-    "SUPABASE_URL": "https://lrlbygqbtylnrfsbgdkp.supabase.co",
-    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxybGJ5Z3FidHlsbnJmc2JnZGtwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODQ2NjUzMywiZXhwIjoyMDg0MDQyNTMzfQ.zt2gHaRsGQcbCHpHQtQG-7u16faAOw398VZs5Ty6uUk"
+    "SUPABASE_URL": "https://lrlbygqbtylnrfsbgdkp.supabase.co"
   },
   "dev": {
     "local_protocol": "http",

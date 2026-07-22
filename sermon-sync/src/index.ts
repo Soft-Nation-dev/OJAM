@@ -10,8 +10,8 @@ export default {
 				status: 204,
 				headers: {
 					'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-					'Access-Control-Allow-Headers': 'Range, Content-Type',
+					'Access-Control-Allow-Methods': 'GET, HEAD, POST, PUT, DELETE, OPTIONS',
+					'Access-Control-Allow-Headers': 'Range, Content-Type, Authorization',
 					'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
 					'Access-Control-Max-Age': '86400',
 				},
@@ -47,6 +47,191 @@ export default {
 			if (lower.endsWith('.ogg')) return 'audio/ogg';
 			return 'audio/mpeg';
 		};
+
+		const corsHeaders = {
+			'Access-Control-Allow-Origin': '*',
+			'Access-Control-Allow-Methods': 'GET, HEAD, POST, PUT, DELETE, OPTIONS',
+			'Access-Control-Allow-Headers': 'Range, Content-Type, Authorization',
+		};
+
+		const json = (body: unknown, status = 200) =>
+			new Response(JSON.stringify(body), {
+				status,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+			});
+
+		const requireAdmin = async () => {
+			if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+				return { error: json({ error: 'Worker authentication is not configured' }, 500) };
+			}
+
+			const authorization = request.headers.get('Authorization') || '';
+			const accessToken = authorization.startsWith('Bearer ')
+				? authorization.slice('Bearer '.length)
+				: '';
+			if (!accessToken) return { error: json({ error: 'Authentication required' }, 401) };
+
+			const userResponse = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+				headers: {
+					apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
+
+			if (!userResponse.ok) return { error: json({ error: 'Invalid or expired session' }, 401) };
+			const user = (await userResponse.json()) as { id?: string };
+			if (!user.id) return { error: json({ error: 'Invalid user session' }, 401) };
+
+			const membershipResponse = await fetch(
+				`${env.SUPABASE_URL}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,
+				{
+					headers: {
+						apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+						Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+					},
+				},
+			);
+			if (!membershipResponse.ok) {
+				return { error: json({ error: 'Unable to verify administrator access' }, 502) };
+			}
+
+			const memberships = (await membershipResponse.json()) as unknown[];
+			if (!memberships.length) return { error: json({ error: 'Administrator access required' }, 403) };
+			return { userId: user.id };
+		};
+
+		// ---------- Authenticated multipart audio upload ----------
+		if (url.pathname.startsWith('/admin/audio-upload')) {
+			try {
+				const auth = await requireAdmin();
+				if (auth.error) return auth.error;
+
+				const sermonsBucket = env.PROD_SERMONS;
+				if (!sermonsBucket) return json({ error: 'R2 sermon bucket is not configured' }, 500);
+
+			if (request.method === 'POST' && url.pathname === '/admin/audio-upload/start') {
+				const body = (await request.json()) as {
+					fileName?: string;
+					contentType?: string;
+					category?: string;
+				};
+				const originalName = String(body.fileName || '').trim();
+				if (!isAudioKey(originalName)) {
+					return json({ error: 'Choose an MP3, M4A, WAV, AAC, or OGG audio file' }, 400);
+				}
+
+				const safeName = originalName
+					.normalize('NFKD')
+					.replace(/[^a-zA-Z0-9._ -]/g, '')
+					.replace(/\s+/g, '-')
+					.replace(/-+/g, '-')
+					.slice(-140);
+				const requestedCategory = String(body.category || 'other').toLowerCase();
+				const category = ['sunday', 'tuesday', 'friday', 'other'].includes(requestedCategory)
+					? requestedCategory
+					: 'other';
+				const key = `${category}/${crypto.randomUUID()}-${safeName}`;
+				const upload = await sermonsBucket.createMultipartUpload(key, {
+					httpMetadata: { contentType: body.contentType || getAudioType(originalName) },
+					customMetadata: { uploadedBy: auth.userId || '' },
+				});
+
+				return json({ key, uploadId: upload.uploadId });
+			}
+
+			if (request.method === 'PUT' && url.pathname === '/admin/audio-upload/part') {
+				const key = url.searchParams.get('key') || '';
+				const uploadId = url.searchParams.get('uploadId') || '';
+				const partNumber = Number(url.searchParams.get('partNumber'));
+				if (!key || !uploadId || !Number.isInteger(partNumber) || partNumber < 1 || !request.body) {
+					return json({ error: 'Invalid multipart upload request' }, 400);
+				}
+
+				const multipart = sermonsBucket.resumeMultipartUpload(key, uploadId);
+				const uploadedPart = await multipart.uploadPart(partNumber, request.body);
+				return json({ partNumber: uploadedPart.partNumber, etag: uploadedPart.etag });
+			}
+
+			if (request.method === 'POST' && url.pathname === '/admin/audio-upload/complete') {
+				const body = (await request.json()) as {
+					key?: string;
+					uploadId?: string;
+					parts?: { partNumber: number; etag: string }[];
+					fileName?: string;
+					fileSize?: number;
+				};
+				if (!body.key || !body.uploadId || !body.parts?.length) {
+					return json({ error: 'Incomplete multipart upload details' }, 400);
+				}
+
+				const multipart = sermonsBucket.resumeMultipartUpload(body.key, body.uploadId);
+				await multipart.complete(body.parts);
+
+				try {
+					const imagesResponse = await fetch(
+						`${env.SUPABASE_URL}/rest/v1/images?select=image_key&limit=1000`,
+						{
+							headers: {
+								apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+								Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+							},
+						},
+					);
+					const images = imagesResponse.ok
+						? ((await imagesResponse.json()) as { image_key: string }[])
+						: [];
+					const randomImage = images.length
+						? images[Math.floor(Math.random() * images.length)].image_key
+						: null;
+					const sermonPayload = {
+						title: getTitle(body.fileName || body.key),
+						audio_key: body.key,
+						image_key: randomImage,
+						preacher: 'Pastor Oluchi Japhat Aniagwu',
+						date: new Date().toISOString(),
+						duration: estimateDurationFromSize(body.fileSize),
+						category: body.key.split('/')[0] || 'other',
+					};
+
+					const sermonResponse = await fetch(
+						`${env.SUPABASE_URL}/rest/v1/sermons?on_conflict=audio_key&select=*`,
+						{
+							method: 'POST',
+							headers: {
+								apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+								Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+								'Content-Type': 'application/json',
+								Prefer: 'resolution=merge-duplicates,return=representation',
+							},
+							body: JSON.stringify(sermonPayload),
+						},
+					);
+					if (!sermonResponse.ok) {
+						throw new Error(await sermonResponse.text());
+					}
+
+					const sermons = (await sermonResponse.json()) as unknown[];
+					return json({ sermon: sermons[0] || null, audioKey: body.key }, 201);
+				} catch (error) {
+					await sermonsBucket.delete(body.key);
+					throw error;
+				}
+			}
+
+			if (request.method === 'DELETE' && url.pathname === '/admin/audio-upload') {
+				const key = url.searchParams.get('key') || '';
+				const uploadId = url.searchParams.get('uploadId') || '';
+				if (!key || !uploadId) return json({ error: 'Upload key and id are required' }, 400);
+				await sermonsBucket.resumeMultipartUpload(key, uploadId).abort();
+				return json({ aborted: true });
+			}
+
+				return json({ error: 'Upload route not found' }, 404);
+			} catch (error: any) {
+				console.error('Audio upload failed:', error?.message || error);
+				return json({ error: error?.message || 'Audio upload failed' }, 500);
+			}
+		}
 
 		// ---------- GET Routes (Media) ----------
 		if (request.method === 'GET' || request.method === 'HEAD') {
@@ -187,7 +372,7 @@ export default {
 					let cursor;
 					const objects: any[] = [];
 					do {
-						const res = await bucket.list({ cursor, limit: 1000 });
+						const res: any = await bucket.list({ cursor, limit: 1000 });
 						objects.push(...(res.objects || []));
 						cursor = res.truncated ? res.cursor : undefined;
 					} while (cursor);
@@ -212,11 +397,15 @@ export default {
 
 				if (!sermonsRes.ok || !imagesRes.ok) throw new Error("Failed to fetch Supabase data");
 
-				const existingSermons = new Set((await sermonsRes.json()).map((s: any) => s.audio_key));
-				const existingImages = new Set((await imagesRes.json()).map((i: any) => i.image_key));
+				const existingSermonRows = (await sermonsRes.json()) as { audio_key: string }[];
+				const existingImageRows = (await imagesRes.json()) as { image_key: string }[];
+				const existingSermons = new Set(existingSermonRows.map((sermon) => sermon.audio_key));
+				const existingImages = new Set(existingImageRows.map((image) => image.image_key));
 
 				// ----------------- Sync Images -----------------
-				const allImageObjects = (await listAllObjects(imagesBucket)).filter(isImageKey);
+				const allImageObjects = (await listAllObjects(imagesBucket)).filter((object) =>
+					isImageKey(object.key),
+				);
 				const newImages: string[] = [];
 
 				for (const img of allImageObjects) {
@@ -238,7 +427,9 @@ export default {
 				if (allImages.length === 0) throw new Error("No images available");
 
 				// ----------------- Sync Sermons -----------------
-				const allAudioObjects = (await listAllObjects(sermonsBucket)).filter(isAudioKey);
+				const allAudioObjects = (await listAllObjects(sermonsBucket)).filter((object) =>
+					isAudioKey(object.key),
+				);
 				const newSermons = allAudioObjects.filter(obj => !existingSermons.has(obj.key));
 
 				// Batch upload new sermons

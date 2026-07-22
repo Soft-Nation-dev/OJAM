@@ -1,4 +1,4 @@
-import { Playlist } from "@/types/sermon";
+import { Playlist, Sermon } from "@/types/sermon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
     createContext,
@@ -29,6 +29,7 @@ interface PlaylistsContextType {
   setPlaylists: (playlists: Playlist[]) => void;
   userPlaylists: Playlist[];
   remotePlaylists: Playlist[];
+  refreshRemotePlaylists: (forceRefresh?: boolean) => Promise<void>;
 }
 
 const PlaylistsContext = createContext<PlaylistsContextType | undefined>(
@@ -43,6 +44,15 @@ export const PlaylistsProvider: React.FC<{ children: React.ReactNode }> = ({
     StoredUserPlaylist[]
   >([]);
   const [remotePlaylists, setRemotePlaylists] = useState<Playlist[]>([]);
+
+  const refreshRemotePlaylists = useCallback(async (forceRefresh = false) => {
+    const { fetchPlaylists } = await import("@/lib/playlists");
+    const data = await fetchPlaylists({
+      forceRefresh,
+      includeSermons: false,
+    });
+    setRemotePlaylists(data);
+  }, []);
 
   const toStoredUserPlaylist = useCallback(
     (playlist: Playlist): StoredUserPlaylist => {
@@ -109,17 +119,13 @@ export const PlaylistsProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     const task = InteractionManager.runAfterInteractions(() => {
-      import("@/lib/playlists").then(({ fetchPlaylists }) => {
-        fetchPlaylists({ includeSermons: false }).then((data) =>
-          setRemotePlaylists(data),
-        );
-      });
+      void refreshRemotePlaylists();
     });
 
     return () => {
       task.cancel();
     };
-  }, [normalizeStoredUserPlaylists]);
+  }, [normalizeStoredUserPlaylists, refreshRemotePlaylists]);
 
   useEffect(() => {
     AsyncStorage.setItem(PLAYLISTS_KEY, JSON.stringify(userPlaylistsState));
@@ -182,6 +188,7 @@ export const PlaylistsProvider: React.FC<{ children: React.ReactNode }> = ({
         setPlaylists,
         userPlaylists,
         remotePlaylists,
+        refreshRemotePlaylists,
       }}
     >
       {children}

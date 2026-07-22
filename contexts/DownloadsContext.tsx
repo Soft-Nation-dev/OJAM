@@ -20,7 +20,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { InteractionManager } from "react-native";
+import { InteractionManager, Platform } from "react-native";
 import { useSermons } from "./SermonsContext";
 
 type DownloadStatus =

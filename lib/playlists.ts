@@ -7,6 +7,18 @@ type FetchPlaylistsOptions = {
   includeSermons?: boolean;
 };
 
+export type PlaylistItemRow = {
+  id: string;
+  playlist_id: string;
+  sermon_id: string;
+  position: number;
+  created_at: string;
+};
+
+export type PlaylistItemWithSermon = PlaylistItemRow & {
+  sermon: Sermon;
+};
+
 const PLAYLISTS_CACHE_TTL_MS = 5 * 60 * 1000;
 type PlaylistCacheEntry = { data: Playlist[]; timestamp: number };
 let playlistsCacheCompact: PlaylistCacheEntry | null = null;
@@ -193,19 +205,10 @@ export async function fetchPlaylists(
   }
 }
 
-export async function fetchPlaylistById(
+export async function fetchPlaylistMetadataById(
   id: string,
-  options?: FetchPlaylistsOptions,
 ): Promise<Playlist | null> {
   if (!id) return null;
-
-  const includeSermons = options?.includeSermons !== false;
-
-  const cached = includeSermons ? playlistsCacheFull : playlistsCacheCompact;
-  const cachedPlaylist = cached?.data.find((playlist) => playlist.id === id);
-  if (cachedPlaylist) {
-    return cachedPlaylist;
-  }
 
   const { data: playlistData, error: playlistError } = await supabase
     .from("playlists")
@@ -220,7 +223,7 @@ export async function fetchPlaylistById(
     return null;
   }
 
-  const playlist: Playlist = {
+  return {
     id: playlistData.id,
     name: playlistData.name || "Untitled Playlist",
     description: playlistData.description || "",
@@ -229,23 +232,93 @@ export async function fetchPlaylistById(
       ? `${WORKER_URL}/images/${encodeR2Key(playlistData.image_key)}`
       : undefined,
   };
+}
+
+export async function fetchPlaylistItems(
+  playlistId: string,
+): Promise<PlaylistItemRow[]> {
+  if (!playlistId) return [];
 
   const { data: itemsData, error: itemsError } = await supabase
     .from("playlist_items")
-    .select("sermon_id, position")
-    .eq("playlist_id", id);
+    .select("id,playlist_id,sermon_id,position,created_at")
+    .eq("playlist_id", playlistId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (itemsError) {
+    throw itemsError;
+  }
+
+  return (itemsData ?? []).map((item: any) => ({
+    id: item.id,
+    playlist_id: item.playlist_id,
+    sermon_id: item.sermon_id,
+    position: item.position ?? 0,
+    created_at: item.created_at,
+  }));
+}
+
+async function assemblePlaylistItemsWithSermons(
+  playlistItems: PlaylistItemRow[],
+): Promise<PlaylistItemWithSermon[]> {
+  const sermonIds = [
+    ...new Set(playlistItems.map((item) => item.sermon_id).filter(Boolean)),
+  ];
+
+  if (!sermonIds.length) return [];
+
+  const { data: sermonsData, error: sermonsError } = await supabase
+    .from("sermons")
+    .select(
+      "id,title,preacher,date,duration,audio_key,image_key,category,genre,created_at",
+    )
+    .in("id", sermonIds);
+
+  if (sermonsError) throw sermonsError;
+
+  const sermonById = new Map<string, Sermon>(
+    (sermonsData ?? []).map((row: any) => [row.id, mapPlaylistSermonRow(row)]),
+  );
+
+  return playlistItems
+    .map((item) => {
+      const sermon = sermonById.get(item.sermon_id);
+      return sermon ? { ...item, sermon } : null;
+    })
+    .filter((item): item is PlaylistItemWithSermon => Boolean(item));
+}
+
+export async function fetchPlaylistItemsWithSermons(
+  playlistId: string,
+): Promise<PlaylistItemWithSermon[]> {
+  return assemblePlaylistItemsWithSermons(await fetchPlaylistItems(playlistId));
+}
+
+export async function fetchPlaylistById(
+  id: string,
+  options?: FetchPlaylistsOptions,
+): Promise<Playlist | null> {
+  if (!id) return null;
+
+  const includeSermons = options?.includeSermons !== false;
+  const cached = includeSermons ? playlistsCacheFull : playlistsCacheCompact;
+  const cachedPlaylist = cached?.data.find((playlist) => playlist.id === id);
+  if (!options?.forceRefresh && cachedPlaylist) return cachedPlaylist;
+
+  const playlist = await fetchPlaylistMetadataById(id);
+  if (!playlist) return null;
+
+  let orderedItems: PlaylistItemRow[];
+  try {
+    orderedItems = await fetchPlaylistItems(id);
+  } catch (itemsError: any) {
     console.warn(
       "Error fetching playlist items by playlist id:",
-      itemsError.message,
+      itemsError?.message,
     );
     return playlist;
   }
-
-  const orderedItems = [...(itemsData || [])].sort(
-    (a: any, b: any) => (a.position ?? 0) - (b.position ?? 0),
-  );
 
   if (!orderedItems.length) {
     return playlist;
@@ -263,36 +336,15 @@ export async function fetchPlaylistById(
     return playlist;
   }
 
-  const sermonIds = orderedItems
-    .map((item: any) => item.sermon_id)
-    .filter((sermonId: any) => typeof sermonId === "string");
-
-  if (!sermonIds.length) {
-    return playlist;
-  }
-
-  const { data: sermonsData, error: sermonsError } = await supabase
-    .from("sermons")
-    .select(
-      "id,title,preacher,date,duration,audio_key,image_key,category,genre,created_at",
-    )
-    .in("id", sermonIds);
-
-  if (sermonsError) {
+  try {
+    const itemsWithSermons = await assemblePlaylistItemsWithSermons(orderedItems);
+    playlist.sermons = itemsWithSermons.map((item) => item.sermon);
+  } catch (sermonsError: any) {
     console.warn(
       "Error fetching playlist sermons by ids:",
-      sermonsError.message,
+      sermonsError?.message,
     );
-    return playlist;
   }
-
-  const sermonsById = new Map<string, Sermon>(
-    (sermonsData || []).map((row: any) => [row.id, mapPlaylistSermonRow(row)]),
-  );
-
-  playlist.sermons = sermonIds
-    .map((sermonId) => sermonsById.get(sermonId))
-    .filter(Boolean) as Sermon[];
 
   return playlist;
 }
