@@ -1,4 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSermons } from "@/contexts/SermonsContext";
+import { useSettings } from "@/contexts/SettingsContext";
+import {
+  RealtimeAppNotification,
+  subscribeToRealtimeNotifications,
+} from "@/services/realtime-notifications";
 import * as Notifications from "expo-notifications";
 import React, {
     createContext,
@@ -19,6 +25,7 @@ export type NotificationType = {
   time: string;
   type: "new_sermon" | "reminder" | "update" | "playlist";
   read: boolean;
+  eventKey?: string;
   sourceNotificationId?: string;
 };
 
@@ -82,6 +89,10 @@ const normalizeStoredNotifications = (value: unknown): NotificationType[] => {
           : new Date().toISOString(),
       type: notification.type,
       read: !!notification.read,
+      eventKey:
+        typeof notification.eventKey === "string"
+          ? notification.eventKey
+          : undefined,
       sourceNotificationId:
         typeof notification.sourceNotificationId === "string"
           ? notification.sourceNotificationId
@@ -133,6 +144,9 @@ const ensureNotificationInfra = async () => {
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const { settings } = useSettings();
+  const { refresh: refreshSermons } = useSermons();
 
   const appendNotification = useCallback(
     (
@@ -148,11 +162,14 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
       setNotifications((prev) => {
         if (
-          newNotification.sourceNotificationId &&
-          prev.some(
-            (n) =>
-              n.sourceNotificationId === newNotification.sourceNotificationId,
-          )
+          (newNotification.eventKey &&
+            prev.some((n) => n.eventKey === newNotification.eventKey)) ||
+          (newNotification.sourceNotificationId &&
+            prev.some(
+              (n) =>
+                n.sourceNotificationId ===
+                newNotification.sourceNotificationId,
+            ))
         ) {
           return prev;
         }
@@ -165,21 +182,23 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     (async () => {
-      const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-      if (!stored) return;
-
       try {
+        const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+        if (!stored) return;
         const parsed = JSON.parse(stored);
         setNotifications(normalizeStoredNotifications(parsed));
       } catch {
         setNotifications([]);
+      } finally {
+        setHydrated(true);
       }
     })();
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
-  }, [notifications]);
+  }, [hydrated, notifications]);
 
   useEffect(() => {
     if (Platform.OS === "web") return;
@@ -255,14 +274,15 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       receivedSub.remove();
     };
-  }, []);
+  }, [appendNotification]);
 
   const addNotification = useCallback(
     (
       notification: Omit<NotificationType, "id" | "read" | "time">,
       options?: { mirrorToSystem?: boolean },
     ) => {
-      const mirrorToSystem = options?.mirrorToSystem ?? true;
+      const mirrorToSystem =
+        (options?.mirrorToSystem ?? true) && settings.notificationsEnabled;
       const localNotificationId = uuid.v4() as string;
       appendNotification(notification, localNotificationId);
 
@@ -301,8 +321,47 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         );
       })().catch(() => {});
     },
-    [appendNotification],
+    [appendNotification, settings.notificationsEnabled],
   );
+
+  useEffect(() => {
+    if (!hydrated || !settings.notificationsEnabled) return;
+
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const handleRealtimeNotification = (
+      notification: RealtimeAppNotification,
+    ) => {
+      addNotification(notification);
+
+      if (notification.type === "new_sermon") {
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+          void refreshSermons(true);
+        }, 300);
+      }
+    };
+
+    void subscribeToRealtimeNotifications(handleRealtimeNotification).then(
+      (unsubscribe) => {
+        if (cancelled) unsubscribe();
+        else cleanup = unsubscribe;
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      cleanup?.();
+    };
+  }, [
+    addNotification,
+    hydrated,
+    refreshSermons,
+    settings.notificationsEnabled,
+  ]);
 
   const markAsRead = useCallback((id: string) => {
     let nativeNotificationId: string | undefined;

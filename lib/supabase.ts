@@ -55,7 +55,9 @@ function createDisabledSupabaseClient() {
       error: missingSupabaseError,
       select: () => query,
       eq: () => query,
+      gt: () => query,
       order: () => query,
+      limit: () => query,
       update: () => query,
       delete: () => query,
       single: async () => ({ data: null, error: missingSupabaseError }),
@@ -64,6 +66,15 @@ function createDisabledSupabaseClient() {
     };
 
     return query;
+  };
+
+  const createChannel = () => {
+    const channel: any = {
+      on: () => channel,
+      subscribe: () => channel,
+      unsubscribe: async () => "ok",
+    };
+    return channel;
   };
 
   return {
@@ -88,6 +99,8 @@ function createDisabledSupabaseClient() {
       getUser: async () => ({ data: { user: null }, error: null }),
     },
     from: () => createQuery(),
+    channel: () => createChannel(),
+    removeChannel: async () => "ok",
   };
 }
 
@@ -107,5 +120,6 @@ export const supabase: any = missingSupabaseEnv
         detectSessionInUrl: false,
       },
     });
+export const isSupabaseConfigured = !missingSupabaseEnv;
 export const WORKER_URL = "https://sermon-sync.ojam.workers.dev";
 

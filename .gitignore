@@ -63,3 +63,4 @@ android/.idea/
 scripts/*
 !scripts/ensure-hermes-perms.cjs
 !scripts/check-release-config.mjs
+!scripts/publish-update-announcement.mjs

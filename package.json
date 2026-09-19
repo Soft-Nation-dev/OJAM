@@ -11,8 +11,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "release:check": "node ./scripts/check-release-config.mjs",
-    "update:preview": "eas update --channel preview",
-    "update:production": "eas update --channel production",
+    "update:preview": "eas update --channel preview --environment preview",
+    "update:production": "eas update --channel production --environment production",
+    "notify:update": "node ./scripts/publish-update-announcement.mjs",
     "perf:smoke": "powershell -ExecutionPolicy Bypass -File ./scripts/perf-smoke.ps1",
     "postinstall": "node ./scripts/ensure-hermes-perms.cjs"
   },

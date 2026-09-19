@@ -142,10 +142,10 @@ function LayoutShell() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AudioPlayerProvider>
         <ToastProvider>
-          <NotificationProvider>
-            <AuthProvider>
-              <SettingsProvider>
-                <SermonsProvider>
+          <AuthProvider>
+            <SettingsProvider>
+              <SermonsProvider>
+                <NotificationProvider>
                   <FavoritesProvider>
                     <DownloadsProvider>
                       <PlaylistsProvider>
@@ -218,10 +218,10 @@ function LayoutShell() {
                       </PlaylistsProvider>
                     </DownloadsProvider>
                   </FavoritesProvider>
-                </SermonsProvider>
-              </SettingsProvider>
-            </AuthProvider>
-          </NotificationProvider>
+                </NotificationProvider>
+              </SermonsProvider>
+            </SettingsProvider>
+          </AuthProvider>
         </ToastProvider>
       </AudioPlayerProvider>
     </GestureHandlerRootView>
