@@ -3,7 +3,7 @@ name: Deploy Ojam PWA to GitHub Pages
 on:
   push:
     branches:
-      - main   # Change to your default branch name if different (e.g., master)
+      - master
   workflow_dispatch:  # Also allow manual triggers from the GitHub Actions UI
 
 # Sets permission for GitHub Actions to write to GitHub Pages
@@ -34,14 +34,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify release configuration
+        run: npm run release:check
+
       - name: Export Expo web build
         env:
           # These secrets must be added in your GitHub repo:
           # Settings → Secrets and variables → Actions → New repository secret
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-          EXPO_PUBLIC_PWA_URL: https://ojam.divinegraceunn.com.ng
+          EXPO_PUBLIC_PWA_URL: https://ojam.com.ng
         run: npx expo export -p web
+
+      - name: Add GitHub Pages SPA fallback
+        run: cp dist/index.html dist/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -59,3 +65,11 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify production PWA endpoints
+        shell: bash
+        run: |
+          for path in / /manifest.json /sw.js; do
+            curl --fail --silent --show-error --retry 6 --retry-delay 10 \
+              "https://ojam.com.ng${path}" > /dev/null
+          done

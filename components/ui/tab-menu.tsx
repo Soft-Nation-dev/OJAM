@@ -37,6 +37,9 @@ const TabMenu: React.FC<TabMenuProps> = ({ tabs, activeTab, onTabPress }) => {
       {tabs.map((tab) => (
         <TouchableOpacity
           key={tab.id}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === tab.id }}
+          accessibilityLabel={`${tab.label} messages`}
           style={[
             styles.tab,
             {
@@ -83,16 +86,16 @@ const styles = StyleSheet.create({
   },
   tabsContent: {
     paddingHorizontal: 16,
-    // paddingVertical: 12,
-    gap: 12,
+    paddingRight: 48,
+    gap: 8,
   },
   tab: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
-    minWidth: 160,
+    minWidth: 112,
     borderWidth: 1,
   },
   activeTab: {

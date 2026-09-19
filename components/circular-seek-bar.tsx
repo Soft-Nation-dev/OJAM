@@ -53,7 +53,9 @@ export function CircularSeekBar({
       <TouchableOpacity
         style={[styles.touchable, { width: size, height: size }]}
         onPress={handlePress}
-        activeOpacity={1}>
+        activeOpacity={1}
+        accessibilityLabel="Seek within current message"
+      >
         <Svg width={size} height={size}>
           {/* Background circle */}
           <Circle
@@ -97,7 +99,11 @@ export function CircularSeekBar({
         <TouchableOpacity
           style={[styles.playButton, { shadowColor: Colors[colorScheme ?? 'light'].tint }]}
           onPress={onPlayPause}
-          activeOpacity={0.7}>
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={isPlaying ? "Pause" : "Play"}
+          hitSlop={6}
+        >
           <MaterialIcons
             name={isPlaying ? 'pause-circle-filled' : 'play-circle-filled'}
             size={32}
@@ -121,6 +127,10 @@ const styles = StyleSheet.create({
   playButton: {
     position: 'absolute',
     zIndex: 1,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowOffset: { width: 0, height: 5},
     shadowOpacity: 0.3,
     shadowRadius: 4,

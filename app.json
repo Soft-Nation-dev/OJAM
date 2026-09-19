@@ -13,7 +13,7 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/bc2a3e50-b8ab-4e88-8de0-66e6572fcdd0"
     },
-    "runtimeVersion": "3.0.0",
+    "runtimeVersion": "3.1.0",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -46,7 +46,7 @@
     "web": {
       "output": "static",
       "favicon": "./assets/images/icon.png",
-      "bundleUrl": "https://ojam.divinegraceunn.com.ng"
+      "bundleUrl": "https://ojam.com.ng"
     },
     "plugins": [
       "./plugins/withExpoViewPropsFix/app.plugin.cjs",

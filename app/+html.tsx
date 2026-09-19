@@ -11,8 +11,10 @@ export default function HTML({ children }: { children: React.ReactNode }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no"
+          content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no"
         />
+        <meta name="theme-color" content="#151718" />
+        <meta name="color-scheme" content="light dark" />
 
         {/* Link the PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
@@ -24,7 +26,11 @@ export default function HTML({ children }: { children: React.ReactNode }) {
           content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content="Ojam" />
-        <link rel="apple-touch-icon" href="/logo192.png" />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
 
         {/* Web Reset styles */}
         <ScrollViewStyleReset />

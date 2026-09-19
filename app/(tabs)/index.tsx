@@ -28,9 +28,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const HOME_TABS: { id: TabType; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "friday", label: "Friday LSTS Messages" },
-  { id: "sunday", label: "Sunday Messages" },
-  { id: "tuesday", label: "Tuesday Messages" },
+  { id: "friday", label: "Friday LSTS" },
+  { id: "sunday", label: "Sunday" },
+  { id: "tuesday", label: "Tuesday" },
   { id: "other", label: "Other" },
 ];
 
@@ -392,6 +392,9 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.iconButton}
             onPress={handleOpenNotifications}
+            accessibilityRole="button"
+            accessibilityLabel="Open notifications"
+            hitSlop={6}
           >
             <MaterialIcons
               name={unreadCount > 0 ? "notifications" : "notifications-none"}
@@ -419,6 +422,9 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.iconButton}
             onPress={handleOpenSettings}
+            accessibilityRole="button"
+            accessibilityLabel="Open settings"
+            hitSlop={6}
           >
             <MaterialIcons
               name="settings"

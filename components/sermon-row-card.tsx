@@ -116,7 +116,13 @@ function SermonRowCardComponent({
   }, [sermon.category]);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`Play ${sermon.title || "message"} by ${sermon.preacher || "Unknown"}`}
+    >
       <View style={styles.imageContainer}>
         <View style={styles.thumbnailWrapper}>
           {coverSource && (
@@ -224,12 +230,12 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
   },
   imageContainer: { position: "relative", marginRight: 12 },
-  circularImage: { width: 60, height: 60, borderRadius: 10 },
-  thumbnailWrapper: { position: "relative", width: 60, height: 60 },
+  circularImage: { width: 52, height: 52, borderRadius: 9 },
+  thumbnailWrapper: { position: "relative", width: 52, height: 52 },
   thumbnailHeart: {
     position: "absolute",
     top: 2,
@@ -261,7 +267,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   progressBarBg: {
-    width: 60,
+    width: 52,
     height: 5,
     backgroundColor: "#E0E0E0",
     borderRadius: 3,

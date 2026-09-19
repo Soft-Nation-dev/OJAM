@@ -33,6 +33,7 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+/build-error.txt
 
 # macOS
 .DS_Store
@@ -61,3 +62,4 @@ android/.idea/
 !scripts/
 scripts/*
 !scripts/ensure-hermes-perms.cjs
+!scripts/check-release-config.mjs

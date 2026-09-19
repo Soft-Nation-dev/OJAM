@@ -5,7 +5,7 @@ import {
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
@@ -37,7 +37,7 @@ import {
 import { useEffect, useState } from "react";
 
 import IOSInstallBanner from "@/components/ios-install-banner";
-import { Alert } from "react-native";
+import PWAUpdateBanner from "@/components/pwa-update-banner";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -78,14 +78,19 @@ function LayoutShell() {
         const status = await checkForUpdates();
         if (!status.storeUpdateAvailable && !status.otaAvailable) return;
 
-        await markUpdatePromptShown();
-
         if (status.storeUpdateAvailable) {
           // On Android: use native in-app update sheet (no Alert dialog needed)
           // On iOS: falls back to Alert + App Store redirect inside startStoreUpdate
           const launched = await startStoreUpdate(
-            Platform.OS === "android" ? "immediate" : "flexible",
+            Platform.OS === "android" && status.storeUpdateRequired
+              ? "immediate"
+              : "flexible",
           );
+
+          if (launched) {
+            await markUpdatePromptShown();
+            return;
+          }
 
           // If native sheet failed to launch, fall back to Alert
           if (!launched) {
@@ -94,7 +99,9 @@ function LayoutShell() {
               : "A new version is available on the Play Store.";
 
             Alert.alert("Update available", message, [
-              { text: "Later", style: "cancel" },
+              ...(!status.storeUpdateRequired
+                ? [{ text: "Later", style: "cancel" as const }]
+                : []),
               {
                 text: "Update",
                 onPress: () => {
@@ -102,6 +109,7 @@ function LayoutShell() {
                 },
               },
             ]);
+            await markUpdatePromptShown();
           }
 
           return;
@@ -116,6 +124,7 @@ function LayoutShell() {
             },
           },
         ]);
+        await markUpdatePromptShown();
       } catch (error) {
         console.warn("Update check failed", error);
       }
@@ -203,6 +212,7 @@ function LayoutShell() {
                           </Stack>
 
                           <StatusBar style="auto" />
+                          <PWAUpdateBanner />
                           <IOSInstallBanner />
                         </ThemeProvider>
                       </PlaylistsProvider>

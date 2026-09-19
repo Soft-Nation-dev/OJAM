@@ -250,6 +250,47 @@ export async function adminUpdatePlaylistItem(
   return data as AdminPlaylistItem;
 }
 
+export async function adminSavePlaylistOrder(items: AdminPlaylistItem[]) {
+  if (!items.length) return [];
+  const { data, error } = await supabase
+    .from("playlist_items")
+    .upsert(
+      items.map((item, position) => ({
+        id: item.id,
+        playlist_id: item.playlist_id,
+        sermon_id: item.sermon_id,
+        position,
+        created_at: item.created_at,
+      })),
+      { onConflict: "id" },
+    )
+    .select("id,playlist_id,sermon_id,position,created_at");
+  throwIfError(error);
+  invalidatePlaylistsCache();
+  return (data ?? []) as AdminPlaylistItem[];
+}
+
+export async function adminInsertPlaylistItems(
+  playlistId: string,
+  sermonIds: string[],
+  startPosition: number,
+) {
+  if (!sermonIds.length) return [];
+  const { data, error } = await supabase
+    .from("playlist_items")
+    .insert(
+      sermonIds.map((sermonId, index) => ({
+        playlist_id: playlistId,
+        sermon_id: sermonId,
+        position: startPosition + index,
+      })),
+    )
+    .select("id,playlist_id,sermon_id,position,created_at");
+  throwIfError(error);
+  invalidatePlaylistsCache();
+  return (data ?? []) as AdminPlaylistItem[];
+}
+
 export async function adminDeletePlaylistItem(itemId: string) {
   const { data, error } = await supabase
     .from("playlist_items")

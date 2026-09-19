@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   cardBackground: {
     width: "100%",
-    height: 240,
+    height: 205,
     borderRadius: 12,
     overflow: "hidden",
   },
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     justifyContent: "space-between",
-    padding: 15,
+    padding: 13,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
   topLeft: {
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2063FA",
     paddingVertical: 10,
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 2,
   },
   buttonText: {
     color: "#fff",

@@ -2,6 +2,8 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 let setupPromise: Promise<void> | null = null;
+let lastHealthCheckAt = 0;
+const HEALTH_CHECK_INTERVAL_MS = 15_000;
 
 const isExpoGo = Constants.executionEnvironment === "storeClient";
 export const isTrackPlayerSupported = Platform.OS !== "web" && !isExpoGo;
@@ -27,7 +29,9 @@ export function getTrackPlayerModule(): TrackPlayerModule | null {
   return cachedTrackPlayerModule;
 }
 
-export async function initializeTrackPlayer() {
+export async function initializeTrackPlayer(
+  options: { verify?: boolean } = {},
+) {
   const trackPlayerModule = getTrackPlayerModule();
   if (!trackPlayerModule) {
     return;
@@ -36,8 +40,20 @@ export async function initializeTrackPlayer() {
   const TrackPlayer = trackPlayerModule.default;
 
   if (setupPromise) {
+    await setupPromise;
+
+    if (options.verify === false) {
+      return;
+    }
+
+    if (Date.now() - lastHealthCheckAt < HEALTH_CHECK_INTERVAL_MS) {
+      return;
+    }
+
     try {
       await TrackPlayer.getPlaybackState();
+      lastHealthCheckAt = Date.now();
+      return;
     } catch (e) {
       console.warn("[AudioPlayer] Native playback service is uninitialized or dead. Resetting setup promise.", e);
       setupPromise = null;
@@ -82,12 +98,14 @@ export async function initializeTrackPlayer() {
               AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
           },
         });
+        lastHealthCheckAt = Date.now();
       } catch (error: any) {
         if (
           error?.message?.includes("already") ||
           error?.code?.includes("already")
         ) {
           console.log("[AudioPlayer] TrackPlayer already initialized native-side.");
+          lastHealthCheckAt = Date.now();
         } else {
           setupPromise = null;
           throw error;

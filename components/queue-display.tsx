@@ -3,7 +3,6 @@ import { Image as ExpoImage } from "expo-image";
 import React, { useCallback } from "react";
 import {
   ActivityIndicator,
-  InteractionManager,
   LayoutAnimation,
   StyleSheet,
   TouchableOpacity,
@@ -59,23 +58,18 @@ const QueueRow = React.memo(function QueueRow({
         rightThreshold={28}
         dragOffsetFromRightEdge={8}
         overshootRight={false}
-        onSwipeableOpen={(direction) => {
-          if (direction === "right") {
-            onRemove(item.id);
-          }
-        }}
         renderRightActions={() => (
           <TouchableOpacity
             style={styles.swipeDelete}
             onPress={() => onRemove(item.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${item.title} from queue`}
           >
             <MaterialIcons name="delete" size={22} color="#fff" />
           </TouchableOpacity>
         )}
       >
         <TouchableOpacity
-          onLongPress={onDrag}
-          delayLongPress={200}
           activeOpacity={0.85}
           style={[
             styles.queueItem,
@@ -85,6 +79,9 @@ const QueueRow = React.memo(function QueueRow({
             isActive && { opacity: 0.9 },
           ]}
           onPress={() => onPressItem(item.id)}
+          accessibilityRole="button"
+          accessibilityLabel={`Play ${item.title}, queue position ${index + 1}`}
+          accessibilityState={{ selected: isCurrent }}
         >
           <View style={styles.itemContent}>
             {item.imageUrl ? (
@@ -124,11 +121,20 @@ const QueueRow = React.memo(function QueueRow({
               <MaterialIcons name="equalizer" size={20} color={tintColor} />
             )}
 
-            <MaterialIcons
-              name="drag-handle"
-              size={20}
-              color={tabIconDefaultColor}
-            />
+            <TouchableOpacity
+              style={styles.dragHandle}
+              onLongPress={onDrag}
+              delayLongPress={150}
+              accessibilityRole="button"
+              accessibilityLabel={`Reorder ${item.title}`}
+              accessibilityHint="Press and hold, then drag to a new position"
+            >
+              <MaterialIcons
+                name="drag-handle"
+                size={22}
+                color={tabIconDefaultColor}
+              />
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </ReanimatedSwipeable>
@@ -152,15 +158,12 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
     pause,
     resume,
     shuffle,
-    shuffleMode,
     repeat,
     toggleShuffle,
     setRepeat,
   } = useAudioPlayer();
 
   const activeIndex = currentSermon ? currentIndex : -1;
-  const isFullShuffle = shuffle && shuffleMode === "full";
-  const isQuickShuffle = shuffle && shuffleMode === "quick";
 
   const queueRef = React.useRef(queue);
   React.useEffect(() => {
@@ -173,15 +176,13 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
     (action: () => Promise<void> | void) => {
       if (queueBusy) return;
       setQueueBusy(true);
-      InteractionManager.runAfterInteractions(() => {
-        Promise.resolve(action())
-          .catch((error) => {
-            console.error("[Queue] Action failed", error);
-          })
-          .finally(() => {
-            setQueueBusy(false);
-          });
-      });
+      Promise.resolve(action())
+        .catch((error) => {
+          console.error("[Queue] Action failed", error);
+        })
+        .finally(() => {
+          setQueueBusy(false);
+        });
     },
     [queueBusy],
   );
@@ -211,15 +212,6 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
   );
 
   const keyExtractor = useCallback((item: any) => item.id, []);
-
-  const getItemLayout = useCallback(
-    (_: any, index: number) => ({
-      length: 72,
-      offset: 72 * index,
-      index,
-    }),
-    [],
-  );
 
   const renderItem = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
@@ -265,52 +257,69 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
     [activeIndex, handlePlayFromQueue, handleRemove, isPlaying, theme],
   );
 
-  if (queue.length === 0) {
-    return (
-      <ThemedView style={[styles.emptyContainer, { paddingTop: insets.top }]}>
-        <ThemedText style={{ opacity: 0.6 }}>Your queue is empty.</ThemedText>
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onClose}>
-          <MaterialIcons
-            name="keyboard-arrow-down"
-            size={28}
-            color={theme.text}
-          />
-        </TouchableOpacity>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity
+            style={styles.headerIconButton}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close queue"
+          >
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={28}
+              color={theme.text}
+            />
+          </TouchableOpacity>
 
-        <ThemedText type="subtitle">Current Queue</ThemedText>
+          <View style={styles.headerTitleBlock}>
+            <ThemedText type="subtitle">Current Queue</ThemedText>
+            <ThemedText style={styles.queueCount}>
+              {queue.length} {queue.length === 1 ? "message" : "messages"}
+            </ThemedText>
+          </View>
+
+          <TouchableOpacity
+            style={styles.headerIconButton}
+            onPress={() => void (isPlaying ? pause() : resume())}
+            accessibilityRole="button"
+            accessibilityLabel={isPlaying ? "Pause" : "Play"}
+          >
+            <MaterialIcons
+              name={isPlaying ? "pause-circle-filled" : "play-circle-filled"}
+              size={32}
+              color={theme.tint}
+            />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.headerActions}>
           <TouchableOpacity
+            style={[
+              styles.stateButton,
+              shuffle && { backgroundColor: `${theme.tint}20` },
+            ]}
             onPress={() => runQueueAction(() => toggleShuffle("full"))}
             disabled={queueBusy}
+            accessibilityRole="button"
+            accessibilityLabel={shuffle ? "Turn shuffle off" : "Turn shuffle on"}
+            accessibilityState={{ selected: shuffle, disabled: queueBusy }}
           >
             <MaterialIcons
               name="shuffle"
-              size={22}
-              color={isFullShuffle ? theme.tint : theme.tabIconDefault}
+              size={20}
+              color={shuffle ? theme.tint : theme.tabIconDefault}
             />
+            <ThemedText style={styles.stateButtonText}>Shuffle</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => runQueueAction(() => toggleShuffle("quick"))}
-            disabled={queueBusy}
-            accessibilityLabel="Quick shuffle"
-          >
-            <MaterialIcons
-              name="flash-on"
-              size={22}
-              color={isQuickShuffle ? theme.tint : theme.tabIconDefault}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
+            style={[
+              styles.stateButton,
+              repeat !== "off" && { backgroundColor: `${theme.tint}20` },
+            ]}
             onPress={() =>
               runQueueAction(() => {
                 const next =
@@ -319,6 +328,10 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
               })
             }
             disabled={queueBusy}
+            accessibilityRole="button"
+            accessibilityLabel={`Repeat ${repeat}`}
+            accessibilityHint="Cycles between off, all, and one"
+            accessibilityState={{ selected: repeat !== "off", disabled: queueBusy }}
           >
             <View style={styles.repeatControl}>
               <MaterialIcons
@@ -334,17 +347,13 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
                   },
                 ]}
               >
-                {repeat === "off" ? "OFF" : repeat === "all" ? "ALL" : "ONE"}
+                {repeat === "off"
+                  ? "Repeat off"
+                  : repeat === "all"
+                    ? "Repeat all"
+                    : "Repeat one"}
               </ThemedText>
             </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => (isPlaying ? pause() : resume())}>
-            <MaterialIcons
-              name={isPlaying ? "pause-circle-filled" : "play-circle-filled"}
-              size={28}
-              color={theme.tint}
-            />
           </TouchableOpacity>
 
           {queueBusy && (
@@ -363,7 +372,15 @@ export function QueueDisplay({ onClose }: QueueDisplayProps) {
         updateCellsBatchingPeriod={50}
         windowSize={7}
         removeClippedSubviews
-        getItemLayout={getItemLayout}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <MaterialIcons name="queue-music" size={34} color={theme.tabIconDefault} />
+            <ThemedText style={styles.emptyTitle}>Your queue is empty</ThemedText>
+            <ThemedText style={styles.emptyText}>
+              Add a message from its menu to listen later.
+            </ThemedText>
+          </View>
+        }
         contentContainerStyle={{
           padding: 16,
           paddingBottom: insets.bottom + 40,
@@ -378,14 +395,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+  },
+  headerIconButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitleBlock: {
+    flex: 1,
+    alignItems: "center",
+  },
+  queueCount: {
+    fontSize: 12,
+    opacity: 0.65,
   },
   headerActions: {
     flexDirection: "row",
-    gap: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+  stateButton: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+  },
+  stateButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   repeatControl: {
     flexDirection: "row",
@@ -393,8 +444,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   repeatLabel: {
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "600",
   },
   queueItem: {
     padding: 14,
@@ -420,6 +471,14 @@ const styles = StyleSheet.create({
   },
   itemInfo: {
     flex: 1,
+  },
+  dragHandle: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: -2,
+    marginRight: -8,
   },
   itemTitle: {
     fontSize: 14,
@@ -451,8 +510,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   emptyContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    paddingTop: 100,
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    marginTop: 12,
+    fontWeight: "600",
+  },
+  emptyText: {
+    marginTop: 6,
+    opacity: 0.65,
+    textAlign: "center",
   },
 });

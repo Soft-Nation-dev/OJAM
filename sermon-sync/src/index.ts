@@ -159,6 +159,14 @@ export default {
 					parts?: { partNumber: number; etag: string }[];
 					fileName?: string;
 					fileSize?: number;
+					metadata?: {
+						title?: string;
+						preacher?: string;
+						date?: string;
+						category?: string;
+						genre?: string;
+						imageKey?: string;
+					};
 				};
 				if (!body.key || !body.uploadId || !body.parts?.length) {
 					return json({ error: 'Incomplete multipart upload details' }, 400);
@@ -183,14 +191,23 @@ export default {
 					const randomImage = images.length
 						? images[Math.floor(Math.random() * images.length)].image_key
 						: null;
+					const metadata = body.metadata || {};
+					const requestedCategory = String(metadata.category || body.key.split('/')[0] || 'other').toLowerCase();
+					const category = ['sunday', 'tuesday', 'friday', 'other'].includes(requestedCategory)
+						? requestedCategory
+						: 'other';
+					const requestedDate = String(metadata.date || '').trim();
 					const sermonPayload = {
-						title: getTitle(body.fileName || body.key),
+						title: String(metadata.title || getTitle(body.fileName || body.key)).trim().slice(0, 240),
 						audio_key: body.key,
-						image_key: randomImage,
-						preacher: 'Pastor Oluchi Japhat Aniagwu',
-						date: new Date().toISOString(),
+						image_key: String(metadata.imageKey || '').trim() || randomImage,
+						preacher: String(metadata.preacher || 'Pastor Oluchi Japhat Aniagwu').trim().slice(0, 160),
+						date: requestedDate && !Number.isNaN(Date.parse(requestedDate))
+							? new Date(requestedDate).toISOString()
+							: new Date().toISOString(),
 						duration: estimateDurationFromSize(body.fileSize),
-						category: body.key.split('/')[0] || 'other',
+						category,
+						genre: String(metadata.genre || '').trim().slice(0, 120) || null,
 					};
 
 					const sermonResponse = await fetch(

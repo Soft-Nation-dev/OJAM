@@ -24,6 +24,10 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
     pause,
     resume,
     seekTo,
+    playNext,
+    queue,
+    currentIndex,
+    repeat,
   } = useAudioPlayer();
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -35,6 +39,9 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
   }
 
   const progress = duration > 0 ? (position / duration) * 100 : 0;
+  const hasNext =
+    queue.length > 1 &&
+    (currentIndex < queue.length - 1 || repeat === "all");
 
   const handleSeek = (value: number) => {
     seekTo(value);
@@ -42,7 +49,7 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
 
   return (
     <>
-      <TouchableOpacity
+      <View
         style={[
           styles.container,
           {
@@ -52,8 +59,6 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
             bottom: bottomOffset + insets.bottom,
           },
         ]}
-        onPress={() => router.push("/player")}
-        activeOpacity={0.9}
       >
         <View style={styles.progressBar}>
           <View
@@ -67,62 +72,87 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
           />
         </View>
         <View style={styles.content}>
-          {currentSermon.imageUrl ? (
-            <ExpoImage
-              source={{ uri: currentSermon.imageUrl }}
-              style={styles.image}
-              contentFit="cover"
-              cachePolicy={typeof document !== "undefined" ? "none" : "disk"}
-              recyclingKey={`mini-player-artwork-${currentSermon.id}`}
-            />
-          ) : (
-            <View
-              style={[
-                styles.image,
-                styles.circularImage,
-                {
-                  backgroundColor: Colors[colorScheme ?? "light"].tint + "20",
-                  justifyContent: "center",
-                  alignItems: "center",
-                },
-              ]}
-            >
-              <MaterialIcons
-                name="headphones"
-                size={24}
-                color={Colors[colorScheme ?? "light"].tint}
+          <TouchableOpacity
+            style={styles.trackButton}
+            onPress={() => router.push("/player")}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={`Open player for ${currentSermon.title}`}
+          >
+            {currentSermon.imageUrl ? (
+              <ExpoImage
+                source={{ uri: currentSermon.imageUrl }}
+                style={styles.image}
+                contentFit="cover"
+                cachePolicy={typeof document !== "undefined" ? "none" : "disk"}
+                recyclingKey={`mini-player-artwork-${currentSermon.id}`}
               />
+            ) : (
+              <View
+                style={[
+                  styles.image,
+                  styles.circularImage,
+                  {
+                    backgroundColor: Colors[colorScheme ?? "light"].tint + "20",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name="headphones"
+                  size={24}
+                  color={Colors[colorScheme ?? "light"].tint}
+                />
+              </View>
+            )}
+            <View style={styles.info}>
+              <ThemedText
+                type="defaultSemiBold"
+                numberOfLines={1}
+                style={styles.title}
+              >
+                {currentSermon.title}
+              </ThemedText>
+              <ThemedText
+                type="default"
+                numberOfLines={1}
+                style={styles.preacher}
+              >
+                {currentSermon.preacher}
+              </ThemedText>
             </View>
-          )}
-          <View style={styles.info}>
-            <ThemedText
-              type="defaultSemiBold"
-              numberOfLines={1}
-              style={styles.title}
-            >
-              {currentSermon.title}
-            </ThemedText>
-            <ThemedText
-              type="default"
-              numberOfLines={1}
-              style={styles.preacher}
-            >
-              {currentSermon.preacher}
-            </ThemedText>
-          </View>
+          </TouchableOpacity>
           <View style={styles.controls}>
             <CircularSeekBar
-              size={70}
-              strokeWidth={4}
+              size={54}
+              strokeWidth={3}
               progress={duration > 0 ? position / duration : 0}
-              onSeek={(progress) => handleSeek(progress * duration)}
+              onSeek={(nextProgress) => handleSeek(nextProgress * duration)}
               isPlaying={isPlaying}
-              onPlayPause={() => (isPlaying ? pause() : resume())}
+              onPlayPause={() => void (isPlaying ? pause() : resume())}
             />
             <TouchableOpacity
-              style={styles.queueButton}
+              style={styles.iconButton}
+              onPress={() => void playNext()}
+              disabled={!hasNext}
+              accessibilityRole="button"
+              accessibilityLabel="Next message"
+              accessibilityState={{ disabled: !hasNext }}
+            >
+              <MaterialIcons
+                name="skip-next"
+                size={24}
+                color={Colors[colorScheme ?? "light"].tabIconDefault}
+                style={!hasNext && { opacity: 0.35 }}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
               onPress={() => setShowQueue(true)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Open queue, ${queue.length} messages`}
             >
               <MaterialIcons
                 name="queue-music"
@@ -132,7 +162,7 @@ export function MiniPlayer({ bottomOffset = 60 }: MiniPlayerProps) {
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
 
       <Modal
         visible={showQueue}
@@ -173,6 +203,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
+  trackButton: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
   image: {
     width: 50,
     height: 50,
@@ -197,7 +234,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  queueButton: {
-    padding: 8,
+  iconButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -5,7 +5,6 @@ import * as Updates from "expo-updates";
 import { Linking, Platform } from "react-native";
 import SpInAppUpdates, {
   IAUUpdateKind,
-  StartUpdateOptions,
 } from "sp-react-native-in-app-updates";
 
 const inAppUpdates = new SpInAppUpdates(
@@ -19,6 +18,7 @@ type OtaUpdateStatus = {
 
 type StoreUpdateStatus = {
   available: boolean;
+  required: boolean;
   version: string | null;
   url: string | null;
 };
@@ -26,6 +26,7 @@ type StoreUpdateStatus = {
 export type UpdateStatus = {
   otaAvailable: boolean;
   storeUpdateAvailable: boolean;
+  storeUpdateRequired: boolean;
   storeVersion: string | null;
 };
 
@@ -144,7 +145,7 @@ const checkForOtaUpdate = async (): Promise<OtaUpdateStatus> => {
 
 const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
   if (Platform.OS === "web") {
-    return { available: false, version: null, url: null };
+    return { available: false, required: false, version: null, url: null };
   }
 
   try {
@@ -159,7 +160,17 @@ const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
       if (minVersion && compareVersions(minVersion, currentVersion) > 0) {
         return {
           available: true,
+          required: true,
           version: minVersion,
+          url: config.storeUrl || storeUrl,
+        };
+      }
+      const latestVersion = config.latestVersion?.trim() || null;
+      if (latestVersion && compareVersions(latestVersion, currentVersion) > 0) {
+        return {
+          available: true,
+          required: false,
+          version: latestVersion,
           url: config.storeUrl || storeUrl,
         };
       }
@@ -170,6 +181,7 @@ const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
     if (result && result.shouldUpdate) {
       return {
         available: true,
+        required: false,
         version: result.storeVersion || null,
         url: config?.storeUrl || storeUrl,
       };
@@ -187,6 +199,7 @@ const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
         if (latestVersion && compareVersions(latestVersion, currentVersion) > 0) {
           return {
             available: true,
+            required: false,
             version: latestVersion,
             url: config.storeUrl || (pkg ? `https://play.google.com/store/apps/details?id=${pkg}` : null),
           };
@@ -197,7 +210,7 @@ const checkForStoreUpdate = async (): Promise<StoreUpdateStatus> => {
     }
   }
 
-  return { available: false, version: null, url: null };
+  return { available: false, required: false, version: null, url: null };
 };
 
 export const checkForUpdates = async (): Promise<UpdateStatus> => {
@@ -209,6 +222,7 @@ export const checkForUpdates = async (): Promise<UpdateStatus> => {
   return {
     otaAvailable: ota.available,
     storeUpdateAvailable: store.available,
+    storeUpdateRequired: store.required,
     storeVersion: store.version,
   };
 };

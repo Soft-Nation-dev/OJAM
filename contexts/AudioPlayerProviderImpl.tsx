@@ -170,6 +170,8 @@ export function AudioPlayerProvider({
   const isBufferingRef = useRef(false);
   const playbackRateRef = useRef(1);
   const webAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isReorderingQueueRef = useRef(false);
+  const shuffleUpdateVersionRef = useRef(0);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -444,12 +446,40 @@ export function AudioPlayerProvider({
           });
 
           audio.addEventListener("ended", () => {
-            setIsPlaying(false);
-            setIsBuffering(false);
             AsyncStorage.removeItem(`@sermon_progress_${activeTrack.id}`).catch(
               () => {},
             );
-            void playNext();
+
+            if (repeatRef.current === "one") {
+              audio.currentTime = 0;
+              setProgress((prev) => ({ ...prev, position: 0 }));
+              setIsPlaying(true);
+              void audio.play().catch(() => {
+                setIsPlaying(false);
+                setIsBuffering(false);
+              });
+              return;
+            }
+
+            const nextIndex = currentIndexRef.current + 1;
+            if (nextIndex < queueRef.current.length) {
+              void setQueueAndPlayer(queueRef.current, nextIndex, {
+                play: true,
+                position: 0,
+              });
+              return;
+            }
+
+            if (repeatRef.current === "all" && queueRef.current.length > 0) {
+              void setQueueAndPlayer(queueRef.current, 0, {
+                play: true,
+                position: 0,
+              });
+              return;
+            }
+
+            setIsPlaying(false);
+            setIsBuffering(false);
           });
 
           audio.addEventListener("error", () => {
@@ -536,8 +566,6 @@ export function AudioPlayerProvider({
 
     if (mappedActiveIndex >= 0 && nextQueue[activeIndex]) {
       const activeTrack = nextQueue[activeIndex];
-      const isStreaming = !activeTrack.localPath && activeTrack.audioUrl;
-
       let resumePosition = initialPosition;
       if (initialPosition === 0) {
         try {
@@ -566,10 +594,6 @@ export function AudioPlayerProvider({
 
       if (shouldPlay) {
         setIsBuffering(true);
-        // Give streaming URLs a moment to buffer before playing
-        if (isStreaming) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
-        }
         await TrackPlayer.play();
       } else {
         await TrackPlayer.pause();
@@ -583,20 +607,47 @@ export function AudioPlayerProvider({
     }
   };
 
-  const applyQueueOrder = async (nextQueue: Sermon[], nextIndex: number) => {
-    const previousQueue = queueRef.current;
-
+  const setLogicalQueueOrder = (nextQueue: Sermon[], nextIndex: number) => {
     queueRef.current = nextQueue;
     setQueue(nextQueue);
     if (nextIndex !== currentIndexRef.current) {
       syncActiveFromIndex(nextIndex);
+    }
+  };
+
+  const applyQueueOrder = async (
+    nextQueue: Sermon[],
+    nextIndex: number,
+    options?: { previousQueue?: Sermon[]; logicalAlreadyApplied?: boolean },
+  ) => {
+    const previousQueue = options?.previousQueue ?? queueRef.current;
+
+    if (!options?.logicalAlreadyApplied) {
+      setLogicalQueueOrder(nextQueue, nextIndex);
     }
 
     if (!isTrackPlayerSupported) return;
 
     await initializeTrackPlayer();
 
-    if (typeof TrackPlayer.move !== "function") {
+    const activeId = currentSermonRef.current?.id;
+    const previousPlayable = previousQueue.filter((item) =>
+      Boolean(toTrack(item).url),
+    );
+    const nextPlayable = nextQueue.filter((item) => Boolean(toTrack(item).url));
+    const previousActiveIndex = activeId
+      ? previousPlayable.findIndex((item) => item.id === activeId)
+      : -1;
+    const nextActiveIndex = activeId
+      ? nextPlayable.findIndex((item) => item.id === activeId)
+      : -1;
+
+    if (
+      previousActiveIndex < 0 ||
+      nextActiveIndex < 0 ||
+      typeof TrackPlayer.remove !== "function" ||
+      typeof TrackPlayer.add !== "function"
+    ) {
       await setQueueAndPlayer(nextQueue, nextIndex, {
         play: isPlayingRef.current,
         position: progressRef.current.position,
@@ -605,15 +656,27 @@ export function AudioPlayerProvider({
     }
 
     try {
-      let working = [...previousQueue];
-      for (let toIndex = 0; toIndex < nextQueue.length; toIndex += 1) {
-        const targetId = nextQueue[toIndex].id;
-        const fromIndex = working.findIndex((item) => item.id === targetId);
-        if (fromIndex === -1 || fromIndex === toIndex) continue;
+      isReorderingQueueRef.current = true;
+      const removeIndices = previousPlayable
+        .map((_, index) => index)
+        .filter((index) => index !== previousActiveIndex);
 
-        const [moved] = working.splice(fromIndex, 1);
-        working.splice(toIndex, 0, moved);
-        await TrackPlayer.move(fromIndex, toIndex);
+      if (removeIndices.length > 0) {
+        await TrackPlayer.remove(removeIndices);
+      }
+
+      const before = nextPlayable
+        .slice(0, nextActiveIndex)
+        .map(toTrack);
+      const after = nextPlayable
+        .slice(nextActiveIndex + 1)
+        .map(toTrack);
+
+      if (before.length > 0) {
+        await TrackPlayer.add(before, 0);
+      }
+      if (after.length > 0) {
+        await TrackPlayer.add(after);
       }
     } catch (error) {
       console.error("[AudioPlayer] Failed to apply queue order", error);
@@ -621,6 +684,8 @@ export function AudioPlayerProvider({
         play: isPlayingRef.current,
         position: progressRef.current.position,
       });
+    } finally {
+      isReorderingQueueRef.current = false;
     }
   };
 
@@ -738,6 +803,7 @@ export function AudioPlayerProvider({
     const activeTrackSub = TrackPlayer.addEventListener(
       Event.PlaybackActiveTrackChanged,
       (event) => {
+        if (isReorderingQueueRef.current) return;
         if (typeof event.index === "number") {
           syncActiveFromIndex(event.index);
           setProgress({ position: 0, duration: 0 });
@@ -789,7 +855,7 @@ export function AudioPlayerProvider({
 
   useEffect(() => {
     if (!isTrackPlayerSupported) return;
-    void initializeTrackPlayer()
+    void initializeTrackPlayer({ verify: false })
       .then(() => TrackPlayer.setRepeatMode(mapRepeatToTrackMode(repeat)))
       .catch((error) => {
         console.error("[AudioPlayer] Failed setting repeat mode", error);
@@ -889,12 +955,14 @@ export function AudioPlayerProvider({
   };
 
   const pause = async () => {
+    isPlayingRef.current = false;
+    setIsPlaying(false);
+    setIsBuffering(false);
+
     if (!isTrackPlayerSupported) {
       if (Platform.OS === "web" && webAudioRef.current) {
         webAudioRef.current.pause();
       }
-      setIsPlaying(false);
-      setIsBuffering(false);
 
       const current = currentSermonRef.current;
       const pos = progressRef.current.position;
@@ -908,10 +976,8 @@ export function AudioPlayerProvider({
       return;
     }
 
-    await initializeTrackPlayer();
+    await initializeTrackPlayer({ verify: false });
     await TrackPlayer.pause();
-    setIsPlaying(false);
-    setIsBuffering(false);
 
     const current = currentSermonRef.current;
     const pos = progressRef.current.position;
@@ -925,19 +991,30 @@ export function AudioPlayerProvider({
   };
 
   const resume = async () => {
+    isPlayingRef.current = true;
+    setIsPlaying(true);
+
     if (!isTrackPlayerSupported) {
       if (Platform.OS === "web" && webAudioRef.current) {
         webAudioRef.current.play().catch((err) => {
           console.warn("[AudioPlayer] Web Audio Resume failed", err);
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+          setIsBuffering(false);
         });
       }
-      setIsPlaying(true);
       return;
     }
 
-    await initializeTrackPlayer();
-    await TrackPlayer.play();
-    setIsPlaying(true);
+    try {
+      await initializeTrackPlayer({ verify: false });
+      await TrackPlayer.play();
+    } catch (error) {
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+      setIsBuffering(false);
+      throw error;
+    }
   };
 
   const seekTo = async (seconds: number) => {
@@ -951,7 +1028,7 @@ export function AudioPlayerProvider({
       return;
     }
 
-    await initializeTrackPlayer();
+    await initializeTrackPlayer({ verify: false });
     setIsBuffering(true);
     await TrackPlayer.seekTo(nextPosition);
     setProgress((prev) => ({ ...prev, position: nextPosition }));
@@ -968,36 +1045,62 @@ export function AudioPlayerProvider({
       if (Platform.OS === "web") {
         const nextQueue = queueRef.current;
         if (!nextQueue.length) return;
-        const nextIndex = currentIndexRef.current + 1;
-        if (nextIndex < nextQueue.length) {
+        const nextIndex =
+          currentIndexRef.current + 1 < nextQueue.length
+            ? currentIndexRef.current + 1
+            : repeatRef.current === "all"
+              ? 0
+              : -1;
+        if (nextIndex >= 0 && nextIndex < nextQueue.length) {
           void setQueueAndPlayer(nextQueue, nextIndex, { play: true });
         }
       }
       return;
     }
-    await initializeTrackPlayer();
-    await TrackPlayer.skipToNext();
+    await initializeTrackPlayer({ verify: false });
+    if (
+      currentIndexRef.current >= queueRef.current.length - 1 &&
+      repeatRef.current === "all"
+    ) {
+      await TrackPlayer.skip(0, 0);
+    } else {
+      await TrackPlayer.skipToNext();
+    }
     await TrackPlayer.play();
   };
 
   const playPrevious = async () => {
+    if (progressRef.current.position > 5) {
+      await seekTo(0);
+      return;
+    }
+
     if (!isTrackPlayerSupported) {
       if (Platform.OS === "web") {
-        const prevIndex = currentIndexRef.current - 1;
+        const prevIndex =
+          currentIndexRef.current > 0
+            ? currentIndexRef.current - 1
+            : repeatRef.current === "all"
+              ? queueRef.current.length - 1
+              : -1;
         if (prevIndex >= 0) {
           void setQueueAndPlayer(queueRef.current, prevIndex, { play: true });
         }
       }
       return;
     }
-    await initializeTrackPlayer();
-    await TrackPlayer.skipToPrevious();
+    await initializeTrackPlayer({ verify: false });
+    if (currentIndexRef.current === 0 && repeatRef.current === "all") {
+      await TrackPlayer.skip(queueRef.current.length - 1, 0);
+    } else {
+      await TrackPlayer.skipToPrevious();
+    }
     await TrackPlayer.play();
   };
 
   const setPlaybackRate = async (rate: number) => {
     if (isTrackPlayerSupported) {
-      await initializeTrackPlayer();
+      await initializeTrackPlayer({ verify: false });
       await TrackPlayer.setRate(rate);
     } else if (Platform.OS === "web" && webAudioRef.current) {
       webAudioRef.current.playbackRate = rate;
@@ -1006,61 +1109,48 @@ export function AudioPlayerProvider({
   };
 
   const setRepeat = async (mode: "off" | "one" | "all") => {
+    repeatRef.current = mode;
     setRepeatState(mode);
-    if (!isTrackPlayerSupported) return;
-
-    await initializeTrackPlayer();
-    await TrackPlayer.setRepeatMode(mapRepeatToTrackMode(mode));
   };
 
   const toggleShuffle = async (mode: "full" | "quick" = "full") => {
-    await runQueueOperation(async () => {
-      const currentQueue = queueRef.current;
-      if (!currentQueue.length) {
-        setShuffle((prev) => !prev);
-        if (!shuffleRef.current) {
-          setShuffleMode(mode);
-        }
-        return;
+    const currentQueue = queueRef.current;
+    const current = currentSermonRef.current;
+
+    if (!currentQueue.length) {
+      shuffleUpdateVersionRef.current += 1;
+      const nextShuffle = !shuffleRef.current;
+      shuffleRef.current = nextShuffle;
+      setShuffle(nextShuffle);
+      if (nextShuffle) {
+        shuffleModeRef.current = mode;
+        setShuffleMode(mode);
       }
+      return;
+    }
 
-      const current = currentSermonRef.current;
-      const playing = isPlayingRef.current;
-      const currentPosition = progressRef.current.position;
+    if (!shuffleRef.current) {
+      shuffleRef.current = true;
+      setShuffle(true);
+      shuffleModeRef.current = mode;
+      setShuffleMode(mode);
+      unshuffledQueueRef.current = [...currentQueue];
 
-      if (!shuffleRef.current) {
-        const selectedMode = mode;
-        setShuffleMode(selectedMode);
-        shuffleModeRef.current = selectedMode;
-        unshuffledQueueRef.current = [...currentQueue];
+      let shuffledQueue: Sermon[];
+      let nextIndex: number;
 
-        if (selectedMode === "quick") {
-          const activeIndex = currentIndexRef.current;
-          let shuffledQueue: Sermon[] = [];
-          let nextIndex = -1;
-
-          if (activeIndex >= 0) {
-            const before = currentQueue.slice(0, activeIndex + 1);
-            const after = shuffleArray(currentQueue.slice(activeIndex + 1));
-            shuffledQueue = [...before, ...after];
-            nextIndex = activeIndex;
-          } else {
-            shuffledQueue = shuffleArray(currentQueue);
-            nextIndex = current
-              ? shuffledQueue.findIndex((item) => item.id === current.id)
-              : -1;
-          }
-
-          setShuffle(true);
-          await applyQueueOrder(shuffledQueue, nextIndex);
-          return;
-        }
-
-        const currentId = current?.id;
-        const pinned = currentId
-          ? (currentQueue.find((item) => item.id === currentId) ?? null)
+      if (mode === "quick" && currentIndexRef.current >= 0) {
+        const activeIndex = currentIndexRef.current;
+        shuffledQueue = [
+          ...currentQueue.slice(0, activeIndex + 1),
+          ...shuffleArray(currentQueue.slice(activeIndex + 1)),
+        ];
+        nextIndex = activeIndex;
+      } else {
+        const pinned = current
+          ? (currentQueue.find((item) => item.id === current.id) ?? null)
           : null;
-        const shuffledQueue = pinned
+        shuffledQueue = pinned
           ? [
               pinned,
               ...shuffleArray(
@@ -1068,33 +1158,51 @@ export function AudioPlayerProvider({
               ),
             ]
           : shuffleArray(currentQueue);
-        const nextIndex = pinned ? 0 : -1;
-
-        setShuffle(true);
-        await setQueueAndPlayer(shuffledQueue, nextIndex, {
-          play: playing,
-          position: currentPosition,
-        });
-        return;
+        nextIndex = pinned ? 0 : -1;
       }
 
-      const restoredQueue = unshuffledQueueRef.current ?? currentQueue;
-      const restoredIndex = current
-        ? restoredQueue.findIndex((item) => item.id === current.id)
-        : -1;
-
-      setShuffle(false);
-      unshuffledQueueRef.current = null;
-
-      if (shuffleModeRef.current === "quick") {
-        await applyQueueOrder([...restoredQueue], restoredIndex);
-        return;
-      }
-
-      await setQueueAndPlayer([...restoredQueue], restoredIndex, {
-        play: playing,
-        position: currentPosition,
+      const updateVersion = ++shuffleUpdateVersionRef.current;
+      requestAnimationFrame(() => {
+        if (
+          updateVersion !== shuffleUpdateVersionRef.current ||
+          !shuffleRef.current
+        ) {
+          return;
+        }
+        setLogicalQueueOrder(shuffledQueue, nextIndex);
+        void runQueueOperation(() =>
+          applyQueueOrder(shuffledQueue, nextIndex, {
+            previousQueue: currentQueue,
+            logicalAlreadyApplied: true,
+          }),
+        );
       });
+      return;
+    }
+
+    const restoredQueue = [...(unshuffledQueueRef.current ?? currentQueue)];
+    const restoredIndex = current
+      ? restoredQueue.findIndex((item) => item.id === current.id)
+      : -1;
+
+    shuffleRef.current = false;
+    setShuffle(false);
+    unshuffledQueueRef.current = null;
+    const updateVersion = ++shuffleUpdateVersionRef.current;
+    requestAnimationFrame(() => {
+      if (
+        updateVersion !== shuffleUpdateVersionRef.current ||
+        shuffleRef.current
+      ) {
+        return;
+      }
+      setLogicalQueueOrder(restoredQueue, restoredIndex);
+      void runQueueOperation(() =>
+        applyQueueOrder(restoredQueue, restoredIndex, {
+          previousQueue: currentQueue,
+          logicalAlreadyApplied: true,
+        }),
+      );
     });
   };
 

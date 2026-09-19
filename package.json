@@ -10,6 +10,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "release:check": "node ./scripts/check-release-config.mjs",
+    "update:preview": "eas update --channel preview",
+    "update:production": "eas update --channel production",
     "perf:smoke": "powershell -ExecutionPolicy Bypass -File ./scripts/perf-smoke.ps1",
     "postinstall": "node ./scripts/ensure-hermes-perms.cjs"
   },

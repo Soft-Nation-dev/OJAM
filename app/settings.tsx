@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { openPWAInstallGuide } from "@/components/ios-install-banner";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -65,6 +66,9 @@ const SettingItem = ({
       onPress={onPress}
       disabled={!onPress}
       activeOpacity={onPress ? 0.7 : 1}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel={title}
+      accessibilityHint={subtitle}
     >
       <View style={[styles.settingIcon, { backgroundColor: iconColor + "20" }]}>
         <MaterialIcons name={icon} size={22} color={iconColor} />
@@ -92,6 +96,58 @@ const SettingItem = ({
   );
 };
 
+async function getAllFilesSafe(dir: string): Promise<string[]> {
+  try {
+    const items = await FileSystem.readDirectoryAsync(dir);
+    let results: string[] = [];
+
+    for (const item of items) {
+      const path = dir + item;
+
+      try {
+        const info = await FileSystem.getInfoAsync(path);
+
+        if (!info.exists) continue;
+
+        if (info.isDirectory) {
+          results = results.concat(await getAllFilesSafe(path + "/"));
+        } else {
+          results.push(path);
+        }
+      } catch {
+        // Skip unreadable files instead of aborting the cache scan.
+      }
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+async function getCacheSizeMB() {
+  try {
+    const dir = FileSystem.cacheDirectory!;
+    const files = await getAllFilesSafe(dir);
+
+    const infos = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const info = await FileSystem.getInfoAsync(file);
+          return info.exists && info.size ? info.size : 0;
+        } catch {
+          return 0;
+        }
+      }),
+    );
+
+    const total = infos.reduce((sum, size) => sum + size, 0);
+    return (total / (1024 * 1024)).toFixed(2);
+  } catch {
+    return "-";
+  }
+}
+
 export default function SettingsScreen() {
   useFocusEffect(
     React.useCallback(() => {
@@ -99,30 +155,6 @@ export default function SettingsScreen() {
     }, []),
   );
   const [cacheSize, setCacheSize] = React.useState<string>("-");
-
-  async function getCacheSizeMB() {
-    try {
-      const dir = FileSystem.cacheDirectory!;
-      const files = await getAllFilesSafe(dir);
-
-      const infos = await Promise.all(
-        files.map(async (file) => {
-          try {
-            const info = await FileSystem.getInfoAsync(file);
-            return info.exists && info.size ? info.size : 0;
-          } catch {
-            return 0;
-          }
-        }),
-      );
-
-      const total = infos.reduce((sum, size) => sum + size, 0);
-
-      return (total / (1024 * 1024)).toFixed(2);
-    } catch {
-      return "-";
-    }
-  }
   const showToast = (
     message: string,
     type: "success" | "info" | "error" = "success",
@@ -204,35 +236,6 @@ export default function SettingsScreen() {
     return PROTECTED_PATTERNS.some((p) => path.includes(p));
   }
 
-  async function getAllFilesSafe(dir: string): Promise<string[]> {
-    try {
-      const items = await FileSystem.readDirectoryAsync(dir);
-      let results: string[] = [];
-
-      for (const item of items) {
-        const path = dir + item;
-
-        try {
-          const info = await FileSystem.getInfoAsync(path);
-
-          if (!info.exists) continue;
-
-          if (info.isDirectory) {
-            results = results.concat(await getAllFilesSafe(path + "/"));
-          } else {
-            results.push(path);
-          }
-        } catch {
-          // skip unreadable files (prevents crash)
-        }
-      }
-
-      return results;
-    } catch {
-      return [];
-    }
-  }
-
   const handleClearCache = async () => {
     return new Promise<void>((resolve) => {
       Alert.alert(
@@ -288,6 +291,18 @@ export default function SettingsScreen() {
   const handleCheckUpdates = async () => {
     const status = await checkForUpdates();
 
+    if (Platform.OS === "web") {
+      if (status.otaAvailable) {
+        const accepted = window.confirm(
+          "A new Ojam version is ready. Refresh now?",
+        );
+        if (accepted) void applyOtaUpdate();
+      } else {
+        window.alert("Ojam is up to date.");
+      }
+      return;
+    }
+
     if (status.storeUpdateAvailable) {
       Alert.alert(
         "Update available",
@@ -297,7 +312,9 @@ export default function SettingsScreen() {
           {
             text: "Update",
             onPress: () => {
-              void startStoreUpdate("flexible");
+              void startStoreUpdate(
+                status.storeUpdateRequired ? "immediate" : "flexible",
+              );
             },
           },
         ],
@@ -561,6 +578,15 @@ export default function SettingsScreen() {
             ABOUT
           </ThemedText>
           <View style={styles.sectionContent}>
+            {Platform.OS === "web" && (
+              <SettingItem
+                icon="install-mobile"
+                iconColor="#155eef"
+                title="Install Ojam"
+                subtitle="Add Ojam to your Home Screen"
+                onPress={openPWAInstallGuide}
+              />
+            )}
             <SettingItem
               icon="info"
               iconColor="#3b82f6"

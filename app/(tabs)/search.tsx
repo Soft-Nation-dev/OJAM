@@ -100,7 +100,7 @@ export default function SearchScreen() {
     () =>
       focusAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [Math.min(180, height * 0.18), 0],
+        outputRange: [Math.min(88, height * 0.09), 0],
       }),
     [focusAnim, height],
   );
@@ -108,17 +108,9 @@ export default function SearchScreen() {
     () =>
       focusAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [Math.min(360, height * 0.4), 160],
+        outputRange: [Math.min(440, Math.max(380, height * 0.5)), 160],
       }),
     [focusAnim, height],
-  );
-  const historyOpacity = useMemo(
-    () =>
-      focusAnim.interpolate({
-        inputRange: [0, 0.6, 1],
-        outputRange: [1, 0.2, 0],
-      }),
-    [focusAnim],
   );
 
   useEffect(() => {
@@ -143,12 +135,28 @@ export default function SearchScreen() {
   };
 
   const handleHistoryPress = (query: string) => {
-    setSearchQuery(query);
-    // Immediately save to history when a chip is clicked
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+      typingTimeout.current = null;
+    }
+    // A history tap executes the search immediately, like YouTube, instead of
+    // reopening the keyboard and hiding the result list.
+    setSearchQuery(query.trim());
     addToHistory(query);
-    handleSearch(query);
-    setIsInputFocused(true);
-    inputRef.current?.focus();
+    setIsInputFocused(false);
+    inputRef.current?.blur();
+    Keyboard.dismiss();
+  };
+
+  const handleClearSearch = () => {
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+      typingTimeout.current = null;
+    }
+    setSearchQuery("");
+    setIsInputFocused(false);
+    inputRef.current?.blur();
+    Keyboard.dismiss();
   };
 
   useFocusEffect(
@@ -251,7 +259,11 @@ export default function SearchScreen() {
               returnKeyType="search"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearch("")}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+                onPress={handleClearSearch}
+              >
                 <IconSymbol
                   name="xmark.circle.fill"
                   size={20}
@@ -261,10 +273,8 @@ export default function SearchScreen() {
             )}
           </View>
 
-          {searchQuery.length === 0 && (
-            <Animated.View
-              style={[styles.heroSection, { opacity: historyOpacity }]}
-            >
+          {searchQuery.length === 0 && !isInputFocused && (
+            <View style={styles.heroSection}>
               <View style={styles.sectionHeaderRow}>
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
                   Recent searches
@@ -296,6 +306,8 @@ export default function SearchScreen() {
                   {searchHistory.slice(0, 5).map((item, index) => (
                     <TouchableOpacity
                       key={`${item}-${index}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Search for ${item}`}
                       style={[
                         styles.historyChip,
                         {
@@ -320,7 +332,7 @@ export default function SearchScreen() {
                   ))}
                 </View>
               )}
-            </Animated.View>
+            </View>
           )}
         </Animated.View>
       </Animated.View>
@@ -330,6 +342,7 @@ export default function SearchScreen() {
         data={searchQuery.length > 0 ? filteredSermons : []}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           searchQuery.length > 0 && filteredSermons.length > 0 ? (
@@ -375,6 +388,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
     paddingHorizontal: 16,
     justifyContent: "flex-start",
+    overflow: "hidden",
   },
   heroBackground: {
     ...StyleSheet.absoluteFillObject,

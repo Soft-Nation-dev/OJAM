@@ -285,7 +285,12 @@ export default function SermonMenu({
 
   return (
     <View>
-      <TouchableOpacity onPress={() => setVisible(true)} hitSlop={10}>
+      <TouchableOpacity
+        onPress={() => setVisible(true)}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={`More actions for ${sermon.title || "message"}`}
+      >
         <MaterialIcons
           name="more-vert"
           size={26}

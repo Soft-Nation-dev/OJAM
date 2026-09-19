@@ -103,6 +103,12 @@ Example sermon structure:
 - Enable background audio playback
 - Add push notifications for new sermons
 
+## Releasing updates
+
+Run `npm run release:check` before every release. JavaScript/assets-only updates can be published with `npm run update:preview` or `npm run update:production`. Native dependency or configuration changes require a new Play Store build. Keep the Worker `/update-config` Play Store version aligned with the published store version.
+
+The production PWA is hosted at `https://ojam.com.ng`. GitHub Pages deployment also writes `dist/404.html` so direct app routes return the app shell.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:

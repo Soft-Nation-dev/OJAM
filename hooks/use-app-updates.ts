@@ -11,6 +11,7 @@ const initialState: UpdateState = {
   lastCheckedAt: null,
   otaAvailable: false,
   storeUpdateAvailable: false,
+  storeUpdateRequired: false,
   storeVersion: null,
 };
 
